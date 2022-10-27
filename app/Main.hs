@@ -1,8 +1,7 @@
 module Main (main) where
 
-import Control.Monad (join)
 import System.Environment (unsetEnv)
-import System.Plugins (LoadStatus (..), MakeStatus (..), load, make)
+import System.Plugins (LoadStatus (..), MakeStatus (..), Module, load, make, unload)
 
 makeVersion :: String -> IO FilePath
 makeVersion path = do
@@ -12,17 +11,13 @@ makeVersion path = do
     MakeFailure errors ->
       mapM_ putStrLn errors >> error ("Making " <> path <> " failed")
 
-loadAndRunVersion :: FilePath -> IO ()
+loadAndRunVersion :: FilePath -> IO Module
 loadAndRunVersion o = do
   status <- load o [] [] "main"
-  () <-
-    join
-      ( case status of
-          LoadSuccess _ v -> return v
-          LoadFailure errors ->
-            mapM_ putStrLn errors >> error ("Loading " <> show o <> " failed")
-      )
-  return ()
+  case status of
+    LoadSuccess m v -> v >> return m
+    LoadFailure errors ->
+      mapM_ putStrLn errors >> error ("Loading " <> show o <> " failed")
 
 main :: IO ()
 main = do
@@ -32,5 +27,7 @@ main = do
 
   o1 <- makeVersion "src/Program1.hs"
   o2 <- makeVersion "src/Program2.hs"
-  loadAndRunVersion o1
-  loadAndRunVersion o2
+  m <- loadAndRunVersion o1
+  unload m
+  _ <- loadAndRunVersion o2
+  return ()
