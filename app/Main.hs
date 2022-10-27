@@ -1,5 +1,6 @@
 module Main (main) where
 
+import Data.Dynamic
 import System.Environment (unsetEnv)
 import System.Plugins (LoadStatus (..), MakeStatus (..), Module, load, make, unload)
 
@@ -11,11 +12,13 @@ makeVersion path = do
     MakeFailure errors ->
       mapM_ putStrLn errors >> error ("Making " <> path <> " failed")
 
-loadAndRunVersion :: FilePath -> IO Module
-loadAndRunVersion o = do
+loadAndRunVersion :: FilePath -> Dynamic -> IO (Dynamic, Module)
+loadAndRunVersion o inputState = do
   status <- load o [] [] "main"
   case status of
-    LoadSuccess m v -> v >> return m
+    LoadSuccess m v -> do
+      outputState <- v inputState
+      return (outputState, m)
     LoadFailure errors ->
       mapM_ putStrLn errors >> error ("Loading " <> show o <> " failed")
 
@@ -27,7 +30,7 @@ main = do
 
   o1 <- makeVersion "src/Program1.hs"
   o2 <- makeVersion "src/Program2.hs"
-  m <- loadAndRunVersion o1
+  (nextWord, m) <- loadAndRunVersion o1 (toDyn ())
   unload m
-  _ <- loadAndRunVersion o2
+  _ <- loadAndRunVersion o2 nextWord
   return ()

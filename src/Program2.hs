@@ -3,5 +3,5 @@ module Program2
   )
 where
 
-main :: IO ()
-main = putStrLn "world"
+main :: String -> IO ()
+main = putStrLn
