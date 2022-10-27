@@ -3,5 +3,7 @@ module Program2
   )
 where
 
-main :: String -> IO ()
-main = putStrLn
+import Types
+
+main :: User -> IO ()
+main u = putStrLn $ username u

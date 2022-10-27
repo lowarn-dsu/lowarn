@@ -2,11 +2,11 @@ module Main (main) where
 
 import Data.Dynamic
 import System.Environment (unsetEnv)
-import System.Plugins (LoadStatus (..), MakeStatus (..), Module, load, make, unload)
+import System.Plugins (LoadStatus (..), MakeStatus (..), Module, load, makeAll, unload)
 
 makeVersion :: String -> IO FilePath
 makeVersion path = do
-  status <- make path []
+  status <- makeAll path []
   case status of
     MakeSuccess _ o -> return o
     MakeFailure errors ->
