@@ -23,6 +23,8 @@ dependencies:
 - base >= 4.7 && < 5
 - plugins >= 1.6
 - containers
+- ghc
+- ghc-paths
 
 ghc-options:
 - -Wall
@@ -34,6 +36,7 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
+- -dynamic
 
 library:
   source-dirs: src
