@@ -2,7 +2,8 @@ resolver:
   url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/18/28.yaml
 
 packages:
-- .
+- lowarn
+- programs
 
 extra-deps:
 - plugins-1.6.2.1@sha256:ee55aadd58c7dccad68875c5930b70633645fb4fe72f6f393b9f1db8af7e559e,2635

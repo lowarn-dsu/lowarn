@@ -1,6 +1,7 @@
 .stack-work/
 *~
 lowarn.cabal
+lowarn-programs.cabal
 
 *.o
 *.hi
