@@ -1,6 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
-module DynamicLinker (load) where
+module Lowarn.DynamicLinker (load) where
 
 import GHC hiding (load, moduleName, unitState)
 import GHC.Driver.Monad

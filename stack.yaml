@@ -2,4 +2,5 @@ resolver: lts-19.32
 
 packages:
 - lowarn
-- programs
+- programs/program1
+- programs/program2

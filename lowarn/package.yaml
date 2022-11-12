@@ -23,7 +23,6 @@ dependencies:
 - containers
 - ghc == 9.0.2
 - ghc-paths
-- lowarn-programs
 
 ghc-options:
 - -Wall

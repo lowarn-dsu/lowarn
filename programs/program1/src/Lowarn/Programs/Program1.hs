@@ -1,13 +1,20 @@
-module Program1
+module Lowarn.Programs.Program1
   ( program,
+    User (..),
   )
 where
 
+import Lowarn.Types (Program (Program))
 import System.IO (hFlush, stdout)
-import Types (Program (Program), User (..))
 
-program :: Program () [User]
-program = Program (\() -> eventLoop [])
+data User = User
+  { username :: String,
+    discriminator :: Int
+  }
+  deriving (Show)
+
+program :: Program () [User] ()
+program = Program (\() -> eventLoop []) (\_ -> ())
 
 eventLoop :: [User] -> IO [User]
 eventLoop users = do
