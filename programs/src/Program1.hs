@@ -1,17 +1,17 @@
 module Program1
-  ( main1,
+  ( program,
   )
 where
 
 import qualified Control.Monad
 import System.IO (hFlush, stdout)
-import Types
+import Types (Program (Program), User (..))
 
-main1 :: Program
-main1 = Program (\() -> Control.Monad.void (eventLoop1 []))
+program :: Program
+program = Program (\() -> Control.Monad.void (eventLoop []))
 
-eventLoop1 :: [User] -> IO [User]
-eventLoop1 users = do
+eventLoop :: [User] -> IO [User]
+eventLoop users = do
   putStrLn "Users:"
   mapM_ print users
   putStr "Add user or exit: "
@@ -21,4 +21,4 @@ eventLoop1 users = do
     then return users
     else do
       let user = User input 1234
-      eventLoop1 $ user : users
+      eventLoop $ user : users

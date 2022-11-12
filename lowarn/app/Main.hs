@@ -1,19 +1,21 @@
 module Main (main) where
 
 import DynamicLinker (load)
+import Types (Program (..))
 
-loadVersion :: String -> String -> IO Int
-loadVersion module_ symbol = do
-  status <- load module_ symbol
+loadProgram :: String -> IO a
+loadProgram moduleName = do
+  status <- load moduleName "program"
   case status of
     Just v -> do
       return v
     Nothing ->
-      error ("Loading " <> module_ <> " failed")
+      error ("Loading " <> moduleName <> " failed")
 
 main :: IO ()
 main = do
-  v <- loadVersion "ValueProgram" "valueOfProgram"
-  putStrLn "Loading program complete."
-  print v
-  putStrLn "Program complete."
+  Program main1 <- loadProgram "Program1"
+  () <- main1 ()
+  Program main2 <- loadProgram "Program2"
+  () <- main2 ()
+  return ()

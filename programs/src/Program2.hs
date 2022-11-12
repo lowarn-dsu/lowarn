@@ -1,18 +1,18 @@
 module Program2
-  ( main2,
+  ( program,
   )
 where
 
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 import System.IO (hFlush, stdout)
-import Types
+import Types (Program (Program), User (..))
 
-main2 :: Program
-main2 = Program (\() -> eventLoop2 Seq.empty)
+program :: Program
+program = Program (\() -> eventLoop Seq.empty)
 
-eventLoop2 :: Seq User -> IO ()
-eventLoop2 users = do
+eventLoop :: Seq User -> IO ()
+eventLoop users = do
   putStrLn "Users:"
   mapM_ print users
   putStr "Add user or exit: "
@@ -22,4 +22,4 @@ eventLoop2 users = do
     then return ()
     else do
       let user = User input 1234
-      eventLoop2 $ user Seq.<| users
+      eventLoop $ user Seq.<| users
