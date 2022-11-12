@@ -4,6 +4,6 @@
 module Lowarn.Types (Program (..)) where
 
 data Program a b c = Program
-  { program :: a -> IO b,
-    transformer :: c -> a
+  { _program :: a -> IO b,
+    _transformer :: c -> IO a
   }

@@ -4,27 +4,29 @@ module Lowarn.Programs.Program1
   )
 where
 
-import Lowarn.Types (Program (Program))
+import Lowarn.Types (Program (..))
 import System.IO (hFlush, stdout)
 
-data User = User
-  { username :: String,
-    discriminator :: Int
+newtype User = User
+  { _username :: String
   }
-  deriving (Show)
+
+instance Show User where
+  show (User username) = username
 
 program :: Program () [User] ()
-program = Program (\() -> eventLoop []) (\_ -> ())
+program = Program (\() -> eventLoop []) (\() -> return ())
 
 eventLoop :: [User] -> IO [User]
 eventLoop users = do
   putStrLn "Users:"
   mapM_ print users
-  putStr "Add user or exit: "
+  putStrLn "------"
+  putStr "Username or exit: "
   hFlush stdout
   input <- getLine
   if input == "exit"
-    then return users
+    then putStrLn "------" >> return users
     else do
-      let user = User input 1234
+      let user = User input
       eventLoop $ user : users

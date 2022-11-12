@@ -4,12 +4,11 @@ import Lowarn.DynamicLinker (load)
 import Lowarn.Types (Program (..))
 
 loadProgram :: String -> a -> IO b
-loadProgram moduleName oldState = do
+loadProgram moduleName state = do
   status <- load moduleName "program"
   case status of
-    Just (Program p t) -> do
-      let newState = t oldState
-      p newState
+    Just (Program program transformer) ->
+      program =<< transformer state
     Nothing ->
       error ("Loading " <> moduleName <> " failed")
 
