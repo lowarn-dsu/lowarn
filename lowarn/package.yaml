@@ -20,9 +20,8 @@ description:         Please see the README on GitHub at <https://github.com/jona
 
 dependencies:
 - base >= 4.7 && < 5
-- plugins >= 1.6
 - containers
-- ghc
+- ghc == 9.0.2
 - ghc-paths
 
 ghc-options:

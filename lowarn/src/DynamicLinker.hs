@@ -2,93 +2,59 @@
 
 module DynamicLinker (load) where
 
--- import BasicTypes (SuccessFlag (..))
-import DynFlags (DynFlags, Way (WayDyn), defaultFatalMessager, defaultFlushOut, ways)
--- import FastString (mkFastString)
-import GHC (defaultErrorHandler, getSession, getSessionDynFlags, mkModule, mkModuleName, runGhc, setSessionDynFlags)
+import GHC hiding (load, moduleName, unitState)
+import GHC.Driver.Monad
+import GHC.Driver.Session hiding (unitState)
+import qualified GHC.Driver.Session as Session
+import GHC.Driver.Ways
 import GHC.Paths (libdir)
--- import GHCi (addLibrarySearchPath, initObjLinker, loadObj, lookupSymbol, resolveObjs)
-import GhcMonad (liftIO)
-import HscTypes (HscEnv (hsc_dynLinker))
-import Linker (getHValue, initDynLinker, linkModule, linkPackages, showLinkerState)
-import Module (UnitId, toInstalledUnitId)
-import Name (mkExternalName)
-import OccName (mkVarOcc)
-import PackageConfig (PackageName (PackageName), packageConfigId)
-import qualified PackageConfig
-import Packages (lookupModuleInAllPackages)
-import SrcLoc (noSrcSpan)
-import Unique (mkBuiltinUnique)
+import GHC.Runtime.Interpreter
+import GHC.Runtime.Linker
+import GHC.Types.Name
+import GHC.Types.Unique
+import GHC.Unit hiding (moduleName)
+import qualified GHC.Unit as Unit
 import Unsafe.Coerce (unsafeCoerce)
 
 load ::
   String ->
   String ->
   IO (Maybe a)
-load moduleName symbol = do
+load moduleName' symbol = do
   defaultErrorHandler defaultFatalMessager defaultFlushOut $
     runGhc (Just libdir) $ do
-      -- session <- getSession
-      -- liftIO $ do
-      --   initObjLinker session
-      --   _ <- addLibrarySearchPath session "/home/jonathan/Code/lowarn/programs/.stack-work/dist/x86_64-linux/Cabal-3.2.1.0/build"
-      --   loadObj session "/home/jonathan/Code/lowarn/programs/.stack-work/dist/x86_64-linux/Cabal-3.2.1.0/build/ValueProgram.o"
-      --   success <- resolveObjs session
-      --   case success of
-      --     Succeeded -> putStrLn "succeeded"
-      --     Failed -> putStrLn "failed"
-      --   ptr <- lookupSymbol session (mkFastString symbol)
-      --   print ptr
-      --   return ()
-
-      initialFlags <- getSessionDynFlags
-      let waysCorrectedFlags = initialFlags {ways = [WayDyn]}
-      _linkerPackages <- setSessionDynFlags waysCorrectedFlags
+      flags' <- getSessionDynFlags
+      _ <- setSessionDynFlags $ addWay' WayDyn $ flags' {ghcMode = CompManager, ghcLink = LinkDynLib}
       flags <- getSessionDynFlags
 
-      liftIO (lookupUnitId flags moduleName) >>= \case
+      session <- getSession
+      liftIO $ initDynLinker session
+
+      let moduleName = mkModuleName moduleName'
+
+      liftIO (lookupUnitInfo flags moduleName) >>= \case
         Nothing -> return Nothing
-        Just unitId -> do
-          session <- getSession
+        Just unitInfo -> do
+          liftIO $ linkPackages session [Unit.unitId unitInfo]
 
-          liftIO $ linkPackages session [toInstalledUnitId unitId]
-          liftIO $ putStrLn "linked package"
+          let unit = mkUnit unitInfo
+          let module_ = mkModule unit moduleName
+          let name = mkExternalName (mkBuiltinUnique 0) module_ (mkVarOcc symbol) noSrcSpan
 
-          let module_ =
-                mkModule
-                  unitId
-                  (mkModuleName moduleName)
-
-          liftIO $ initDynLinker session
-          liftIO $ print $ ways flags
-
-          liftIO $ linkModule session module_
-
-          let name =
-                mkExternalName
-                  (mkBuiltinUnique 0)
-                  module_
-                  (mkVarOcc symbol)
-                  noSrcSpan
-
-          value <- liftIO $ getHValue session name
-
-          let linker = hsc_dynLinker session
-          liftIO $ showLinkerState linker flags
-
+          value <- liftIO $ withInterp session $ \interp -> getHValue session name >>= wormhole interp
           return $ Just $ unsafeCoerce value
 
-lookupUnitId :: DynFlags -> String -> IO (Maybe UnitId)
-lookupUnitId flags moduleName = do
-  print $ map (\(_, packageConfig) -> let (PackageName s) = PackageConfig.packageName packageConfig in s) modulesAndPackages
+lookupUnitInfo :: DynFlags -> ModuleName -> IO (Maybe UnitInfo)
+lookupUnitInfo flags moduleName = do
   case exposedModulesAndPackages of
     [] -> do
-      putStrLn $ "Can't find module " <> show moduleName
+      putStrLn $ "Can't find module " <> moduleNameString moduleName
       return Nothing
-    (_, packageConfig) : _ ->
-      return $ Just $ packageConfigId packageConfig
+    (_, unitInfo) : _ ->
+      return $ Just unitInfo
   where
+    unitState = Session.unitState flags
     modulesAndPackages =
-      lookupModuleInAllPackages flags (mkModuleName moduleName)
+      lookupModuleInAllUnits unitState moduleName
     exposedModulesAndPackages =
-      filter (\(_, packageConfig) -> PackageConfig.exposed packageConfig) modulesAndPackages
+      filter (unitIsExposed . snd) modulesAndPackages
