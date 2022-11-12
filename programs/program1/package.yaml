@@ -1,0 +1,29 @@
+name:                lowarn-programs-program1
+version:             0.1.0.0
+github:              "jonathanjameswatson/lowarn"
+license:             BSD3
+author:              "Jonathan Watson"
+maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
+copyright:           "2022 Jonathan Watson"
+
+description:         Lowarn demo program 1
+
+dependencies:
+- base >= 4.7 && < 5
+- lowarn
+- containers
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+- -dynamic
+
+library:
+  source-dirs: src

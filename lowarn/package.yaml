@@ -8,7 +8,6 @@ copyright:           "2022 Jonathan Watson"
 
 extra-source-files:
 - README.md
-- CHANGELOG.md
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
@@ -21,6 +20,9 @@ description:         Please see the README on GitHub at <https://github.com/jona
 
 dependencies:
 - base >= 4.7 && < 5
+- containers
+- ghc == 9.0.2
+- ghc-paths
 
 ghc-options:
 - -Wall
@@ -32,6 +34,7 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
+- -dynamic
 
 library:
   source-dirs: src
