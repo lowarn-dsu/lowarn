@@ -1,7 +1,9 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Lowarn.DynamicLinker (load) where
+module Lowarn.DynamicLinker (LinkerMonad, runLinkerMonad, load, liftIO) where
 
+import Control.Monad.IO.Class (MonadIO)
 import GHC hiding (load, moduleName, unitState)
 import GHC.Driver.Monad
 import GHC.Driver.Session hiding (unitState)
@@ -13,42 +15,57 @@ import GHC.Runtime.Linker
 import GHC.Types.Name
 import GHC.Types.Unique
 import GHC.Unit hiding (moduleName)
-import qualified GHC.Unit as Unit
 import Unsafe.Coerce (unsafeCoerce)
+
+newtype LinkerMonad a = LinkerMonad (Ghc a)
+  deriving (Functor, Applicative, Monad, MonadIO)
+
+runLinkerMonad :: LinkerMonad a -> IO a
+runLinkerMonad (LinkerMonad ghc) =
+  defaultErrorHandler defaultFatalMessager defaultFlushOut $
+    runGhc (Just libdir) $ do
+      flags <- getSessionDynFlags
+      _ <-
+        setSessionDynFlags $
+          addWay' WayDyn $
+            flags {ghcMode = CompManager, ghcLink = LinkDynLib}
+      liftIO . initDynLinker =<< getSession
+      ghc
 
 load ::
   String ->
   String ->
-  IO (Maybe a)
-load moduleName' symbol = do
-  defaultErrorHandler defaultFatalMessager defaultFlushOut $
-    runGhc (Just libdir) $ do
-      flags' <- getSessionDynFlags
-      _ <- setSessionDynFlags $ addWay' WayDyn $ flags' {ghcMode = CompManager, ghcLink = LinkDynLib}
-      flags <- getSessionDynFlags
+  LinkerMonad (Maybe a)
+load moduleName' symbol = LinkerMonad $ do
+  flags <- getSessionDynFlags
+  session <- getSession
 
-      session <- getSession
-      liftIO $ initDynLinker session
+  let moduleName = mkModuleName moduleName'
 
-      let moduleName = mkModuleName moduleName'
+  liftIO (lookupUnitInfo flags moduleName) >>= \case
+    Nothing -> return Nothing
+    Just unitInfo -> liftIO $ do
+      let unit = mkUnit unitInfo
+      let module_ = mkModule unit moduleName
+      let name =
+            mkExternalName
+              (mkBuiltinUnique 0)
+              module_
+              (mkVarOcc symbol)
+              noSrcSpan
 
-      liftIO (lookupUnitInfo flags moduleName) >>= \case
-        Nothing -> return Nothing
-        Just unitInfo -> do
-          liftIO $ linkPackages session [Unit.unitId unitInfo]
+      linkModule session module_
 
-          let unit = mkUnit unitInfo
-          let module_ = mkModule unit moduleName
-          let name = mkExternalName (mkBuiltinUnique 0) module_ (mkVarOcc symbol) noSrcSpan
-
-          value <- liftIO $ withInterp session $ \interp -> getHValue session name >>= wormhole interp
-          return $ Just $ unsafeCoerce value
+      value <- withInterp session $
+        \interp -> getHValue session name >>= wormhole interp
+      return $ Just $ unsafeCoerce value
 
 lookupUnitInfo :: DynFlags -> ModuleName -> IO (Maybe UnitInfo)
 lookupUnitInfo flags moduleName = do
   case exposedModulesAndPackages of
     [] -> do
-      putStrLn $ "Can't find module " <> moduleNameString moduleName
+      putStrLn $
+        "Can't find module " <> moduleNameString moduleName
       return Nothing
     (_, unitInfo) : _ ->
       return $ Just unitInfo
