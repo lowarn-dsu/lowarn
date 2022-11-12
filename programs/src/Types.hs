@@ -14,10 +14,10 @@ data User = User
   }
   deriving (Show, Typeable)
 
-data Program = Program
-  { program :: () -> IO ()
+data Program a b = Program
+  { program :: a -> IO b
   }
   deriving (Typeable)
 
-defaultProgram :: Program
+defaultProgram :: Program () ()
 defaultProgram = Program {program = \() -> return ()}

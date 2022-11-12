@@ -1,21 +1,23 @@
 module Main (main) where
 
+import qualified Data.Sequence as Seq
 import DynamicLinker (load)
 import Types (Program (..))
 
-loadProgram :: String -> IO a
+loadProgram :: String -> IO (a -> IO b)
 loadProgram moduleName = do
   status <- load moduleName "program"
   case status of
-    Just v -> do
-      return v
+    Just (Program p) -> do
+      return p
     Nothing ->
       error ("Loading " <> moduleName <> " failed")
 
 main :: IO ()
 main = do
-  Program main1 <- loadProgram "Program1"
-  () <- main1 ()
-  Program main2 <- loadProgram "Program2"
-  () <- main2 ()
+  program1 <- loadProgram "Program1"
+  users <- program1 ()
+  let users' = Seq.fromList users
+  program2 <- loadProgram "Program2"
+  () <- program2 users'
   return ()

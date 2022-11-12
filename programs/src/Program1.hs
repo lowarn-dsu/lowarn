@@ -3,12 +3,11 @@ module Program1
   )
 where
 
-import qualified Control.Monad
 import System.IO (hFlush, stdout)
 import Types (Program (Program), User (..))
 
-program :: Program
-program = Program (\() -> Control.Monad.void (eventLoop []))
+program :: Program () [User]
+program = Program (\() -> eventLoop [])
 
 eventLoop :: [User] -> IO [User]
 eventLoop users = do

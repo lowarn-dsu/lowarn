@@ -8,8 +8,8 @@ import qualified Data.Sequence as Seq
 import System.IO (hFlush, stdout)
 import Types (Program (Program), User (..))
 
-program :: Program
-program = Program (\() -> eventLoop Seq.empty)
+program :: Program (Seq User) ()
+program = Program eventLoop
 
 eventLoop :: Seq User -> IO ()
 eventLoop users = do
