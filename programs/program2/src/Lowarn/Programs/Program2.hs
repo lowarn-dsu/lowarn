@@ -1,8 +1,4 @@
-module Lowarn.Programs.Program2
-  ( program,
-    User (..),
-  )
-where
+module Lowarn.Programs.Program2 (program, User (..)) where
 
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
@@ -23,7 +19,11 @@ instance Show User where
 
 transformer :: [Program1.User] -> IO (Seq User)
 transformer =
-  fmap Seq.fromList . mapM (\(Program1.User username) -> User username . fst . randomR (1, 9999) <$> newStdGen)
+  fmap Seq.fromList
+    . mapM
+      ( \(Program1.User username) ->
+          User username . fst . randomR (1, 9999) <$> newStdGen
+      )
 
 program :: Program (Seq User) () [Program1.User]
 program = Program eventLoop transformer
@@ -53,4 +53,5 @@ eventLoop users = do
           | otherwise -> discriminatorError
         Nothing -> discriminatorError
       where
-        discriminatorError = putStrLn "Invalid discriminator, try again." >> getDiscriminator
+        discriminatorError =
+          putStrLn "Invalid discriminator, try again." >> getDiscriminator

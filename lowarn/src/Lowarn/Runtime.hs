@@ -1,6 +1,12 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Lowarn.Runtime (RuntimeMonad, runRuntimeMonad, loadProgram, liftLinkerMonad) where
+module Lowarn.Runtime
+  ( RuntimeMonad,
+    runRuntimeMonad,
+    loadProgram,
+    liftLinkerMonad,
+  )
+where
 
 import Control.Monad.IO.Class (MonadIO)
 import Lowarn.DynamicLinker (LinkerMonad, liftIO, load, runLinkerMonad)
@@ -12,6 +18,7 @@ newtype RuntimeMonad a = RuntimeMonad (LinkerMonad a)
 runRuntimeMonad :: RuntimeMonad a -> IO a
 runRuntimeMonad (RuntimeMonad linker) =
   runLinkerMonad $ do
+    -- Set up signal listening here.
     linker
 
 loadProgram :: String -> a -> RuntimeMonad b

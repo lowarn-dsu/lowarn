@@ -1,7 +1,13 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Lowarn.DynamicLinker (LinkerMonad, runLinkerMonad, load, liftIO) where
+module Lowarn.DynamicLinker
+  ( LinkerMonad,
+    runLinkerMonad,
+    load,
+    liftIO,
+  )
+where
 
 import Control.Monad.IO.Class (MonadIO)
 import GHC hiding (load, moduleName, unitState)
@@ -64,14 +70,10 @@ lookupUnitInfo :: DynFlags -> ModuleName -> IO (Maybe UnitInfo)
 lookupUnitInfo flags moduleName = do
   case exposedModulesAndPackages of
     [] -> do
-      putStrLn $
-        "Can't find module " <> moduleNameString moduleName
+      putStrLn $ "Can't find module " <> moduleNameString moduleName
       return Nothing
-    (_, unitInfo) : _ ->
-      return $ Just unitInfo
+    (_, unitInfo) : _ -> return $ Just unitInfo
   where
     unitState = Session.unitState flags
-    modulesAndPackages =
-      lookupModuleInAllUnits unitState moduleName
-    exposedModulesAndPackages =
-      filter (unitIsExposed . snd) modulesAndPackages
+    modulesAndPackages = lookupModuleInAllUnits unitState moduleName
+    exposedModulesAndPackages = filter (unitIsExposed . snd) modulesAndPackages

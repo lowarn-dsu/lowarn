@@ -1,8 +1,4 @@
-module Lowarn.Programs.Program1
-  ( program,
-    User (..),
-  )
-where
+module Lowarn.Programs.Program1 (program, User (..)) where
 
 import Lowarn.Types (Program (..))
 import System.IO (hFlush, stdout)
