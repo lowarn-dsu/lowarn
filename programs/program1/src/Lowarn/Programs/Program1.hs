@@ -1,6 +1,11 @@
 module Lowarn.Programs.Program1 (program, User (..)) where
 
-import Lowarn.Types (Program (..))
+import Lowarn (isUpdateAvailable)
+import Lowarn.Types
+  ( Program (..),
+    RuntimeData (..),
+    UpdateInfo (..),
+  )
 import System.IO (hFlush, stdout)
 
 newtype User = User
@@ -10,19 +15,24 @@ newtype User = User
 instance Show User where
   show (User username) = username
 
-program :: Program () [User] ()
-program = Program (\() -> eventLoop []) (\() -> return ())
+program :: Program [User] ()
+program =
+  Program
+    ( \runtimeData ->
+        eventLoop runtimeData $ maybe [] _lastState $ _updateInfo runtimeData
+    )
+    (const $ return Nothing)
 
-eventLoop :: [User] -> IO [User]
-eventLoop users = do
-  putStrLn "Users:"
-  mapM_ print users
-  putStrLn "------"
-  putStr "Username or exit: "
-  hFlush stdout
-  input <- getLine
-  if input == "exit"
-    then putStrLn "------" >> return users
-    else do
-      let user = User input
-      eventLoop $ user : users
+eventLoop :: RuntimeData a -> [User] -> IO [User]
+eventLoop runtimeData users = do
+  continue <- isUpdateAvailable runtimeData
+  if not continue
+    then do
+      putStrLn "Users:"
+      mapM_ print users
+      putStrLn "------"
+      putStr "Username: "
+      hFlush stdout
+      user <- User <$> getLine
+      eventLoop runtimeData $ user : users
+    else return users
