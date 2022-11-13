@@ -1,3 +1,5 @@
+{-# LANGUAGE DerivingVia #-}
+
 module Lowarn.Runtime
   ( Runtime,
     RuntimeData,
@@ -11,6 +13,7 @@ where
 import Control.Concurrent (newEmptyMVar, tryPutMVar)
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Lowarn.DynamicLinker (Linker, liftIO, load, runLinker)
 import Lowarn.Types
   ( Program (..),
@@ -20,55 +23,37 @@ import Lowarn.Types
   )
 import System.Posix.Signals (Handler (Catch), installHandler, sigUSR2)
 
-newtype Runtime a = Runtime (UpdateSignal -> Linker a)
-
-instance Functor Runtime where
-  fmap f (Runtime linkerReader) = Runtime $ fmap f . linkerReader
-
-instance Applicative Runtime where
-  pure = Runtime . const . pure
-  (Runtime linkerReader1) <*> (Runtime linkerReader2) =
-    Runtime $ \updateSignal ->
-      linkerReader1 updateSignal <*> linkerReader2 updateSignal
-
-instance Monad Runtime where
-  (Runtime linkerReader1) >>= f =
-    Runtime $ \updateSignal -> do
-      linker1 <- linkerReader1 updateSignal
-      let (Runtime linkerReader2) = f linker1
-      linkerReader2 updateSignal
-
-instance MonadIO Runtime where
-  liftIO = Runtime . const . liftIO
+newtype Runtime a = Runtime (ReaderT UpdateSignal IO a)
+  deriving (Functor, Applicative, Monad, MonadIO) via (ReaderT UpdateSignal IO)
 
 runRuntime :: Runtime a -> IO a
-runRuntime (Runtime linkerReader) = do
-  updateSignal <- liftIO newEmptyMVar
+runRuntime (Runtime reader) = do
+  updateSignal <- newEmptyMVar
   previousSignalHandler <-
-    liftIO $
-      installHandler
-        sigUSR2
-        (Catch (void $ tryPutMVar updateSignal ()))
-        Nothing
-  output <- runLinker . linkerReader $ UpdateSignal updateSignal
+    installHandler
+      sigUSR2
+      (Catch (void $ tryPutMVar updateSignal ()))
+      Nothing
+  output <- runReaderT reader $ UpdateSignal updateSignal
   _ <-
     liftIO $
       installHandler sigUSR2 previousSignalHandler Nothing
   return output
 
 loadProgram :: String -> a -> Runtime b
-loadProgram moduleName lastState = Runtime $
-  \updateSignal -> do
-    status <- load moduleName "program"
-    case status of
-      Just (Program program transformer) -> do
-        maybeNewState <- liftIO $ transformer lastState
-        let updateInfo = case maybeNewState of
-              Just newState -> Just $ UpdateInfo Nothing newState
-              Nothing -> Nothing
-        liftIO $ program $ RuntimeData updateSignal updateInfo
-      Nothing ->
-        error ("Loading " <> moduleName <> " failed")
+loadProgram moduleName lastState = Runtime $ do
+  updateSignal <- ask
+  liftIO $
+    runLinker (load moduleName "program")
+      >>= maybe
+        (error ("Loading " <> moduleName <> " failed"))
+        ( \(Program program transformer) -> do
+            maybeNewState <- transformer lastState
+            let updateInfo = case maybeNewState of
+                  Just newState -> Just $ UpdateInfo Nothing newState
+                  Nothing -> Nothing
+            program $ RuntimeData updateSignal updateInfo
+        )
 
 liftLinker :: Linker a -> Runtime a
-liftLinker = Runtime . const
+liftLinker = Runtime . liftIO . runLinker
