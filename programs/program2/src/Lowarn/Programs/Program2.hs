@@ -3,7 +3,7 @@ module Lowarn.Programs.Program2 (program, User (..)) where
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 import qualified Lowarn.Programs.Program1 as Program1
-import Lowarn.Types (Program (..))
+import Lowarn.Types (Program (..), RuntimeData (..), UpdateInfo (..))
 import System.IO (hFlush, stdout)
 import System.Random (newStdGen, randomR)
 import Text.Printf (printf)
@@ -17,18 +17,23 @@ data User = User
 instance Show User where
   show (User username discriminator) = printf "%s#%04d" username discriminator
 
-transformer :: [Program1.User] -> IO (Seq User)
+transformer :: [Program1.User] -> IO (Maybe (Seq User))
 transformer =
-  fmap Seq.fromList
+  fmap (Just . Seq.fromList)
     . mapM
       ( \(Program1.User username) ->
           User username . fst . randomR (1, 9999) <$> newStdGen
       )
 
-program :: Program (Seq User) () [Program1.User]
-program = Program eventLoop transformer
+program :: Program (Seq User) [Program1.User]
+program =
+  Program
+    ( \(RuntimeData _ maybeUpdateData) ->
+        eventLoop $ maybe Seq.empty _lastState maybeUpdateData
+    )
+    transformer
 
-eventLoop :: Seq User -> IO ()
+eventLoop :: Seq User -> IO (Seq User)
 eventLoop users = do
   putStrLn "Users:"
   mapM_ print users

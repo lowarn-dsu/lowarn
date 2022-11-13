@@ -1,9 +1,9 @@
 module Main (main) where
 
-import Lowarn.Runtime (loadProgram, runRuntimeMonad)
+import Lowarn.Runtime (loadProgram, runRuntime)
 
 main :: IO ()
-main = runRuntimeMonad $ do
+main = runRuntime $ do
   users <- loadProgram "Lowarn.Programs.Program1" ()
   () <- loadProgram "Lowarn.Programs.Program2" users
   return ()

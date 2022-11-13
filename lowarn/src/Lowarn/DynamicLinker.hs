@@ -1,9 +1,9 @@
+{-# LANGUAGE DerivingVia #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE LambdaCase #-}
 
 module Lowarn.DynamicLinker
-  ( LinkerMonad,
-    runLinkerMonad,
+  ( Linker,
+    runLinker,
     load,
     liftIO,
   )
@@ -23,11 +23,11 @@ import GHC.Types.Unique
 import GHC.Unit hiding (moduleName)
 import Unsafe.Coerce (unsafeCoerce)
 
-newtype LinkerMonad a = LinkerMonad (Ghc a)
+newtype Linker a = Linker (Ghc a)
   deriving (Functor, Applicative, Monad, MonadIO)
 
-runLinkerMonad :: LinkerMonad a -> IO a
-runLinkerMonad (LinkerMonad ghc) =
+runLinker :: Linker a -> IO a
+runLinker (Linker ghc) =
   defaultErrorHandler defaultFatalMessager defaultFlushOut $
     runGhc (Just libdir) $ do
       flags <- getSessionDynFlags
@@ -41,30 +41,32 @@ runLinkerMonad (LinkerMonad ghc) =
 load ::
   String ->
   String ->
-  LinkerMonad (Maybe a)
-load moduleName' symbol = LinkerMonad $ do
+  Linker (Maybe a)
+load moduleName' symbol = Linker $ do
   flags <- getSessionDynFlags
   session <- getSession
 
   let moduleName = mkModuleName moduleName'
 
-  liftIO (lookupUnitInfo flags moduleName) >>= \case
-    Nothing -> return Nothing
-    Just unitInfo -> liftIO $ do
-      let unit = mkUnit unitInfo
-      let module_ = mkModule unit moduleName
-      let name =
-            mkExternalName
-              (mkBuiltinUnique 0)
-              module_
-              (mkVarOcc symbol)
-              noSrcSpan
+  liftIO (lookupUnitInfo flags moduleName)
+    >>= maybe
+      (return Nothing)
+      ( \unitInfo -> liftIO $ do
+          let unit = mkUnit unitInfo
+          let module_ = mkModule unit moduleName
+          let name =
+                mkExternalName
+                  (mkBuiltinUnique 0)
+                  module_
+                  (mkVarOcc symbol)
+                  noSrcSpan
 
-      linkModule session module_
+          linkModule session module_
 
-      value <- withInterp session $
-        \interp -> getHValue session name >>= wormhole interp
-      return $ Just $ unsafeCoerce value
+          value <- withInterp session $
+            \interp -> getHValue session name >>= wormhole interp
+          return $ Just $ unsafeCoerce value
+      )
 
 lookupUnitInfo :: DynFlags -> ModuleName -> IO (Maybe UnitInfo)
 lookupUnitInfo flags moduleName = do
