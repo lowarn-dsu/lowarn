@@ -2,12 +2,13 @@ module Lowarn.Programs.Program2 (program, User (..)) where
 
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
+import Lowarn (isUpdateAvailable)
 import qualified Lowarn.Programs.Program1 as Program1
 import Lowarn.Types (Program (..), RuntimeData (..), UpdateInfo (..))
 import System.IO (hFlush, stdout)
 import System.Random (newStdGen, randomR)
 import Text.Printf (printf)
-import Text.Read (readMaybe)
+import Text.Regex.TDFA
 
 data User = User
   { _username :: String,
@@ -28,20 +29,25 @@ transformer =
 program :: Program (Seq User) [Program1.User]
 program =
   Program
-    ( \(RuntimeData _ maybeUpdateData) ->
-        eventLoop $ maybe Seq.empty _lastState maybeUpdateData
+    ( \runtimeData ->
+        eventLoop runtimeData $
+          maybe Seq.empty _lastState (_updateInfo runtimeData)
     )
     transformer
 
-eventLoop :: Seq User -> IO (Seq User)
-eventLoop users = do
-  putStrLn "Users:"
-  mapM_ print users
-  putStrLn "------"
-  username <- getInput "Username"
-  discriminator <- getDiscriminator
-  let user = User username discriminator
-  eventLoop $ user Seq.<| users
+eventLoop :: RuntimeData a -> Seq User -> IO (Seq User)
+eventLoop runtimeData users = do
+  continue <- isUpdateAvailable runtimeData
+  if not continue
+    then do
+      putStrLn "Users:"
+      mapM_ print users
+      putStrLn "------"
+      username <- getUsername
+      discriminator <- getDiscriminator
+      let user = User username discriminator
+      eventLoop runtimeData $ user Seq.<| users
+    else return users
   where
     getInput :: String -> IO String
     getInput field = do
@@ -49,14 +55,16 @@ eventLoop users = do
       hFlush stdout
       getLine
 
+    getUsername :: IO String
+    getUsername = do
+      username <- getInput "Username"
+      if username =~ "\\`[a-zA-Z]+\\'"
+        then return username
+        else putStrLn "Invalid username, try again." >> getUsername
+
     getDiscriminator :: IO Int
     getDiscriminator = do
-      maybeDiscriminator <- getInput "Discriminator"
-      case readMaybe maybeDiscriminator of
-        Just discriminator
-          | discriminator >= 0 && discriminator <= 9999 -> return discriminator
-          | otherwise -> discriminatorError
-        Nothing -> discriminatorError
-      where
-        discriminatorError =
-          putStrLn "Invalid discriminator, try again." >> getDiscriminator
+      discriminator <- getInput "Discriminator"
+      if discriminator =~ "\\`[0-9]{4}\\'"
+        then return $ read discriminator
+        else putStrLn "Invalid discriminator, try again." >> getDiscriminator
