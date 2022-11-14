@@ -13,6 +13,7 @@ dependencies:
 - lowarn
 - containers
 - random
+- regex-tdfa ^>= 1.3.2
 - lowarn-programs-program1
 
 ghc-options:
