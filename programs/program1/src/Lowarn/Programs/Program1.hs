@@ -1,4 +1,4 @@
-module Lowarn.Programs.Program1 (program, User (..)) where
+module Lowarn.Programs.Program1 (program, User (..), State (..)) where
 
 import Lowarn (isUpdateAvailable)
 import Lowarn.Types
@@ -6,7 +6,16 @@ import Lowarn.Types
     RuntimeData (..),
     UpdateInfo (..),
   )
-import System.IO (hFlush, stdout)
+import System.IO
+  ( Handle,
+    hFlush,
+    hGetLine,
+    hPrint,
+    hPutStr,
+    hPutStrLn,
+    stdin,
+    stdout,
+  )
 import Text.Regex.TDFA
 
 newtype User = User
@@ -16,31 +25,38 @@ newtype User = User
 instance Show User where
   show (User username) = username
 
-program :: Program [User] ()
+data State = State
+  { _users :: [User],
+    _in :: Handle,
+    _out :: Handle
+  }
+
+program :: Program State (Handle, Handle)
 program =
   Program
     ( \runtimeData ->
-        eventLoop runtimeData $ maybe [] _lastState (_updateInfo runtimeData)
+        eventLoop runtimeData $
+          maybe (State [] stdin stdout) _lastState (_updateInfo runtimeData)
     )
-    (const $ return Nothing)
+    (\(in_, out) -> return $ Just $ State [] in_ out)
 
-eventLoop :: RuntimeData a -> [User] -> IO [User]
-eventLoop runtimeData users = do
+eventLoop :: RuntimeData a -> State -> IO State
+eventLoop runtimeData state@(State users in_ out) = do
   continue <- isUpdateAvailable runtimeData
   if not continue
     then do
-      putStrLn "Users:"
-      mapM_ print users
-      putStrLn "------"
+      hPutStrLn out "Users:"
+      mapM_ (hPrint out) users
+      hPutStrLn out "------"
       user <- User <$> getUsername
-      eventLoop runtimeData $ user : users
-    else return users
+      eventLoop runtimeData $ state {_users = user : users}
+    else return state
   where
     getUsername :: IO String
     getUsername = do
-      putStr "Username: "
-      hFlush stdout
-      username <- getLine
+      hPutStr out "Username: "
+      hFlush out
+      username <- hGetLine in_
       if username =~ "\\`[a-zA-Z]+\\'"
         then return username
-        else putStrLn "Invalid username, try again." >> getUsername
+        else hPutStrLn out "Invalid username, try again." >> getUsername

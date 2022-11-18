@@ -62,3 +62,6 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - lowarn
+    - tasty
+    - tasty-golden
+    - filepath
