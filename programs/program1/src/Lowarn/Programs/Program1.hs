@@ -11,7 +11,6 @@ import System.IO
     hFlush,
     hGetLine,
     hPrint,
-    hPutStr,
     hPutStrLn,
     stdin,
     stdout,
@@ -54,7 +53,7 @@ eventLoop runtimeData state@(State users in_ out) = do
   where
     getUsername :: IO String
     getUsername = do
-      hPutStr out "Username: "
+      hPutStrLn out "Username:"
       hFlush out
       username <- hGetLine in_
       if username =~ "\\`[a-zA-Z]+\\'"

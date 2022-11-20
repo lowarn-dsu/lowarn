@@ -13,7 +13,6 @@ import System.IO
     hFlush,
     hGetLine,
     hPrint,
-    hPutStr,
     hPutStrLn,
     stdin,
     stdout,
@@ -62,7 +61,7 @@ eventLoop runtimeData state@(State users in_ out) = do
   where
     getTag :: IO String
     getTag = do
-      hPutStr out "Tag: "
+      hPutStrLn out "Tag:"
       hFlush out
       tag <- hGetLine in_
       if tag =~ "\\`[a-zA-Z]+#[0-9]{4}\\'"

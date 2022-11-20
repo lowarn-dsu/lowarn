@@ -11,7 +11,6 @@ import System.IO
     hFlush,
     hGetLine,
     hPrint,
-    hPutStr,
     hPutStrLn,
     stdin,
     stdout,
@@ -77,7 +76,7 @@ eventLoop runtimeData state@(State users in_ out) = do
   where
     getInput :: String -> IO String
     getInput field = do
-      hPutStr out $ field <> ": "
+      hPutStrLn out $ field <> ":"
       hFlush out
       hGetLine in_
 
