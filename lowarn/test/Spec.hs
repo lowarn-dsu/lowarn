@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskellQuotes #-}
 
 import Control.Monad (void)
-import DsuTest (writeLine, readLines, runDsuTest, updateProgram)
+import DsuTest (readLines, runDsuTest, updateProgram, writeLine)
 import Lowarn.Runtime (loadProgram)
 import System.FilePath
   ( (<.>),
