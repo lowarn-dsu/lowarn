@@ -15,7 +15,7 @@ module DsuTest
 where
 
 import Control.Concurrent (threadDelay)
-import Control.Exception (IOException, catch)
+import Control.Exception (SomeException, catch, displayException)
 import Control.Monad (replicateM)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Trans.Reader (ReaderT, asks, runReaderT)
@@ -26,6 +26,7 @@ import System.IO
   ( BufferMode (LineBuffering),
     Handle,
     IOMode (WriteMode),
+    hClose,
     hGetLine,
     hPutStrLn,
     hSetBinaryMode,
@@ -83,6 +84,7 @@ runDsuTest (DsuTest reader) getRuntime outputPath timeout = do
   (outputReadHandle, outputWriteHandle) <- createPipeWithLineBuffering
   withFile outputPath WriteMode $ \fileHandle -> do
     hSetBinaryMode fileHandle True
+    hSetBuffering fileHandle LineBuffering
 
     processId <-
       forkProcessWithUnmask $ \unmask ->
@@ -92,9 +94,9 @@ runDsuTest (DsuTest reader) getRuntime outputPath timeout = do
                 getRuntime (inputReadHandle, outputWriteHandle)
           )
           ( \exception ->
-              writeLog fileHandle Error $ show (exception :: IOException)
+              writeLog fileHandle Error $
+                displayException (exception :: SomeException)
           )
-
     Timeout.timeout
       timeout
       ( runReaderT reader $
@@ -109,7 +111,9 @@ runDsuTest (DsuTest reader) getRuntime outputPath timeout = do
     Timeout.timeout
       2000000
       ( getProcessStatus True True processId >>= \case
-          Nothing -> processDidNotEnd fileHandle processId
+          Nothing -> do
+            writeLog fileHandle Error "Process not available."
+            signalProcess sigKILL processId
           Just (Exited ExitSuccess) -> return ()
           Just (Exited (ExitFailure exitCode)) ->
             writeLog fileHandle Error $
@@ -125,11 +129,11 @@ runDsuTest (DsuTest reader) getRuntime outputPath timeout = do
       )
       >>= \case
         Just () -> return ()
-        Nothing -> processDidNotEnd fileHandle processId
-  where
-    processDidNotEnd fileHandle processId = do
-      writeLog fileHandle Error "Process did not end."
-      signalProcess sigKILL processId
+        Nothing -> do
+          writeLog fileHandle Error "Process did not end."
+          signalProcess sigKILL processId
+
+    hClose inputWriteHandle
 
 inputLine :: String -> DsuTest ()
 inputLine line = DsuTest $ do
