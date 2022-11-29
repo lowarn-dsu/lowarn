@@ -1,43 +1,46 @@
-Users:
-------
-Username:
-> A
-Users:
-A
-------
-Username:
-> B
-Users:
-B#8153
-A#9481
-------
-Username:
-> C
-Discriminator:
-> 1234
-Users:
-C#1234
-B#8153
-A#9481
-------
-Username:
-> D
-Discriminator:
-> 2345
-Users:
-D#2345
-C#1234
-B#8153
-A#9481
-------
-Tag:
-> E#3456
-Users:
-E#3456
-D#2345
-C#1234
-B#8153
-A#9481
-------
-Tag:
-> F#4567
+Output: Users:
+Output: ------
+Output: Username:
+ Input: A
+Output: Users:
+Output: A
+Output: ------
+Output: Username:
+  Info: Update signal sent.
+ Input: B
+Output: Users:
+Output: B#8153
+Output: A#9481
+Output: ------
+Output: Username:
+ Input: C
+Output: Discriminator:
+ Input: 1234
+Output: Users:
+Output: C#1234
+Output: B#8153
+Output: A#9481
+Output: ------
+Output: Username:
+  Info: Update signal sent.
+ Input: D
+Output: Discriminator:
+ Input: 2345
+Output: Users:
+Output: D#2345
+Output: C#1234
+Output: B#8153
+Output: A#9481
+Output: ------
+Output: Tag:
+ Input: E#3456
+Output: Users:
+Output: E#3456
+Output: D#2345
+Output: C#1234
+Output: B#8153
+Output: A#9481
+Output: ------
+Output: Tag:
+  Info: Update signal sent.
+ Input: F#4567

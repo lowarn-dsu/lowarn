@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskellQuotes #-}
 
 import Control.Monad (void)
-import DsuTest (readLines, runDsuTest, updateProgram, writeLine)
+import DsuTest (inputLine, outputLine, outputLines, runDsuTest, updateProgram)
 import Lowarn.Runtime (loadProgram)
 import System.FilePath
   ( (<.>),
@@ -39,27 +39,27 @@ simpleDsu =
           >>= loadProgram "Lowarn.Programs.Program3"
 
     dsuTest = do
-      _ <- readLines 3
-      writeLine "A"
-      _ <- readLines 4
+      _ <- outputLines 3
+      inputLine "A"
+      _ <- outputLines 4
       updateProgram
-      writeLine "B"
+      inputLine "B"
 
-      _ <- readLines 5
-      writeLine "C"
-      _ <- readLines 1
-      writeLine "1234"
-      _ <- readLines 6
+      _ <- outputLines 5
+      inputLine "C"
+      _ <- outputLines 1
+      inputLine "1234"
+      _ <- outputLines 6
       updateProgram
-      writeLine "D"
-      _ <- readLines 1
-      writeLine "2345"
+      inputLine "D"
+      _ <- outputLine
+      inputLine "2345"
 
-      _ <- readLines 7
-      writeLine "E#3456"
-      _ <- readLines 8
+      _ <- outputLines 7
+      inputLine "E#3456"
+      _ <- outputLines 8
       updateProgram
-      writeLine "F#4567"
+      inputLine "F#4567"
 
 goldenTests :: IO TestTree
 goldenTests = do

@@ -1,20 +1,24 @@
 {-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE LambdaCase #-}
 
 module DsuTest
   ( runDsuTest,
-    writeLine,
-    readLine,
-    readLines,
+    inputLine,
+    outputLine,
+    outputLines,
+    writeInfo,
     updateProgram,
     liftIO,
   )
 where
 
 import Control.Concurrent (threadDelay)
+import Control.Exception (IOException, catch)
 import Control.Monad (replicateM)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Trans.Reader (ReaderT, asks, runReaderT)
 import Lowarn.Runtime (Runtime, runRuntime)
+import System.Exit (ExitCode (ExitFailure, ExitSuccess))
 import System.IO
   ( BufferMode (LineBuffering),
     Handle,
@@ -25,9 +29,18 @@ import System.IO
     hSetBuffering,
     withFile,
   )
-import System.Posix (ProcessID, forkProcess, sigSTOP, sigUSR2, signalProcess)
+import System.Posix
+  ( ProcessID,
+    ProcessStatus (Exited, Stopped, Terminated),
+    forkProcessWithUnmask,
+    getProcessStatus,
+    sigKILL,
+    sigUSR2,
+    signalProcess,
+  )
 import System.Process (createPipe)
 import qualified System.Timeout as Timeout (timeout)
+import Text.Printf (printf)
 
 data DsuTestData = DsuTestData
   { _inputHandle :: Handle,
@@ -40,6 +53,12 @@ newtype DsuTest a = DsuTest (ReaderT DsuTestData IO a)
   deriving
     (Functor, Applicative, Monad, MonadIO)
     via (ReaderT DsuTestData IO)
+
+data LogType = Input | Output | Error | Info
+  deriving (Show)
+
+writeLog :: Handle -> LogType -> String -> IO ()
+writeLog handle logType = hPutStrLn handle . printf "%6s: %s" (show logType)
 
 createPipeWithLineBuffering :: IO (Handle, Handle)
 createPipeWithLineBuffering = do
@@ -59,45 +78,77 @@ runDsuTest (DsuTest reader) getRuntime outputPath timeout = do
   (outputReadHandle, outputWriteHandle) <- createPipeWithLineBuffering
   withFile outputPath WriteMode $ \fileHandle -> do
     hSetBinaryMode fileHandle True
+
     processId <-
-      forkProcess $
-        runRuntime $
-          getRuntime (inputReadHandle, outputWriteHandle)
+      forkProcessWithUnmask $ \unmask ->
+        catch
+          ( unmask $
+              runRuntime $
+                getRuntime (inputReadHandle, outputWriteHandle)
+          )
+          ( \exception ->
+              writeLog fileHandle Error $ show (exception :: IOException)
+          )
 
     timeoutResult <-
       Timeout.timeout timeout $
         runReaderT reader $
           DsuTestData inputWriteHandle outputReadHandle fileHandle processId
 
-    signalProcess sigSTOP processId
-
     case timeoutResult of
       Just () -> return ()
-      Nothing -> hPutStrLn fileHandle "Timeout reached"
+      Nothing ->
+        writeLog fileHandle Error $
+          printf "Timeout of %d microseconds reached." timeout
 
-writeLine :: String -> DsuTest ()
-writeLine line = DsuTest $ do
+    threadDelay 1000000
+    getProcessStatus False False processId >>= \case
+      Nothing -> do
+        writeLog fileHandle Error "Process did not end."
+        signalProcess sigKILL processId
+      Just (Exited ExitSuccess) -> return ()
+      Just (Exited (ExitFailure exitCode)) ->
+        writeLog fileHandle Error $
+          printf "Process exited with exit code %d." exitCode
+      Just (Terminated signal _) ->
+        writeLog fileHandle Error $
+          printf "Process terminated by signal %s." $
+            show signal
+      Just (Stopped signal) ->
+        writeLog fileHandle Error $
+          printf "Process stopped by signal %s." $
+            show signal
+
+inputLine :: String -> DsuTest ()
+inputLine line = DsuTest $ do
   inputHandle <- asks _inputHandle
   fileHandle <- asks _fileHandle
   liftIO $ do
     hPutStrLn inputHandle line
-    hPutStrLn fileHandle $ "> " <> line
+    writeLog fileHandle Input line
 
-readLine :: DsuTest String
-readLine = DsuTest $ do
+outputLine :: DsuTest String
+outputLine = DsuTest $ do
   outputHandle <- asks _outputHandle
   fileHandle <- asks _fileHandle
   liftIO $ do
     line <- hGetLine outputHandle
-    hPutStrLn fileHandle line
+    writeLog fileHandle Output line
     return line
 
-readLines :: Int -> DsuTest [String]
-readLines n = replicateM n readLine
+outputLines :: Int -> DsuTest [String]
+outputLines n = replicateM n outputLine
+
+writeInfo :: String -> DsuTest ()
+writeInfo info = DsuTest $ do
+  fileHandle <- asks _fileHandle
+  liftIO $ writeLog fileHandle Info info
 
 updateProgram :: DsuTest ()
 updateProgram = DsuTest $ do
   processId <- asks _processId
+  fileHandle <- asks _fileHandle
   liftIO $ do
     signalProcess sigUSR2 processId
+    writeLog fileHandle Info "Update signal sent."
     threadDelay 1000000
