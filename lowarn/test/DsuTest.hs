@@ -109,7 +109,7 @@ runDsuTest (DsuTest reader) getRuntime outputPath timeout = do
             printf "Timeout of %d microseconds reached." timeout
 
     Timeout.timeout
-      2000000
+      5000000
       ( getProcessStatus True True processId >>= \case
           Nothing -> do
             writeLog fileHandle Error "Process not available."
