@@ -7,6 +7,7 @@ import DsuTest
   ( dsuGoldenTest,
     inputLine,
     outputLines,
+    writeInfo,
   )
 import Lowarn.Runtime (Runtime, loadProgram)
 import System.IO (Handle)
@@ -49,6 +50,14 @@ pipeOrderingWithOutputFirst =
     (outputLines 7 >> inputLine "A")
     3000000
 
+info :: TestTree
+info =
+  dsuGoldenTest
+    (show 'info)
+    (const $ return ())
+    (writeInfo "Test")
+    3000000
+
 goldenTests :: TestTree
 goldenTests =
   testGroup
@@ -56,5 +65,6 @@ goldenTests =
     [ inputTimeout,
       outputTimeout,
       pipeOrderingWithInputFirst,
-      pipeOrderingWithOutputFirst
+      pipeOrderingWithOutputFirst,
+      info
     ]
