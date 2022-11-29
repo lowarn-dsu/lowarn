@@ -20,6 +20,7 @@ import Control.Monad (replicateM)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Trans.Reader (ReaderT, asks, runReaderT)
 import Lowarn.Runtime (Runtime, runRuntime)
+import System.Environment (lookupEnv)
 import System.Exit (ExitCode (ExitFailure, ExitSuccess))
 import System.FilePath ((<.>), (</>))
 import System.IO
@@ -108,8 +109,15 @@ runDsuTest (DsuTest reader) getRuntime outputPath timeout = do
           writeLog fileHandle Error $
             printf "Timeout of %d microseconds reached." timeout
 
+    getProcessStatusTimeout <-
+      lookupEnv "CI"
+        >>= return . \case
+          Nothing -> normalGetProcessStatusTimeout
+          Just "" -> normalGetProcessStatusTimeout
+          Just _ -> ciGetProcessStatusTimeout
+
     Timeout.timeout
-      5000000
+      getProcessStatusTimeout
       ( getProcessStatus True True processId >>= \case
           Nothing -> do
             writeLog fileHandle Error "Process not available."
@@ -134,6 +142,9 @@ runDsuTest (DsuTest reader) getRuntime outputPath timeout = do
           signalProcess sigKILL processId
 
     hClose inputWriteHandle
+  where
+    normalGetProcessStatusTimeout = 1000000
+    ciGetProcessStatusTimeout = 30000000
 
 inputLine :: String -> DsuTest ()
 inputLine line = DsuTest $ do
