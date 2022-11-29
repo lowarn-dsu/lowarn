@@ -2,7 +2,8 @@
 {-# LANGUAGE LambdaCase #-}
 
 module DsuTest
-  ( runDsuTest,
+  ( DsuTest,
+    runDsuTest,
     inputLine,
     outputLine,
     outputLines,
@@ -101,7 +102,7 @@ runDsuTest (DsuTest reader) getRuntime outputPath timeout = do
         writeLog fileHandle Error $
           printf "Timeout of %d microseconds reached." timeout
 
-    threadDelay 1000000
+    threadDelay 2000000
     getProcessStatus False False processId >>= \case
       Nothing -> do
         writeLog fileHandle Error "Process did not end."

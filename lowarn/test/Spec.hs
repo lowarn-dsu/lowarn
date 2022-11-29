@@ -1,35 +1,45 @@
 {-# LANGUAGE TemplateHaskellQuotes #-}
 
 import Control.Monad (void)
-import DsuTest (inputLine, outputLine, outputLines, runDsuTest, updateProgram)
-import Lowarn.Runtime (loadProgram)
+import DsuTest (DsuTest, inputLine, outputLine, outputLines, runDsuTest, updateProgram)
+import Lowarn.Runtime (Runtime, loadProgram)
 import System.FilePath
   ( (<.>),
     (</>),
   )
+import System.IO (Handle)
 import Test.Tasty
   ( TestTree,
     defaultMain,
     testGroup,
   )
 import Test.Tasty.Golden
-  ( goldenVsFile,
+  ( goldenVsFileDiff,
   )
 
 main :: IO ()
 main = defaultMain =<< goldenTests
 
+dsuGoldenTest ::
+  String ->
+  ((Handle, Handle) -> Runtime ()) ->
+  DsuTest () ->
+  Int ->
+  TestTree
+dsuGoldenTest testName getRuntime dsuTest timeout =
+  goldenVsFileDiff
+    testName
+    (\a b -> ["diff", "-u", a, b])
+    (testPath <.> "golden")
+    (testPath <.> "log")
+    $ runDsuTest dsuTest getRuntime (testPath <.> "log") timeout
+  where
+    testPath = "test" </> "golden" </> testName
+
 simpleDsu :: TestTree
 simpleDsu =
-  goldenVsFile
-    testName
-    (testPath <.> "golden")
-    (testPath <.> "txt")
-    $ runDsuTest dsuTest getRuntime (testPath <.> "txt") 10000000
+  dsuGoldenTest (show 'simpleDsu) getRuntime dsuTest 10000000
   where
-    testName = show 'simpleDsu
-    testPath = "test" </> "golden" </> show 'simpleDsu
-
     getRuntime handles =
       void $
         loadProgram
