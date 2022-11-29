@@ -95,34 +95,41 @@ runDsuTest (DsuTest reader) getRuntime outputPath timeout = do
               writeLog fileHandle Error $ show (exception :: IOException)
           )
 
-    timeoutResult <-
-      Timeout.timeout timeout $
-        runReaderT reader $
+    Timeout.timeout
+      timeout
+      ( runReaderT reader $
           DsuTestData inputWriteHandle outputReadHandle fileHandle processId
+      )
+      >>= \case
+        Just () -> return ()
+        Nothing ->
+          writeLog fileHandle Error $
+            printf "Timeout of %d microseconds reached." timeout
 
-    case timeoutResult of
-      Just () -> return ()
-      Nothing ->
-        writeLog fileHandle Error $
-          printf "Timeout of %d microseconds reached." timeout
-
-    threadDelay 2000000
-    getProcessStatus False False processId >>= \case
-      Nothing -> do
-        writeLog fileHandle Error "Process did not end."
-        signalProcess sigKILL processId
-      Just (Exited ExitSuccess) -> return ()
-      Just (Exited (ExitFailure exitCode)) ->
-        writeLog fileHandle Error $
-          printf "Process exited with exit code %d." exitCode
-      Just (Terminated signal _) ->
-        writeLog fileHandle Error $
-          printf "Process terminated by signal %s." $
-            show signal
-      Just (Stopped signal) ->
-        writeLog fileHandle Error $
-          printf "Process stopped by signal %s." $
-            show signal
+    Timeout.timeout
+      2000000
+      ( getProcessStatus True True processId >>= \case
+          Nothing -> processDidNotEnd fileHandle processId
+          Just (Exited ExitSuccess) -> return ()
+          Just (Exited (ExitFailure exitCode)) ->
+            writeLog fileHandle Error $
+              printf "Process exited with exit code %d." exitCode
+          Just (Terminated signal _) ->
+            writeLog fileHandle Error $
+              printf "Process terminated by signal %s." $
+                show signal
+          Just (Stopped signal) ->
+            writeLog fileHandle Error $
+              printf "Process stopped by signal %s." $
+                show signal
+      )
+      >>= \case
+        Just () -> return ()
+        Nothing -> processDidNotEnd fileHandle processId
+  where
+    processDidNotEnd fileHandle processId = do
+      writeLog fileHandle Error "Process did not end."
+      signalProcess sigKILL processId
 
 inputLine :: String -> DsuTest ()
 inputLine line = DsuTest $ do

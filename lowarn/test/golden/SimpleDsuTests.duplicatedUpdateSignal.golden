@@ -1,0 +1,26 @@
+Output: Users:
+Output: ------
+Output: Username:
+ Input: A
+Output: Users:
+Output: A
+Output: ------
+Output: Username:
+  Info: Update signal sent.
+  Info: Update signal sent.
+  Info: Update signal sent.
+ Input: B
+Output: Users:
+Output: B#8153
+Output: A#9481
+Output: ------
+Output: Username:
+ Input: C
+Output: Discriminator:
+ Input: 1234
+Output: Users:
+Output: C#1234
+Output: B#8153
+Output: A#9481
+Output: ------
+Output: Username:
