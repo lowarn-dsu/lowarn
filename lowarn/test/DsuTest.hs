@@ -10,6 +10,7 @@ module DsuTest
     writeInfo,
     updateProgram,
     liftIO,
+    dsuGoldenTest,
   )
 where
 
@@ -20,6 +21,7 @@ import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Trans.Reader (ReaderT, asks, runReaderT)
 import Lowarn.Runtime (Runtime, runRuntime)
 import System.Exit (ExitCode (ExitFailure, ExitSuccess))
+import System.FilePath ((<.>), (</>))
 import System.IO
   ( BufferMode (LineBuffering),
     Handle,
@@ -41,6 +43,8 @@ import System.Posix
   )
 import System.Process (createPipe)
 import qualified System.Timeout as Timeout (timeout)
+import Test.Tasty (TestTree)
+import Test.Tasty.Golden (goldenVsFileDiff)
 import Text.Printf (printf)
 
 data DsuTestData = DsuTestData
@@ -153,3 +157,19 @@ updateProgram = DsuTest $ do
     signalProcess sigUSR2 processId
     writeLog fileHandle Info "Update signal sent."
     threadDelay 1000000
+
+dsuGoldenTest ::
+  String ->
+  ((Handle, Handle) -> Runtime ()) ->
+  DsuTest () ->
+  Int ->
+  TestTree
+dsuGoldenTest testName getRuntime dsuTest timeout =
+  goldenVsFileDiff
+    testName
+    (\a b -> ["diff", "-u", a, b])
+    (testPath <.> "golden")
+    (testPath <.> "log")
+    $ runDsuTest dsuTest getRuntime (testPath <.> "log") timeout
+  where
+    testPath = "test" </> "golden" </> testName
