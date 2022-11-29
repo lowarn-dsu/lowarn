@@ -144,7 +144,7 @@ runDsuTest (DsuTest reader) getRuntime outputPath timeout = do
     hClose inputWriteHandle
   where
     normalGetProcessStatusTimeout = 1000000
-    ciGetProcessStatusTimeout = 10000000
+    ciGetProcessStatusTimeout = 30000000
 
 inputLine :: String -> DsuTest ()
 inputLine line = DsuTest $ do
