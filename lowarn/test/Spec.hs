@@ -1,2 +1,14 @@
+import qualified DsuTestTests
+import qualified SimpleDsuTests
+import Test.Tasty (TestTree, defaultMain, testGroup)
+
+goldenTests :: TestTree
+goldenTests =
+  testGroup
+    "Golden tests"
+    [ SimpleDsuTests.goldenTests,
+      DsuTestTests.goldenTests
+    ]
+
 main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+main = defaultMain goldenTests
