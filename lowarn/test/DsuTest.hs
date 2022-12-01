@@ -60,7 +60,7 @@ data DsuTestData = DsuTestData
 newtype DsuTest a = DsuTest
   { unDsuTest :: ReaderT DsuTestData IO a
   }
-  deriving (Applicative, Functor, Monad, MonadIO)
+  deriving (Functor, Applicative, Monad, MonadIO)
 
 data LogType = Input | Output | Error | Info
   deriving (Show)
