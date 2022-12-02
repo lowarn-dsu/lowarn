@@ -110,43 +110,41 @@ runDsuTest dsuTest getRuntime outputPath timeout = do
           writeLog fileHandle Error $
             printf "Timeout of %d microseconds reached." timeout
 
-    getProcessStatusTimeout <-
+    processStatusTimeout <-
       lookupEnv "CI"
         <&> ( \case
-                Nothing -> normalGetProcessStatusTimeout
-                Just "" -> normalGetProcessStatusTimeout
-                Just _ -> ciGetProcessStatusTimeout
+                Nothing -> normalProcessStatusTimeout
+                Just "" -> normalProcessStatusTimeout
+                Just _ -> ciProcessStatusTimeout
             )
 
     Timeout.timeout
-      getProcessStatusTimeout
-      ( getProcessStatus True True processId >>= \case
-          Nothing -> do
-            writeLog fileHandle Error "Process not available."
-            signalProcess sigKILL processId
-          Just (Exited ExitSuccess) -> return ()
-          Just (Exited (ExitFailure exitCode)) ->
-            writeLog fileHandle Error $
-              printf "Process exited with exit code %d." exitCode
-          Just (Terminated signal _) ->
-            writeLog fileHandle Error $
-              printf "Process terminated by signal %s." $
-                show signal
-          Just (Stopped signal) ->
-            writeLog fileHandle Error $
-              printf "Process stopped by signal %s." $
-                show signal
-      )
+      processStatusTimeout
+      (getProcessStatus True True processId)
       >>= \case
-        Just () -> return ()
         Nothing -> do
           writeLog fileHandle Error "Process did not end."
           signalProcess sigKILL processId
+        Just Nothing -> do
+          writeLog fileHandle Error "Process not available."
+          signalProcess sigKILL processId
+        Just (Just (Exited ExitSuccess)) -> return ()
+        Just (Just (Exited (ExitFailure exitCode))) ->
+          writeLog fileHandle Error $
+            printf "Process exited with exit code %d." exitCode
+        Just (Just (Terminated signal _)) ->
+          writeLog fileHandle Error $
+            printf "Process terminated by signal %s." $
+              show signal
+        Just (Just (Stopped signal)) ->
+          writeLog fileHandle Error $
+            printf "Process stopped by signal %s." $
+              show signal
 
     hClose inputWriteHandle
   where
-    normalGetProcessStatusTimeout = 1000000
-    ciGetProcessStatusTimeout = 30000000
+    normalProcessStatusTimeout = 1000000
+    ciProcessStatusTimeout = 30000000
 
 inputLine :: String -> DsuTest ()
 inputLine line = DsuTest $ do
