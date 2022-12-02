@@ -1,7 +1,7 @@
 name:                lowarn-programs-program2
 version:             0.1.0.0
 github:              "jonathanjameswatson/lowarn"
-license:             BSD3
+license:             MIT
 author:              "Jonathan Watson"
 maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
 copyright:           "2022 Jonathan Watson"
