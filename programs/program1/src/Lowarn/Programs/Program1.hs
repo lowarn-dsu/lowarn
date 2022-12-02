@@ -1,11 +1,7 @@
 module Lowarn.Programs.Program1 (program, User (..), State (..)) where
 
-import Lowarn (isUpdateAvailable)
-import Lowarn.Types
-  ( Program (..),
-    RuntimeData (..),
-    UpdateInfo (..),
-  )
+import Data.Maybe (fromMaybe)
+import Lowarn.Runtime (Program (..), RuntimeData, isUpdateAvailable, lastState)
 import System.IO
   ( Handle,
     hFlush,
@@ -35,7 +31,7 @@ program =
   Program
     ( \runtimeData ->
         eventLoop runtimeData $
-          maybe (State [] stdin stdout) _lastState (_updateInfo runtimeData)
+          fromMaybe (State [] stdin stdout) (lastState runtimeData)
     )
     (\(in_, out) -> return $ Just $ State [] in_ out)
 

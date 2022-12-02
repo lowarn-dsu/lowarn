@@ -1,11 +1,11 @@
 module Lowarn.Programs.Program2 (program, User (..), State (..)) where
 
 import Control.Arrow (first)
+import Data.Maybe (fromMaybe)
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
-import Lowarn (isUpdateAvailable)
 import qualified Lowarn.Programs.Program1 as Program1
-import Lowarn.Types (Program (..), RuntimeData (..), UpdateInfo (..))
+import Lowarn.Runtime (Program (..), RuntimeData, isUpdateAvailable, lastState)
 import System.IO
   ( Handle,
     hFlush,
@@ -53,10 +53,9 @@ program =
   Program
     ( \runtimeData ->
         eventLoop runtimeData $
-          maybe
+          fromMaybe
             (State Seq.empty stdin stdout)
-            _lastState
-            (_updateInfo runtimeData)
+            (lastState runtimeData)
     )
     transformer
 

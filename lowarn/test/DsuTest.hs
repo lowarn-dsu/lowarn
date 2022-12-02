@@ -1,4 +1,4 @@
-{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 
 module DsuTest
@@ -19,6 +19,7 @@ import Control.Exception (SomeException, catch, displayException)
 import Control.Monad (replicateM)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Trans.Reader (ReaderT, asks, runReaderT)
+import Data.Functor ((<&>))
 import Lowarn.Runtime (Runtime, runRuntime)
 import System.Environment (lookupEnv)
 import System.Exit (ExitCode (ExitFailure, ExitSuccess))
@@ -56,10 +57,10 @@ data DsuTestData = DsuTestData
     _processId :: ProcessID
   }
 
-newtype DsuTest a = DsuTest (ReaderT DsuTestData IO a)
-  deriving
-    (Functor, Applicative, Monad, MonadIO)
-    via (ReaderT DsuTestData IO)
+newtype DsuTest a = DsuTest
+  { unDsuTest :: ReaderT DsuTestData IO a
+  }
+  deriving (Functor, Applicative, Monad, MonadIO)
 
 data LogType = Input | Output | Error | Info
   deriving (Show)
@@ -80,7 +81,7 @@ runDsuTest ::
   FilePath ->
   Int ->
   IO ()
-runDsuTest (DsuTest reader) getRuntime outputPath timeout = do
+runDsuTest dsuTest getRuntime outputPath timeout = do
   (inputReadHandle, inputWriteHandle) <- createPipeWithLineBuffering
   (outputReadHandle, outputWriteHandle) <- createPipeWithLineBuffering
   withFile outputPath WriteMode $ \fileHandle -> do
@@ -100,7 +101,7 @@ runDsuTest (DsuTest reader) getRuntime outputPath timeout = do
           )
     Timeout.timeout
       timeout
-      ( runReaderT reader $
+      ( runReaderT (unDsuTest dsuTest) $
           DsuTestData inputWriteHandle outputReadHandle fileHandle processId
       )
       >>= \case
@@ -111,10 +112,11 @@ runDsuTest (DsuTest reader) getRuntime outputPath timeout = do
 
     getProcessStatusTimeout <-
       lookupEnv "CI"
-        >>= return . \case
-          Nothing -> normalGetProcessStatusTimeout
-          Just "" -> normalGetProcessStatusTimeout
-          Just _ -> ciGetProcessStatusTimeout
+        <&> ( \case
+                Nothing -> normalGetProcessStatusTimeout
+                Just "" -> normalGetProcessStatusTimeout
+                Just _ -> ciGetProcessStatusTimeout
+            )
 
     Timeout.timeout
       getProcessStatusTimeout
