@@ -1,13 +1,9 @@
 module Lowarn.Programs.Program3 (program, User (..)) where
 
 import Data.Foldable (toList)
-import Lowarn (isUpdateAvailable)
+import Data.Maybe (fromMaybe)
 import qualified Lowarn.Programs.Program2 as Program2
-import Lowarn.Types
-  ( Program (..),
-    RuntimeData (..),
-    UpdateInfo (..),
-  )
+import Lowarn.Runtime (Program (..), RuntimeData, isUpdateAvailable, lastState)
 import System.IO
   ( Handle,
     hFlush,
@@ -43,7 +39,7 @@ program =
   Program
     ( \runtimeData ->
         eventLoop runtimeData $
-          maybe (State [] stdin stdout) _lastState (_updateInfo runtimeData)
+          fromMaybe (State [] stdin stdout) (lastState runtimeData)
     )
     transformer
 
