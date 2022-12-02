@@ -40,16 +40,16 @@ eventLoop runtimeData state@(State users in_ out) = do
   continue <- isUpdateAvailable runtimeData
   if not continue
     then do
-      hPutStrLn out "Users:"
+      hPutStrLn out "Blocked users:"
       mapM_ (hPrint out) users
       hPutStrLn out "------"
       user <- User <$> getUsername
-      eventLoop runtimeData $ state {_users = user : users}
+      eventLoop runtimeData $ state {_users = users ++ [user]}
     else return state
   where
     getUsername :: IO String
     getUsername = do
-      hPutStrLn out "Username:"
+      hPutStrLn out "Input username of user to block:"
       hFlush out
       username <- hGetLine in_
       if username =~ "\\`[a-zA-Z]+\\'"

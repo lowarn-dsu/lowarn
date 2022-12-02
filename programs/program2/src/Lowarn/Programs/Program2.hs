@@ -21,12 +21,12 @@ import Text.Printf (printf)
 import Text.Regex.TDFA
 
 data User = User
-  { _username :: String,
-    _discriminator :: Int
+  { _nickname :: String,
+    _userId :: Int
   }
 
 instance Show User where
-  show (User username discriminator) = printf "%s#%04d" username discriminator
+  show (User nickname userId) = printf "%s#%04d" nickname userId
 
 data State = State
   { _users :: Seq User,
@@ -40,9 +40,9 @@ transformer (Program1.State users in_ out) = do
   users' <-
     Seq.fromList
       <$> mapM
-        ( \(Program1.User username) ->
+        ( \(Program1.User nickname) ->
             applyIOGen
-              (first (User username) . randomR (1, 9999))
+              (first (User nickname) . randomR (1, 9999))
               ioGen
         )
         users
@@ -64,35 +64,35 @@ eventLoop runtimeData state@(State users in_ out) = do
   continue <- isUpdateAvailable runtimeData
   if not continue
     then do
-      hPutStrLn out "Users:"
+      hPutStrLn out "Blocked users:"
       mapM_ (hPrint out) users
       hPutStrLn out "------"
-      username <- getUsername
-      discriminator <- getDiscriminator
-      let user = User username discriminator
-      eventLoop runtimeData $ state {_users = user Seq.<| users}
+      nickname <- getNickname
+      userId <- getUserId
+      let user = User nickname userId
+      eventLoop runtimeData $ state {_users = users Seq.|> user}
     else return state
   where
     getInput :: String -> IO String
     getInput field = do
-      hPutStrLn out $ field <> ":"
+      hPutStrLn out $ printf "Input %s of user to block:" field
       hFlush out
       hGetLine in_
 
-    getUsername :: IO String
-    getUsername = do
-      username <- getInput "Username"
-      if username =~ "\\`[a-zA-Z]+\\'"
-        then return username
+    getNickname :: IO String
+    getNickname = do
+      nickname <- getInput "nickname"
+      if nickname =~ "\\`[a-zA-Z]+\\'"
+        then return nickname
         else do
-          hPutStrLn out "Invalid username, try again."
-          getUsername
+          hPutStrLn out "Invalid nickname, try again."
+          getNickname
 
-    getDiscriminator :: IO Int
-    getDiscriminator = do
-      discriminator <- getInput "Discriminator"
-      if discriminator =~ "\\`[0-9]{4}\\'"
-        then return $ read discriminator
+    getUserId :: IO Int
+    getUserId = do
+      userId <- getInput "user ID"
+      if userId =~ "\\`[0-9]{4}\\'"
+        then return $ read userId
         else do
-          hPutStrLn out "Invalid discriminator, try again."
-          getDiscriminator
+          hPutStrLn out "Invalid user ID, try again."
+          getUserId

@@ -1,5 +1,5 @@
-Output: Users:
+Output: Blocked users:
 Output: ------
-Output: Username:
+Output: Input username of user to block:
  Error: Timeout of 3000000 microseconds reached.
  Error: Process did not end.

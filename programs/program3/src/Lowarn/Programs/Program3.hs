@@ -32,7 +32,7 @@ transformer :: Program2.State -> IO (Maybe State)
 transformer (Program2.State users in_ out) =
   return $ Just $ State users' in_ out
   where
-    users' = toList $ fmap (User . show) users
+    users' = reverse $ toList $ fmap (User . show) users
 
 program :: Program State Program2.State
 program =
@@ -48,8 +48,8 @@ eventLoop runtimeData state@(State users in_ out) = do
   continue <- isUpdateAvailable runtimeData
   if not continue
     then do
-      hPutStrLn out "Users:"
-      mapM_ (hPrint out) users
+      hPutStrLn out "Blocked users:"
+      mapM_ (hPrint out) $ reverse users
       hPutStrLn out "------"
       tag <- User <$> getTag
       eventLoop runtimeData $ state {_users = tag : users}
@@ -57,7 +57,7 @@ eventLoop runtimeData state@(State users in_ out) = do
   where
     getTag :: IO String
     getTag = do
-      hPutStrLn out "Tag:"
+      hPutStrLn out "Input tag of user to block:"
       hFlush out
       tag <- hGetLine in_
       if tag =~ "\\`[a-zA-Z]+#[0-9]{4}\\'"
