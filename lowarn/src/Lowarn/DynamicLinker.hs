@@ -8,6 +8,7 @@ module Lowarn.DynamicLinker
   )
 where
 
+import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
 import GHC hiding (load, moduleName, unitState)
 import GHC.Driver.Monad
@@ -32,7 +33,7 @@ runLinker linker =
   defaultErrorHandler defaultFatalMessager defaultFlushOut $
     runGhc (Just libdir) $ do
       flags <- getSessionDynFlags
-      _ <-
+      void $
         setSessionDynFlags $
           addWay' WayDyn $
             flags {ghcMode = CompManager, ghcLink = LinkDynLib}
