@@ -1,5 +1,10 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
+-- |
+-- Module                  : Lowarn.Runtime
+-- SPDX-License-Identifier : MIT
+-- Stability               : experimental
+-- Portability             : non-portable (POSIX, GHC)
 module Lowarn.DynamicLinker
   ( Linker,
     runLinker,

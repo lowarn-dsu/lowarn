@@ -1,3 +1,8 @@
+-- |
+-- Module                  : Lowarn.Runtime
+-- SPDX-License-Identifier : MIT
+-- Stability               : experimental
+-- Portability             : non-portable (POSIX, GHC)
 module Lowarn.Plugin (plugin) where
 
 import GHC.Plugins
