@@ -35,6 +35,7 @@ newtype UpdateSignal = UpdateSignal
   { unUpdateSignal :: MVar ()
   }
 
+-- | Monad for DSU runtimes that load versions of programs.
 newtype Runtime a = Runtime
   { unRuntime :: ReaderT UpdateSignal IO a
   }
