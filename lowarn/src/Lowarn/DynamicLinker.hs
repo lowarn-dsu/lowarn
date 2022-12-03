@@ -5,6 +5,8 @@
 -- SPDX-License-Identifier : MIT
 -- Stability               : experimental
 -- Portability             : non-portable (POSIX, GHC)
+--
+-- Module for interacting with GHC to link modules and load their entities.
 module Lowarn.DynamicLinker
   ( Linker,
     runLinker,
@@ -28,11 +30,14 @@ import GHC.Types.Unique
 import GHC.Unit hiding (moduleName)
 import Unsafe.Coerce (unsafeCoerce)
 
+-- | Monad for linking modules from the package database and accessing their
+-- exported entities.
 newtype Linker a = Linker
   { unLinker :: Ghc a
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
+-- | Run a linker.
 runLinker :: Linker a -> IO a
 runLinker linker =
   defaultErrorHandler defaultFatalMessager defaultFlushOut $
@@ -45,8 +50,13 @@ runLinker linker =
       liftIO . initDynLinker =<< getSession
       unLinker linker
 
+-- | Action that gives an entity exported by a module in the package database,
+-- which is linked if it hasn't already been.
 load ::
+  -- | The name of the module to find. @Nothing@ is given by the action if the
+  -- module cannot be found.
   String ->
+  -- | The name of the entity to take from the module.
   String ->
   Linker (Maybe a)
 load moduleName' symbol = Linker $ do
