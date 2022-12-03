@@ -73,12 +73,18 @@ runRuntime runtime = do
   liftIO $ void $ installHandler sigUSR2 previousSignalHandler Nothing
   return output
 
--- | Load and run a program, given the name of a module that exposes a 'Program'
--- value with name @program@, and an initial state.
+-- | Action that loads and runs a given program, producing the final state of
+-- the program when it finishes.
+--
+-- The program is given as the name of a module that exports a value
+-- @program :: 'Program' b a@. This module should be in the package database.
+--
+-- The program is also given data representing state from the previous version
+-- of the program.
 loadProgram ::
   -- | The name of the module that includes the program.
   String ->
-  -- | The starting state to give to the program.
+  -- | State from the previous version of the program.
   a ->
   Runtime b
 loadProgram moduleName lastState_ = Runtime $ do
