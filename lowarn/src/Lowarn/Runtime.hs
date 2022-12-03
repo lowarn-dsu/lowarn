@@ -6,7 +6,7 @@
 -- Stability               : experimental
 -- Portability             : non-portable (POSIX, GHC)
 --
--- Module creating and interacting with DSU runtimes.
+-- Module for creating and interacting with DSU runtimes.
 module Lowarn.Runtime
   ( -- * Runtime creation
     Runtime,
