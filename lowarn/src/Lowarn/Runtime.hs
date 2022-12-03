@@ -98,7 +98,7 @@ loadProgram moduleName lastState_ = Runtime $ do
 liftLinker :: Linker a -> Runtime a
 liftLinker = Runtime . liftIO . runLinker
 
--- | Return True if the runtime has a program update that can be applied..
+-- | Return @True@ if the runtime has a program update that can be applied.
 isUpdateAvailable :: RuntimeData a -> IO Bool
 isUpdateAvailable =
   (fmap isJust . tryTakeMVar) . (unUpdateSignal . _updateSignal)
