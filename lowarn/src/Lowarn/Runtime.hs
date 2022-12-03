@@ -42,7 +42,8 @@ newtype Runtime a = Runtime
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
--- | Type for exposing functions that are used by the runtime to load a program.
+-- | Type for exporting a set of functions that a runtime can use to load a
+-- version of a program.
 data Program a b = Program
   { -- | Function to start the program, given data injected by the runtime.
     _entryPoint :: RuntimeData a -> IO a,
