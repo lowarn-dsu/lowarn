@@ -5,14 +5,19 @@
 -- SPDX-License-Identifier : MIT
 -- Stability               : experimental
 -- Portability             : non-portable (POSIX, GHC)
+--
+-- Module creating and interacting with DSU runtimes.
 module Lowarn.Runtime
-  ( Runtime,
-    Program (..),
-    RuntimeData,
+  ( -- * Runtime creation
+    Runtime,
     runRuntime,
     loadProgram,
-    liftIO,
     liftLinker,
+    liftIO,
+
+    -- * Runtime interaction
+    Program (..),
+    RuntimeData,
     isUpdateAvailable,
     lastState,
   )
@@ -35,11 +40,15 @@ newtype Runtime a = Runtime
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
+-- | Type for exposing functions that are used by the runtime to load a program.
 data Program a b = Program
-  { _entryPoint :: RuntimeData a -> IO a,
+  { -- | Function to start the program, given data injected by the runtime.
+    _entryPoint :: RuntimeData a -> IO a,
+    -- | Function to convert old state to new state, if this can be done.
     _transformer :: b -> IO (Maybe a)
   }
 
+-- | Type for accessing data injected by the runtime.
 data RuntimeData a = RuntimeData
   { _updateSignal :: UpdateSignal,
     _updateInfo :: Maybe (UpdateInfo a)
@@ -50,6 +59,7 @@ data UpdateInfo a = UpdateInfo
     _lastState :: a
   }
 
+-- | Run a runtime.
 runRuntime :: Runtime a -> IO a
 runRuntime runtime = do
   updateSignal <- newEmptyMVar
@@ -62,7 +72,14 @@ runRuntime runtime = do
   liftIO $ void $ installHandler sigUSR2 previousSignalHandler Nothing
   return output
 
-loadProgram :: String -> a -> Runtime b
+-- | Load and run a program, given the name of a module that exposes a 'Program'
+-- value with name @program@, and an initial state.
+loadProgram ::
+  -- | The name of the module that includes the program.
+  String ->
+  -- | The starting state to give to the program.
+  a ->
+  Runtime b
 loadProgram moduleName lastState_ = Runtime $ do
   updateSignal <- ask
   liftIO $
@@ -76,12 +93,17 @@ loadProgram moduleName lastState_ = Runtime $ do
             _entryPoint program $ RuntimeData updateSignal updateInfo
         )
 
+-- | Lift a computation from the 'Linker' monad.
 liftLinker :: Linker a -> Runtime a
 liftLinker = Runtime . liftIO . runLinker
 
+-- | Return True if the runtime has a program update that can be applied..
 isUpdateAvailable :: RuntimeData a -> IO Bool
 isUpdateAvailable =
   (fmap isJust . tryTakeMVar) . (unUpdateSignal . _updateSignal)
 
+-- | Return the transformed state of the last version of the program, if there
+-- was a previous version of the program and the state was able to be
+-- transformed.
 lastState :: RuntimeData a -> Maybe a
 lastState = fmap _lastState . _updateInfo
