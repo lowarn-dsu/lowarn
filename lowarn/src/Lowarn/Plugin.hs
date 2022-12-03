@@ -1,3 +1,11 @@
+-- |
+-- Module                  : Lowarn.Runtime
+-- SPDX-License-Identifier : MIT
+-- Stability               : experimental
+-- Portability             : non-portable (POSIX, GHC)
+--
+-- Module for the plugin used to augment programs to add dynamic software
+-- updating.
 module Lowarn.Plugin (plugin) where
 
 import GHC.Plugins
