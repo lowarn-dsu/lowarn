@@ -48,7 +48,7 @@ eventLoop runtimeData state@(State users in_ out) = do
   continue <- isUpdateAvailable runtimeData
   if not continue
     then do
-      hPutStrLn out "Blocked users:"
+      hPutStrLn out "Following:"
       mapM_ (hPrint out) $ reverse users
       hPutStrLn out "------"
       tag <- User <$> getTag
@@ -57,7 +57,7 @@ eventLoop runtimeData state@(State users in_ out) = do
   where
     getTag :: IO String
     getTag = do
-      hPutStrLn out "Input tag of user to block:"
+      hPutStrLn out "Input tag of user to follow:"
       hFlush out
       tag <- hGetLine in_
       if tag =~ "\\`[a-zA-Z]+#[0-9]{4}\\'"

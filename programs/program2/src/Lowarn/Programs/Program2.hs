@@ -64,7 +64,7 @@ eventLoop runtimeData state@(State users in_ out) = do
   continue <- isUpdateAvailable runtimeData
   if not continue
     then do
-      hPutStrLn out "Blocked users:"
+      hPutStrLn out "Following:"
       mapM_ (hPrint out) users
       hPutStrLn out "------"
       nickname <- getNickname
@@ -75,7 +75,7 @@ eventLoop runtimeData state@(State users in_ out) = do
   where
     getInput :: String -> IO String
     getInput field = do
-      hPutStrLn out $ printf "Input %s of user to block:" field
+      hPutStrLn out $ printf "Input %s of user to follow:" field
       hFlush out
       hGetLine in_
 

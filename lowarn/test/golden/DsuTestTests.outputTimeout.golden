@@ -1,5 +1,5 @@
-Output: Blocked users:
+Output: Following:
 Output: ------
-Output: Input username of user to block:
+Output: Input username of user to follow:
  Error: Timeout of 3000000 microseconds reached.
  Error: Process did not end.
