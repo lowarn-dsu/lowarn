@@ -1,27 +1,27 @@
-Output: Users:
+Output: Following:
 Output: ------
-Output: Username:
+Output: Input username of user to follow:
  Input: A
-Output: Users:
+Output: Following:
 Output: A
 Output: ------
-Output: Username:
+Output: Input username of user to follow:
   Info: Update signal sent.
   Info: Update signal sent.
   Info: Update signal sent.
  Input: B
-Output: Users:
-Output: B#8153
-Output: A#9481
+Output: Following:
+Output: A#8153
+Output: B#9481
 Output: ------
-Output: Username:
+Output: Input nickname of user to follow:
  Input: C
-Output: Discriminator:
+Output: Input user ID of user to follow:
  Input: 1234
-Output: Users:
+Output: Following:
+Output: A#8153
+Output: B#9481
 Output: C#1234
-Output: B#8153
-Output: A#9481
 Output: ------
-Output: Username:
+Output: Input nickname of user to follow:
  Error: Process did not end.

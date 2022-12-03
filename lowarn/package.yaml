@@ -66,6 +66,6 @@ tests:
     - tasty-golden
     - filepath
     - process
-    - lowarn-programs-program1
-    - lowarn-programs-program2
-    - lowarn-programs-program3
+    - lowarn-example-programs-following-v1
+    - lowarn-example-programs-following-v2
+    - lowarn-example-programs-following-v3

@@ -1,4 +1,9 @@
-module Lowarn.Programs.Program1 (program, User (..), State (..)) where
+module Lowarn.ExamplePrograms.Following.Following1
+  ( program,
+    User (..),
+    State (..),
+  )
+where
 
 import Data.Maybe (fromMaybe)
 import Lowarn.Runtime (Program (..), RuntimeData, isUpdateAvailable, lastState)
@@ -40,16 +45,16 @@ eventLoop runtimeData state@(State users in_ out) = do
   continue <- isUpdateAvailable runtimeData
   if not continue
     then do
-      hPutStrLn out "Users:"
+      hPutStrLn out "Following:"
       mapM_ (hPrint out) users
       hPutStrLn out "------"
       user <- User <$> getUsername
-      eventLoop runtimeData $ state {_users = user : users}
+      eventLoop runtimeData $ state {_users = users ++ [user]}
     else return state
   where
     getUsername :: IO String
     getUsername = do
-      hPutStrLn out "Username:"
+      hPutStrLn out "Input username of user to follow:"
       hFlush out
       username <- hGetLine in_
       if username =~ "\\`[a-zA-Z]+\\'"

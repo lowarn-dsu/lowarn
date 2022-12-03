@@ -7,6 +7,6 @@ import System.IO (stdin, stdout)
 main :: IO ()
 main =
   runRuntime . void $
-    loadProgram "Lowarn.Programs.Program1" (stdin, stdout)
-      >>= loadProgram "Lowarn.Programs.Program2"
-      >>= loadProgram "Lowarn.Programs.Program3"
+    loadProgram "Lowarn.ExamplePrograms.Following.Following1" (stdin, stdout)
+      >>= loadProgram "Lowarn.ExamplePrograms.Following.Following2"
+      >>= loadProgram "Lowarn.ExamplePrograms.Following.Following3"

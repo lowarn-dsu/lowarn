@@ -1,8 +1,12 @@
-module Lowarn.Programs.Program3 (program, User (..)) where
+module Lowarn.ExamplePrograms.Following.Following3
+  ( program,
+    User (..),
+  )
+where
 
 import Data.Foldable (toList)
 import Data.Maybe (fromMaybe)
-import qualified Lowarn.Programs.Program2 as Program2
+import qualified Lowarn.ExamplePrograms.Following.Following2 as PreviousVersion
 import Lowarn.Runtime (Program (..), RuntimeData, isUpdateAvailable, lastState)
 import System.IO
   ( Handle,
@@ -28,13 +32,13 @@ data State = State
     _out :: Handle
   }
 
-transformer :: Program2.State -> IO (Maybe State)
-transformer (Program2.State users in_ out) =
+transformer :: PreviousVersion.State -> IO (Maybe State)
+transformer (PreviousVersion.State users in_ out) =
   return $ Just $ State users' in_ out
   where
-    users' = toList $ fmap (User . show) users
+    users' = reverse $ toList $ fmap (User . show) users
 
-program :: Program State Program2.State
+program :: Program State PreviousVersion.State
 program =
   Program
     ( \runtimeData ->
@@ -48,8 +52,8 @@ eventLoop runtimeData state@(State users in_ out) = do
   continue <- isUpdateAvailable runtimeData
   if not continue
     then do
-      hPutStrLn out "Users:"
-      mapM_ (hPrint out) users
+      hPutStrLn out "Following:"
+      mapM_ (hPrint out) $ reverse users
       hPutStrLn out "------"
       tag <- User <$> getTag
       eventLoop runtimeData $ state {_users = tag : users}
@@ -57,7 +61,7 @@ eventLoop runtimeData state@(State users in_ out) = do
   where
     getTag :: IO String
     getTag = do
-      hPutStrLn out "Tag:"
+      hPutStrLn out "Input tag of user to follow:"
       hFlush out
       tag <- hGetLine in_
       if tag =~ "\\`[a-zA-Z]+#[0-9]{4}\\'"

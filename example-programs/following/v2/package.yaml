@@ -1,4 +1,4 @@
-name:                lowarn-programs-program1
+name:                lowarn-example-programs-following-v2
 version:             0.1.0.0
 github:              "jonathanjameswatson/lowarn"
 license:             MIT
@@ -6,12 +6,15 @@ author:              "Jonathan Watson"
 maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
 copyright:           "2022 Jonathan Watson"
 
-description:         Lowarn demo program 1
+description:         Lowarn demo program 2
 
 dependencies:
 - base >= 4.7 && < 5
 - lowarn
+- containers
+- random
 - regex-tdfa ^>= 1.3.2
+- lowarn-example-programs-following-v1
 
 ghc-options:
 - -Wall

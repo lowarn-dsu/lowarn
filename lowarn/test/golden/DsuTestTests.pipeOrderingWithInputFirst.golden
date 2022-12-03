@@ -1,9 +1,9 @@
  Input: A
-Output: Users:
+Output: Following:
 Output: ------
-Output: Username:
-Output: Users:
+Output: Input username of user to follow:
+Output: Following:
 Output: A
 Output: ------
-Output: Username:
+Output: Input username of user to follow:
  Error: Process did not end.

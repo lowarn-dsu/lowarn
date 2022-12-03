@@ -16,7 +16,7 @@ import Test.Tasty (TestTree, testGroup)
 getExampleRuntime :: (Handle, Handle) -> Runtime ()
 getExampleRuntime handles =
   void $
-    loadProgram "Lowarn.Programs.Program1" handles
+    loadProgram "Lowarn.ExamplePrograms.Following.Following1" handles
 
 inputTimeout :: TestTree
 inputTimeout =
