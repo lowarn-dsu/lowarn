@@ -18,10 +18,10 @@ getExampleRuntime :: (Handle, Handle) -> Runtime ()
 getExampleRuntime handles =
   void $
     loadProgram
-      "Lowarn.Programs.Program1"
+      "Lowarn.ExamplePrograms.Following.Following1"
       handles
-      >>= loadProgram "Lowarn.Programs.Program2"
-      >>= loadProgram "Lowarn.Programs.Program3"
+      >>= loadProgram "Lowarn.ExamplePrograms.Following.Following2"
+      >>= loadProgram "Lowarn.ExamplePrograms.Following.Following3"
 
 successfulChain :: TestTree
 successfulChain =

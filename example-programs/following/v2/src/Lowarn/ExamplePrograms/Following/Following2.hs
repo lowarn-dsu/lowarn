@@ -1,10 +1,15 @@
-module Lowarn.Programs.Program2 (program, User (..), State (..)) where
+module Lowarn.ExamplePrograms.Following.Following2
+  ( program,
+    User (..),
+    State (..),
+  )
+where
 
 import Control.Arrow (first)
 import Data.Maybe (fromMaybe)
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
-import qualified Lowarn.Programs.Program1 as Program1
+import qualified Lowarn.ExamplePrograms.Following.Following1 as PreviousVersion
 import Lowarn.Runtime (Program (..), RuntimeData, isUpdateAvailable, lastState)
 import System.IO
   ( Handle,
@@ -34,13 +39,13 @@ data State = State
     _out :: Handle
   }
 
-transformer :: Program1.State -> IO (Maybe State)
-transformer (Program1.State users in_ out) = do
+transformer :: PreviousVersion.State -> IO (Maybe State)
+transformer (PreviousVersion.State users in_ out) = do
   ioGen <- newIOGenM (mkStdGen 0)
   users' <-
     Seq.fromList
       <$> mapM
-        ( \(Program1.User nickname) ->
+        ( \(PreviousVersion.User nickname) ->
             applyIOGen
               (first (User nickname) . randomR (1, 9999))
               ioGen
@@ -48,7 +53,7 @@ transformer (Program1.State users in_ out) = do
         users
   return $ Just $ State users' in_ out
 
-program :: Program State Program1.State
+program :: Program State PreviousVersion.State
 program =
   Program
     ( \runtimeData ->

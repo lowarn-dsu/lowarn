@@ -1,4 +1,9 @@
-module Lowarn.Programs.Program1 (program, User (..), State (..)) where
+module Lowarn.ExamplePrograms.Following.Following1
+  ( program,
+    User (..),
+    State (..),
+  )
+where
 
 import Data.Maybe (fromMaybe)
 import Lowarn.Runtime (Program (..), RuntimeData, isUpdateAvailable, lastState)

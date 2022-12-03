@@ -1,8 +1,12 @@
-module Lowarn.Programs.Program3 (program, User (..)) where
+module Lowarn.ExamplePrograms.Following.Following3
+  ( program,
+    User (..),
+  )
+where
 
 import Data.Foldable (toList)
 import Data.Maybe (fromMaybe)
-import qualified Lowarn.Programs.Program2 as Program2
+import qualified Lowarn.ExamplePrograms.Following.Following2 as PreviousVersion
 import Lowarn.Runtime (Program (..), RuntimeData, isUpdateAvailable, lastState)
 import System.IO
   ( Handle,
@@ -28,13 +32,13 @@ data State = State
     _out :: Handle
   }
 
-transformer :: Program2.State -> IO (Maybe State)
-transformer (Program2.State users in_ out) =
+transformer :: PreviousVersion.State -> IO (Maybe State)
+transformer (PreviousVersion.State users in_ out) =
   return $ Just $ State users' in_ out
   where
     users' = reverse $ toList $ fmap (User . show) users
 
-program :: Program State Program2.State
+program :: Program State PreviousVersion.State
 program =
   Program
     ( \runtimeData ->
