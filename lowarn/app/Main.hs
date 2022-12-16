@@ -1,12 +1,14 @@
 module Main (main) where
 
 import Control.Monad (void)
-import Lowarn.Runtime (loadProgram, runRuntime)
+import Lowarn.Runtime (loadTransformer, loadVersion, runRuntime)
 import System.IO (stdin, stdout)
 
 main :: IO ()
 main =
   runRuntime . void $
-    loadProgram "Lowarn.ExamplePrograms.Following.Following1" (stdin, stdout)
-      >>= loadProgram "Lowarn.ExamplePrograms.Following.Following2"
-      >>= loadProgram "Lowarn.ExamplePrograms.Following.Following3"
+    loadVersion "following" "1.0.0" (stdin, stdout)
+      >>= loadTransformer "following" "1.0.0" "2.0.0"
+      >>= loadVersion "following" "2.0.0"
+      >>= loadTransformer "following" "2.0.0" "3.0.0"
+      >>= loadVersion "following" "3.0.0"
