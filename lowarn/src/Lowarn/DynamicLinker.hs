@@ -18,6 +18,7 @@ where
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
 import GHC hiding (load, moduleName, unitState)
+import GHC.Data.FastString
 import GHC.Driver.Monad
 import GHC.Driver.Session hiding (unitState)
 import qualified GHC.Driver.Session as Session
@@ -50,23 +51,26 @@ runLinker linker =
       liftIO . initDynLinker =<< getSession
       unLinker linker
 
--- | Action that gives an entity exported by a module in the package database,
--- which is linked if it hasn't already been.
+-- | Action that gives an entity exported by a module in a package in the
+-- package database. The module is linked if it hasn't already been. @Nothing@
+-- is given if the module or package cannot be found.
 load ::
-  -- | The name of the module to find. @Nothing@ is given by the action if the
-  -- module cannot be found.
+  -- | The name of the package to find the module in.
+  String ->
+  -- | The name of the module to find.
   String ->
   -- | The name of the entity to take from the module.
   String ->
   Linker (Maybe a)
-load moduleName' symbol = Linker $ do
+load packageName' moduleName' symbol = Linker $ do
   flags <- getSessionDynFlags
   session <- getSession
 
   let moduleName = mkModuleName moduleName'
+      packageName = PackageName $ mkFastString packageName'
 
   liftIO $
-    lookupUnitInfo flags moduleName
+    lookupUnitInfo flags packageName moduleName
       >>= maybe
         (return Nothing)
         ( \unitInfo -> liftIO $ do
@@ -86,8 +90,8 @@ load moduleName' symbol = Linker $ do
             return $ Just $ unsafeCoerce value
         )
 
-lookupUnitInfo :: DynFlags -> ModuleName -> IO (Maybe UnitInfo)
-lookupUnitInfo flags moduleName = do
+lookupUnitInfo :: DynFlags -> PackageName -> ModuleName -> IO (Maybe UnitInfo)
+lookupUnitInfo flags packageName moduleName = do
   case exposedModulesAndPackages of
     [] -> do
       putStrLn $ "Can't find module " <> moduleNameString moduleName
@@ -96,4 +100,9 @@ lookupUnitInfo flags moduleName = do
   where
     unitState = Session.unitState flags
     modulesAndPackages = lookupModuleInAllUnits unitState moduleName
-    exposedModulesAndPackages = filter (unitIsExposed . snd) modulesAndPackages
+    exposedModulesAndPackages =
+      filter
+        ( \(_, unitInfo) ->
+            unitIsExposed unitInfo && unitPackageName unitInfo == packageName
+        )
+        modulesAndPackages
