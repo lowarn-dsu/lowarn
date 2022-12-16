@@ -1,21 +1,17 @@
-module Lowarn.ExamplePrograms.Following.Following3
-  ( program,
-    User (..),
+module Lowarn.ExampleProgram.Following
+  ( User (..),
+    State (..),
+    eventLoop,
   )
 where
 
-import Data.Foldable (toList)
-import Data.Maybe (fromMaybe)
-import qualified Lowarn.ExamplePrograms.Following.Following2 as PreviousVersion
-import Lowarn.Runtime (Program (..), RuntimeData, isUpdateAvailable, lastState)
+import Lowarn.Runtime (RuntimeData, isUpdateAvailable)
 import System.IO
   ( Handle,
     hFlush,
     hGetLine,
     hPrint,
     hPutStrLn,
-    stdin,
-    stdout,
   )
 import Text.Regex.TDFA
 
@@ -31,21 +27,6 @@ data State = State
     _in :: Handle,
     _out :: Handle
   }
-
-transformer :: PreviousVersion.State -> IO (Maybe State)
-transformer (PreviousVersion.State users in_ out) =
-  return $ Just $ State users' in_ out
-  where
-    users' = reverse $ toList $ fmap (User . show) users
-
-program :: Program State PreviousVersion.State
-program =
-  Program
-    ( \runtimeData ->
-        eventLoop runtimeData $
-          fromMaybe (State [] stdin stdout) (lastState runtimeData)
-    )
-    transformer
 
 eventLoop :: RuntimeData a -> State -> IO State
 eventLoop runtimeData state@(State users in_ out) = do

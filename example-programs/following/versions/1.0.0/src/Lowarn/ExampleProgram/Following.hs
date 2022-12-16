@@ -1,20 +1,17 @@
-module Lowarn.ExamplePrograms.Following.Following1
-  ( program,
+module Lowarn.ExampleProgram.Following
+  ( eventLoop,
     User (..),
     State (..),
   )
 where
 
-import Data.Maybe (fromMaybe)
-import Lowarn.Runtime (Program (..), RuntimeData, isUpdateAvailable, lastState)
+import Lowarn.Runtime (RuntimeData, isUpdateAvailable)
 import System.IO
   ( Handle,
     hFlush,
     hGetLine,
     hPrint,
     hPutStrLn,
-    stdin,
-    stdout,
   )
 import Text.Regex.TDFA
 
@@ -30,15 +27,6 @@ data State = State
     _in :: Handle,
     _out :: Handle
   }
-
-program :: Program State (Handle, Handle)
-program =
-  Program
-    ( \runtimeData ->
-        eventLoop runtimeData $
-          fromMaybe (State [] stdin stdout) (lastState runtimeData)
-    )
-    (\(in_, out) -> return $ Just $ State [] in_ out)
 
 eventLoop :: RuntimeData a -> State -> IO State
 eventLoop runtimeData state@(State users in_ out) = do

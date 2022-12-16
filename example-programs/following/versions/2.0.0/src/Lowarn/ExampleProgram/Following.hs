@@ -1,27 +1,20 @@
-module Lowarn.ExamplePrograms.Following.Following2
-  ( program,
-    User (..),
+module Lowarn.ExampleProgram.Following
+  ( User (..),
     State (..),
+    eventLoop,
   )
 where
 
-import Control.Arrow (first)
-import Data.Maybe (fromMaybe)
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
-import qualified Lowarn.ExamplePrograms.Following.Following1 as PreviousVersion
-import Lowarn.Runtime (Program (..), RuntimeData, isUpdateAvailable, lastState)
+import Lowarn.Runtime (RuntimeData, isUpdateAvailable)
 import System.IO
   ( Handle,
     hFlush,
     hGetLine,
     hPrint,
     hPutStrLn,
-    stdin,
-    stdout,
   )
-import System.Random (mkStdGen, randomR)
-import System.Random.Stateful (applyIOGen, newIOGenM)
 import Text.Printf (printf)
 import Text.Regex.TDFA
 
@@ -38,31 +31,6 @@ data State = State
     _in :: Handle,
     _out :: Handle
   }
-
-transformer :: PreviousVersion.State -> IO (Maybe State)
-transformer (PreviousVersion.State users in_ out) = do
-  ioGen <- newIOGenM (mkStdGen 0)
-  users' <-
-    Seq.fromList
-      <$> mapM
-        ( \(PreviousVersion.User nickname) ->
-            applyIOGen
-              (first (User nickname) . randomR (1, 9999))
-              ioGen
-        )
-        users
-  return $ Just $ State users' in_ out
-
-program :: Program State PreviousVersion.State
-program =
-  Program
-    ( \runtimeData ->
-        eventLoop runtimeData $
-          fromMaybe
-            (State Seq.empty stdin stdout)
-            (lastState runtimeData)
-    )
-    transformer
 
 eventLoop :: RuntimeData a -> State -> IO State
 eventLoop runtimeData state@(State users in_ out) = do

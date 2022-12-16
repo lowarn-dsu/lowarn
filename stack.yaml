@@ -2,6 +2,8 @@ resolver: lts-19.32
 
 packages:
 - lowarn
-- example-programs/following/v1
-- example-programs/following/v2
-- example-programs/following/v3
+- example-programs/following/versions/1.0.0
+- example-programs/following/versions/2.0.0
+- example-programs/following/versions/3.0.0
+- example-programs/following/transformers/1.0.0-2.0.0
+- example-programs/following/transformers/2.0.0-3.0.0
