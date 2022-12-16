@@ -4,6 +4,9 @@
 *~
 *.cabal
 
+dist
+dist-*
+
 *.o
 *.hi
 
