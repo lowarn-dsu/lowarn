@@ -1,7 +1,8 @@
 module Lowarn.ExampleProgram.Following
-  ( eventLoop,
-    User (..),
+  ( User (..),
     State (..),
+    eventLoop,
+    showUser,
   )
 where
 
@@ -10,7 +11,6 @@ import System.IO
   ( Handle,
     hFlush,
     hGetLine,
-    hPrint,
     hPutStrLn,
   )
 import Text.Regex.TDFA
@@ -19,14 +19,14 @@ newtype User = User
   { _username :: String
   }
 
-instance Show User where
-  show (User username) = username
-
 data State = State
   { _users :: [User],
     _in :: Handle,
     _out :: Handle
   }
+
+showUser :: User -> String
+showUser = _username
 
 eventLoop :: RuntimeData a -> State -> IO State
 eventLoop runtimeData state@(State users in_ out) = do
@@ -34,7 +34,7 @@ eventLoop runtimeData state@(State users in_ out) = do
   if not continue
     then do
       hPutStrLn out "Following:"
-      mapM_ (hPrint out) users
+      mapM_ (hPutStrLn out . showUser) users
       hPutStrLn out "------"
       user <- User <$> getUsername
       eventLoop runtimeData $ state {_users = users ++ [user]}

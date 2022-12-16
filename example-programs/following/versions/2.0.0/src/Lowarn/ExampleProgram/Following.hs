@@ -2,6 +2,7 @@ module Lowarn.ExampleProgram.Following
   ( User (..),
     State (..),
     eventLoop,
+    showUser,
   )
 where
 
@@ -12,7 +13,6 @@ import System.IO
   ( Handle,
     hFlush,
     hGetLine,
-    hPrint,
     hPutStrLn,
   )
 import Text.Printf (printf)
@@ -23,14 +23,14 @@ data User = User
     _userId :: Int
   }
 
-instance Show User where
-  show (User nickname userId) = printf "%s#%04d" nickname userId
-
 data State = State
   { _users :: Seq User,
     _in :: Handle,
     _out :: Handle
   }
+
+showUser :: User -> String
+showUser (User nickname userId) = printf "%s#%04d" nickname userId
 
 eventLoop :: RuntimeData a -> State -> IO State
 eventLoop runtimeData state@(State users in_ out) = do
@@ -38,7 +38,7 @@ eventLoop runtimeData state@(State users in_ out) = do
   if not continue
     then do
       hPutStrLn out "Following:"
-      mapM_ (hPrint out) users
+      mapM_ (hPutStrLn out . showUser) users
       hPutStrLn out "------"
       nickname <- getNickname
       userId <- getUserId

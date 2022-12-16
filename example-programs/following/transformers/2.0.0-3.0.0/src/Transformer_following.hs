@@ -13,4 +13,7 @@ transformer :: PreviousVersion.State -> IO (Maybe NewVersion.State)
 transformer (PreviousVersion.State users in_ out) =
   return $ Just $ NewVersion.State users' in_ out
   where
-    users' = reverse $ toList $ fmap (NewVersion.User . show) users
+    users' =
+      reverse $
+        toList $
+          fmap (NewVersion.User . PreviousVersion.showUser) users
