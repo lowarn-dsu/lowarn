@@ -11,15 +11,24 @@ module Lowarn.Runtime
   ( -- * Runtime creation
     Runtime,
     runRuntime,
-    loadProgram,
+    loadVersion,
+    loadTransformer,
+    updatePackageDatabase,
     liftLinker,
     liftIO,
 
-    -- * Runtime interaction
-    Program (..),
+    -- * Versions
+
+    -- | Types and functions used in versions of programs.
+    EntryPoint (..),
     RuntimeData,
     isUpdateAvailable,
     lastState,
+
+    -- * Transformers
+
+    -- | Types and functions used in state transformers.
+    Transformer (..),
   )
 where
 
@@ -29,7 +38,11 @@ import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Maybe (isJust)
 import Lowarn.DynamicLinker (Linker, liftIO, load, runLinker)
+import Lowarn.ProgramId (ProgramId, toEntryPointPackageName, _programName)
+import Lowarn.ProgramName (ProgramName, toEntryPointModuleName, toTransformerModuleName, transformerPackageName)
+import Lowarn.ProgramVersion (ProgramVersion)
 import System.Posix.Signals (Handler (Catch), installHandler, sigUSR2)
+import Text.Printf (printf)
 
 newtype UpdateSignal = UpdateSignal
   { unUpdateSignal :: MVar ()
@@ -42,13 +55,15 @@ newtype Runtime a = Runtime
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
--- | Type for exporting a set of functions that a runtime can use to load a
--- version of a program.
-data Program a b = Program
-  { -- | Function to start the program, given data injected by the runtime.
-    _entryPoint :: RuntimeData a -> IO a,
-    -- | Function to convert old state to new state, if this can be done.
-    _transformer :: b -> IO (Maybe a)
+-- | Type for functions that begin running a version of a program.
+newtype EntryPoint a = EntryPoint
+  { unEntryPoint :: RuntimeData a -> IO a
+  }
+
+-- | Type for functions that transform state from one version of a program
+-- into state for another.
+newtype Transformer a b = Transformer
+  { unTransformer :: a -> IO (Maybe b)
   }
 
 -- | Type for accessing data injected by the runtime.
@@ -75,32 +90,74 @@ runRuntime runtime = do
   liftIO $ void $ installHandler sigUSR2 previousSignalHandler Nothing
   return output
 
--- | Action that loads and runs a given program, producing the final state of
--- the program when it finishes.
+withLinkedEntity :: String -> String -> String -> (a -> IO b) -> IO b
+withLinkedEntity packageName moduleName entityName f =
+  runLinker (load packageName moduleName entityName)
+    >>= maybe
+      ( error
+          ( printf
+              "Could not find entity %s in module %s in package %s"
+              entityName
+              moduleName
+              packageName
+          )
+      )
+      f
+
+-- | Action that loads and runs a given version of a program, producing the
+-- final state of the program when it finishes.
 --
--- The program is given as the name of a module that exports a value
--- @program :: 'Program' b a@. This module should be in the package database.
---
--- The program is also given data representing state from the previous version
--- of the program.
-loadProgram ::
-  -- | The name of the module that includes the program.
-  String ->
+-- The program can be given data representing state transformed from a previous
+-- version of the program.
+loadVersion ::
+  -- | The program ID corresponding to the version of the program.
+  ProgramId ->
+  -- | State from a previous version of the program after being transformed.
+  Maybe a ->
+  Runtime a
+loadVersion programId mPreviousState =
+  Runtime $ do
+    updateSignal <- ask
+    liftIO $
+      withLinkedEntity
+        packageName
+        moduleName
+        "entryPoint"
+        ( \entryPoint ->
+            unEntryPoint entryPoint $
+              RuntimeData updateSignal (UpdateInfo Nothing <$> mPreviousState)
+        )
+  where
+    moduleName = toEntryPointModuleName . _programName $ programId
+    packageName = toEntryPointPackageName programId
+
+-- | Action that [TODO: write this].
+loadTransformer ::
+  -- | The program name.
+  ProgramName ->
+  -- | The pair consisting of the version of the program that the previous state
+  -- is from and the version of the program that the next state is for.
+  (ProgramVersion, ProgramVersion) ->
   -- | State from the previous version of the program.
   a ->
-  Runtime b
-loadProgram moduleName lastState_ = Runtime $ do
-  updateSignal <- ask
-  liftIO $
-    runLinker (load moduleName "program")
-      >>= maybe
-        (error ("Loading " <> moduleName <> " failed"))
-        ( \program -> do
-            updateInfo <-
-              fmap (UpdateInfo Nothing)
-                <$> _transformer program lastState_
-            _entryPoint program $ RuntimeData updateSignal updateInfo
-        )
+  Runtime (Maybe a)
+loadTransformer
+  programName
+  (previousProgramVersion, nextProgramVersion)
+  previousState =
+    Runtime $
+      liftIO $
+        withLinkedEntity
+          packageName
+          moduleName
+          "transformer"
+          (`unTransformer` previousState)
+    where
+      moduleName = toTransformerModuleName programName
+      packageName = transformerPackageName programName previousProgramVersion nextProgramVersion
+
+updatePackageDatabase :: Runtime ()
+updatePackageDatabase = return ()
 
 -- | Lift a computation from the 'Linker' monad.
 liftLinker :: Linker a -> Runtime a
