@@ -2,9 +2,9 @@ module Lowarn.ProgramId
   ( ProgramId (..),
     showProgramId,
     parseProgramId,
-    ofVersionPackageName,
+    ofEntryPointPackageName,
     ofTransformerPackageName,
-    toVersionPackageName,
+    toEntryPointPackageName,
     toTransformerPackageName,
   )
 where
@@ -50,8 +50,8 @@ ofPackageName prefix packageName = case submatches of
       packageName =~ ("\\`lowarn-" <> prefix <> "-(.+)-((v[[:digit:]]+)+)\\'") ::
         (String, String, String, [String])
 
-ofVersionPackageName :: String -> Maybe ProgramId
-ofVersionPackageName = ofPackageName "version"
+ofEntryPointPackageName :: String -> Maybe ProgramId
+ofEntryPointPackageName = ofPackageName "entry-point"
 
 ofTransformerPackageName :: String -> Maybe ProgramId
 ofTransformerPackageName = ofPackageName "transformer"
@@ -65,8 +65,8 @@ toPackageName prefix (ProgramId programName programVersion) =
     <> "-"
     <> showWithLetters programVersion
 
-toVersionPackageName :: ProgramId -> String
-toVersionPackageName = toPackageName "version"
+toEntryPointPackageName :: ProgramId -> String
+toEntryPointPackageName = toPackageName "entry-point"
 
 toTransformerPackageName :: ProgramId -> String
 toTransformerPackageName = toPackageName "transformer"

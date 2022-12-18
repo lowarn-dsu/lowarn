@@ -1,12 +1,13 @@
 module Lowarn.ProgramName
   ( ProgramName (..),
-    ofVersionModuleName,
+    ofEntryPointModuleName,
     ofTransformerModuleName,
-    toVersionModuleName,
+    toEntryPointModuleName,
     toTransformerModuleName,
   )
 where
 
+import Data.Maybe (listToMaybe)
 import Text.Regex.TDFA
 
 newtype ProgramName = ProgramName
@@ -24,16 +25,15 @@ replaceHyphensWithUnderscores :: String -> String
 replaceHyphensWithUnderscores = replace '-' '_'
 
 ofModuleName :: String -> String -> Maybe String
-ofModuleName prefix moduleName = case submatches of
-  [programName] -> Just $ replaceUnderscoresWithHyphens programName
-  _ -> Nothing
+ofModuleName prefix moduleName =
+  replaceUnderscoresWithHyphens <$> listToMaybe submatches
   where
     (_, _, _, submatches) =
       moduleName =~ ("\\`" <> prefix <> "_(.+)\\'") ::
         (String, String, String, [String])
 
-ofVersionModuleName :: String -> Maybe String
-ofVersionModuleName = ofModuleName "Version"
+ofEntryPointModuleName :: String -> Maybe String
+ofEntryPointModuleName = ofModuleName "EntryPoint"
 
 ofTransformerModuleName :: String -> Maybe String
 ofTransformerModuleName = ofModuleName "Transformer"
@@ -44,8 +44,8 @@ toModuleName prefix =
     . replaceHyphensWithUnderscores
     . unProgramName
 
-toVersionModuleName :: ProgramName -> String
-toVersionModuleName = toModuleName "Version"
+toEntryPointModuleName :: ProgramName -> String
+toEntryPointModuleName = toModuleName "EntryPoint"
 
 toTransformerModuleName :: ProgramName -> String
 toTransformerModuleName = toModuleName "Transformer"
