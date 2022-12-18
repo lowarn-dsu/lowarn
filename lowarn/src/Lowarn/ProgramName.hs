@@ -4,10 +4,12 @@ module Lowarn.ProgramName
     ofTransformerModuleName,
     toEntryPointModuleName,
     toTransformerModuleName,
+    transformerPackageName,
   )
 where
 
 import Data.Maybe (listToMaybe)
+import Lowarn.ProgramVersion (ProgramVersion, showWithLetters)
 import Text.Regex.TDFA
 
 newtype ProgramName = ProgramName
@@ -49,3 +51,13 @@ toEntryPointModuleName = toModuleName "EntryPoint"
 
 toTransformerModuleName :: ProgramName -> String
 toTransformerModuleName = toModuleName "Transformer"
+
+transformerPackageName ::
+  ProgramName -> ProgramVersion -> ProgramVersion -> String
+transformerPackageName programName previousProgramVersion nextProgramVersion =
+  "lowarn-transformer-"
+    <> unProgramName programName
+    <> "-"
+    <> showWithLetters previousProgramVersion
+    <> "-"
+    <> showWithLetters nextProgramVersion
