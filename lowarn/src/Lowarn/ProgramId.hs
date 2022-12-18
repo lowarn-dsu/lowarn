@@ -43,7 +43,11 @@ ofPackageName prefix packageName = case submatches of
   programName : programVersion : _ ->
     ProgramId
       (ProgramName programName)
-      <$> (fst <$> listToMaybe (readP_to_S parseWithLetters programVersion))
+      <$> ( fst
+              <$> listToMaybe
+                ( readP_to_S (parseWithLetters <* eof) programVersion
+                )
+          )
   _ -> Nothing
   where
     (_, _, _, submatches) =
@@ -66,7 +70,7 @@ toPackageName prefix (ProgramId programName programVersion) =
     <> showWithLetters programVersion
 
 toEntryPointPackageName :: ProgramId -> String
-toEntryPointPackageName = toPackageName "entry-point"
+toEntryPointPackageName = toPackageName "version"
 
 toTransformerPackageName :: ProgramId -> String
 toTransformerPackageName = toPackageName "transformer"
