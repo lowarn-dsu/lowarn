@@ -8,12 +8,17 @@ where
 import Data.Foldable (toList)
 import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Following as PreviousVersion
 import qualified "lowarn-version-following-v3v0v0" Lowarn.ExampleProgram.Following as NextVersion
+import Lowarn.Runtime (Transformer (Transformer))
 
-transformer :: PreviousVersion.State -> IO (Maybe NextVersion.State)
-transformer (PreviousVersion.State users in_ out) =
-  return $ Just $ NextVersion.State users' in_ out
-  where
-    users' =
-      reverse $
-        toList $
-          fmap (NextVersion.User . PreviousVersion.showUser) users
+transformer :: Transformer PreviousVersion.State NextVersion.State
+transformer = Transformer $
+  \(PreviousVersion.State users inHandle outHandle) ->
+    return $
+      Just $
+        NextVersion.State
+          ( reverse $
+              toList $
+                fmap (NextVersion.User . PreviousVersion.showUser) users
+          )
+          inHandle
+          outHandle
