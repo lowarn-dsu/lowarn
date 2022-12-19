@@ -133,7 +133,8 @@ loadVersion versionId mPreviousState = do
       showEntryPointModuleName . VersionId._programName $ versionId
     packageName = showVersionPackageName versionId
 
--- | Action that [TODO: write this].
+-- | Action that loads and runs a given state transformer, producing the state
+-- for the next version of a program.
 loadTransformer ::
   -- | The ID corresponding to the transformer.
   TransformerId ->
@@ -151,6 +152,7 @@ loadTransformer transformerId previousState =
       showTransformerModuleName . TransformerId._programName $ transformerId
     packageName = showTransformerPackageName transformerId
 
+-- | Action that updates the package database.
 updatePackageDatabase :: Runtime ()
 updatePackageDatabase = return ()
 
