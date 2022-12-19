@@ -38,9 +38,11 @@ import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Maybe (isJust)
 import Lowarn.DynamicLinker (Linker, liftIO, load, runLinker)
-import Lowarn.ProgramId (ProgramId, toEntryPointPackageName, _programName)
-import Lowarn.ProgramName (ProgramName, toEntryPointModuleName, toTransformerModuleName, transformerPackageName)
-import Lowarn.ProgramVersion (ProgramVersion)
+import Lowarn.ProgramName (showEntryPointModuleName, showTransformerModuleName)
+import Lowarn.TransformerId (TransformerId, showTransformerPackageName)
+import qualified Lowarn.TransformerId as TransformerId (_programName)
+import Lowarn.VersionId (VersionId, showVersionPackageName)
+import qualified Lowarn.VersionId as VersionId (_programName)
 import System.Posix.Signals (Handler (Catch), installHandler, sigUSR2)
 import Text.Printf (printf)
 
@@ -90,19 +92,20 @@ runRuntime runtime = do
   liftIO $ void $ installHandler sigUSR2 previousSignalHandler Nothing
   return output
 
-withLinkedEntity :: String -> String -> String -> (a -> IO b) -> IO b
+withLinkedEntity :: String -> String -> String -> (a -> IO b) -> Runtime b
 withLinkedEntity packageName moduleName entityName f =
-  runLinker (load packageName moduleName entityName)
-    >>= maybe
-      ( error
-          ( printf
-              "Could not find entity %s in module %s in package %s"
-              entityName
-              moduleName
-              packageName
-          )
-      )
-      f
+  liftIO $ do
+    runLinker (load packageName moduleName entityName)
+      >>= maybe
+        ( error
+            ( printf
+                "Could not find entity %s in module %s in package %s"
+                entityName
+                moduleName
+                packageName
+            )
+        )
+        f
 
 -- | Action that loads and runs a given version of a program, producing the
 -- final state of the program when it finishes.
@@ -110,51 +113,43 @@ withLinkedEntity packageName moduleName entityName f =
 -- The program can be given data representing state transformed from a previous
 -- version of the program.
 loadVersion ::
-  -- | The program ID corresponding to the version of the program.
-  ProgramId ->
+  -- | The ID corresponding to the version of the program.
+  VersionId ->
   -- | State from a previous version of the program after being transformed.
   Maybe a ->
   Runtime a
-loadVersion programId mPreviousState =
-  Runtime $ do
-    updateSignal <- ask
-    liftIO $
-      withLinkedEntity
-        packageName
-        moduleName
-        "entryPoint"
-        ( \entryPoint ->
-            unEntryPoint entryPoint $
-              RuntimeData updateSignal (UpdateInfo Nothing <$> mPreviousState)
-        )
+loadVersion versionId mPreviousState = do
+  updateSignal <- Runtime ask
+  withLinkedEntity
+    packageName
+    moduleName
+    "entryPoint"
+    ( \entryPoint ->
+        unEntryPoint entryPoint $
+          RuntimeData updateSignal (UpdateInfo Nothing <$> mPreviousState)
+    )
   where
-    moduleName = toEntryPointModuleName . _programName $ programId
-    packageName = toEntryPointPackageName programId
+    moduleName =
+      showEntryPointModuleName . VersionId._programName $ versionId
+    packageName = showVersionPackageName versionId
 
 -- | Action that [TODO: write this].
 loadTransformer ::
-  -- | The program name.
-  ProgramName ->
-  -- | The pair consisting of the version of the program that the previous state
-  -- is from and the version of the program that the next state is for.
-  (ProgramVersion, ProgramVersion) ->
+  -- | The ID corresponding to the transformer.
+  TransformerId ->
   -- | State from the previous version of the program.
   a ->
   Runtime (Maybe a)
-loadTransformer
-  programName
-  (previousProgramVersion, nextProgramVersion)
-  previousState =
-    Runtime $
-      liftIO $
-        withLinkedEntity
-          packageName
-          moduleName
-          "transformer"
-          (`unTransformer` previousState)
-    where
-      moduleName = toTransformerModuleName programName
-      packageName = transformerPackageName programName previousProgramVersion nextProgramVersion
+loadTransformer transformerId previousState =
+  withLinkedEntity
+    packageName
+    moduleName
+    "transformer"
+    (`unTransformer` previousState)
+  where
+    moduleName =
+      showTransformerModuleName . TransformerId._programName $ transformerId
+    packageName = showTransformerPackageName transformerId
 
 updatePackageDatabase :: Runtime ()
 updatePackageDatabase = return ()
