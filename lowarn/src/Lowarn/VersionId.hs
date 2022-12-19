@@ -8,8 +8,7 @@ module Lowarn.VersionId
 where
 
 import Control.Monad (void)
-import Lowarn.ParserCombinators (parsePackageName)
-import Lowarn.ProgramName (ProgramName (..))
+import Lowarn.ProgramName (ProgramName, parseProgramName, unProgramName)
 import Lowarn.VersionNumber
   ( VersionNumber,
     parseWithDots,
@@ -23,7 +22,7 @@ data VersionId = VersionId
   { _programName :: ProgramName,
     _versionNumber :: VersionNumber
   }
-  deriving (Eq, Show, Read)
+  deriving (Eq, Show)
 
 showVersionId :: VersionId -> String
 showVersionId (VersionId programName versionNumber) =
@@ -39,7 +38,7 @@ showVersionPackageName (VersionId programName versionNumber) =
 parseWithParsers :: ReadP () -> ReadP VersionNumber -> ReadP VersionId
 parseWithParsers parsePrefix parseVersionNumber = do
   parsePrefix
-  programName <- ProgramName <$> parsePackageName
+  programName <- parseProgramName
   void $ char '-'
   VersionId programName <$> parseVersionNumber
 

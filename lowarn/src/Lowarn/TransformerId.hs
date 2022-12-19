@@ -8,8 +8,7 @@ module Lowarn.TransformerId
 where
 
 import Control.Monad (void)
-import Lowarn.ParserCombinators (parsePackageName)
-import Lowarn.ProgramName (ProgramName (..))
+import Lowarn.ProgramName (ProgramName, parseProgramName, unProgramName)
 import Lowarn.VersionNumber
   ( VersionNumber,
     parseWithDots,
@@ -24,7 +23,7 @@ data TransformerId = TransformerId
     _previousVersionNumber :: VersionNumber,
     _nextVersionNumber :: VersionNumber
   }
-  deriving (Eq, Show, Read)
+  deriving (Eq, Show)
 
 showWithShows :: String -> (VersionNumber -> String) -> TransformerId -> String
 showWithShows
@@ -48,7 +47,7 @@ showTransformerPackageName =
 parseWithParsers :: ReadP () -> ReadP VersionNumber -> ReadP TransformerId
 parseWithParsers parsePrefix parseVersionNumber = do
   parsePrefix
-  programName <- ProgramName <$> parsePackageName
+  programName <- parseProgramName
   void $ char '-'
   previousVersionNumber <- parseVersionNumber
   void $ char '-'

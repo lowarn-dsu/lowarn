@@ -2,8 +2,8 @@ module Main (main) where
 
 import Control.Monad (void)
 import Data.Maybe (fromJust)
-import Lowarn.ParserCombinators (runParser)
-import Lowarn.ProgramName (ProgramName (ProgramName))
+import Lowarn.ParserCombinators (readWithParser)
+import Lowarn.ProgramName (ProgramName, mkProgramName)
 import Lowarn.Runtime
   ( loadTransformer,
     loadVersion,
@@ -15,7 +15,7 @@ import Lowarn.VersionId (VersionId (VersionId))
 import Lowarn.VersionNumber (VersionNumber, parseWithDots)
 
 mkVersionNumber :: String -> VersionNumber
-mkVersionNumber = fromJust . runParser parseWithDots
+mkVersionNumber = fromJust . readWithParser parseWithDots
 
 versionNumber1 :: VersionNumber
 versionNumber1 = mkVersionNumber "1.0.0"
@@ -27,7 +27,7 @@ versionNumber3 :: VersionNumber
 versionNumber3 = mkVersionNumber "3.0.0"
 
 followingProgramName :: ProgramName
-followingProgramName = ProgramName "following"
+followingProgramName = fromJust $ mkProgramName "following"
 
 followingVersionId :: VersionNumber -> VersionId
 followingVersionId = VersionId followingProgramName

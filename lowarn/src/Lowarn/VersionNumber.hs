@@ -17,7 +17,7 @@ import Text.ParserCombinators.ReadP
 newtype VersionNumber = VersionNumber
   { unVersionNumber :: NonEmpty Int
   }
-  deriving (Eq, Ord, Show, Read)
+  deriving (Eq, Ord, Show)
 
 showWithSeparator :: String -> VersionNumber -> String
 showWithSeparator separator =

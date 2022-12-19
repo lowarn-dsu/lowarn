@@ -1,7 +1,7 @@
 module Lowarn.ParserCombinators
   ( parsePackageName,
     parseProgramModuleName,
-    runParser,
+    readWithParser,
   )
 where
 
@@ -22,7 +22,7 @@ parsePackageWord =
 
 parsePackageWordSequence :: Char -> ReadP String
 parsePackageWordSequence separator =
-  intercalate [separator] <$> sepBy parsePackageWord (char separator)
+  intercalate [separator] <$> sepBy1 parsePackageWord (char separator)
 
 parsePackageName :: ReadP String
 parsePackageName = parsePackageWordSequence '-'
@@ -30,5 +30,5 @@ parsePackageName = parsePackageWordSequence '-'
 parseProgramModuleName :: ReadP String
 parseProgramModuleName = parsePackageWordSequence '_'
 
-runParser :: ReadP a -> String -> Maybe a
-runParser parser = fmap fst . listToMaybe . readP_to_S (parser <* eof)
+readWithParser :: ReadP a -> String -> Maybe a
+readWithParser parser = fmap fst . listToMaybe . readP_to_S (parser <* eof)
