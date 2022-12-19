@@ -1,16 +1,15 @@
 module Lowarn.ProgramName
   ( ProgramName (..),
-    ofEntryPointModuleName,
-    ofTransformerModuleName,
-    toEntryPointModuleName,
-    toTransformerModuleName,
-    transformerPackageName,
+    showEntryPointModuleName,
+    showTransformerModuleName,
+    parseEntryPointModuleName,
+    parseTransformerModuleName,
   )
 where
 
-import Data.Maybe (listToMaybe)
-import Lowarn.ProgramVersion (ProgramVersion, showWithLetters)
-import Text.Regex.TDFA
+import Control.Monad (void)
+import Lowarn.ParserCombinators (parseProgramModuleName)
+import Text.ParserCombinators.ReadP
 
 newtype ProgramName = ProgramName
   { unProgramName :: String
@@ -26,38 +25,26 @@ replaceUnderscoresWithHyphens = replace '_' '-'
 replaceHyphensWithUnderscores :: String -> String
 replaceHyphensWithUnderscores = replace '-' '_'
 
-ofModuleName :: String -> String -> Maybe String
-ofModuleName prefix moduleName =
-  replaceUnderscoresWithHyphens <$> listToMaybe submatches
-  where
-    (_, _, _, submatches) =
-      moduleName =~ ("\\`" <> prefix <> "_(.+)\\'") ::
-        (String, String, String, [String])
-
-ofEntryPointModuleName :: String -> Maybe String
-ofEntryPointModuleName = ofModuleName "EntryPoint"
-
-ofTransformerModuleName :: String -> Maybe String
-ofTransformerModuleName = ofModuleName "Transformer"
-
-toModuleName :: String -> ProgramName -> String
-toModuleName prefix =
+showModuleNameWithPrefix :: String -> ProgramName -> String
+showModuleNameWithPrefix prefix =
   ((prefix <> "_") <>)
     . replaceHyphensWithUnderscores
     . unProgramName
 
-toEntryPointModuleName :: ProgramName -> String
-toEntryPointModuleName = toModuleName "EntryPoint"
+showEntryPointModuleName :: ProgramName -> String
+showEntryPointModuleName = showModuleNameWithPrefix "EntryPoint"
 
-toTransformerModuleName :: ProgramName -> String
-toTransformerModuleName = toModuleName "Transformer"
+showTransformerModuleName :: ProgramName -> String
+showTransformerModuleName = showModuleNameWithPrefix "Transformer"
 
-transformerPackageName ::
-  ProgramName -> ProgramVersion -> ProgramVersion -> String
-transformerPackageName programName previousProgramVersion nextProgramVersion =
-  "lowarn-transformer-"
-    <> unProgramName programName
-    <> "-"
-    <> showWithLetters previousProgramVersion
-    <> "-"
-    <> showWithLetters nextProgramVersion
+parseModuleNameWithPrefix :: String -> ReadP String
+parseModuleNameWithPrefix prefix = do
+  void $ string prefix
+  void $ char '_'
+  replaceUnderscoresWithHyphens <$> parseProgramModuleName
+
+parseEntryPointModuleName :: ReadP String
+parseEntryPointModuleName = parseModuleNameWithPrefix "EntryPoint"
+
+parseTransformerModuleName :: ReadP String
+parseTransformerModuleName = parseModuleNameWithPrefix "Transformer"
