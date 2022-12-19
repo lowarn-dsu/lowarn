@@ -26,9 +26,9 @@ import Data.List (intercalate)
 import Data.List.NonEmpty (NonEmpty ((:|)), toList)
 import Text.ParserCombinators.ReadP
 
---- $setup
+-- $setup
+-- >>> import Data.Maybe (fromJust, listToMaybe)
 -- >>> import Lowarn.ParserCombinators (readWithParser)
--- >>> import Data.Maybe (fromJust)
 
 -- | The version number of a program. This is a non-empty sequence of
 -- non-negative integers.

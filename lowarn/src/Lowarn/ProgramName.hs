@@ -28,7 +28,7 @@ import Lowarn.ParserCombinators
   )
 import Text.ParserCombinators.ReadP
 
---- $setup
+-- $setup
 -- >>> import Data.Maybe (fromJust)
 
 -- | The name of a program. This is a non-empty sequence of "words" separated by
