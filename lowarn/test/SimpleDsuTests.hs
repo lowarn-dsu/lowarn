@@ -10,18 +10,31 @@ import DsuTest
     outputLines,
     updateProgram,
   )
-import Lowarn.Runtime (Runtime, loadProgram)
+import Following
+  ( followingTransformerId,
+    followingVersionId,
+    versionNumber0,
+    versionNumber1,
+    versionNumber2,
+    versionNumber3,
+  )
+import Lowarn.Runtime (Runtime, loadTransformer, loadVersion)
 import System.IO (Handle)
 import Test.Tasty (TestTree, testGroup)
 
 getExampleRuntime :: (Handle, Handle) -> Runtime ()
 getExampleRuntime handles =
   void $
-    loadProgram
-      "Lowarn.ExamplePrograms.Following.Following1"
+    loadTransformer
+      (followingTransformerId (versionNumber0, versionNumber1))
       handles
-      >>= loadProgram "Lowarn.ExamplePrograms.Following.Following2"
-      >>= loadProgram "Lowarn.ExamplePrograms.Following.Following3"
+      >>= loadVersion (followingVersionId versionNumber1)
+      >>= loadTransformer
+        (followingTransformerId (versionNumber1, versionNumber2))
+      >>= loadVersion (followingVersionId versionNumber2)
+      >>= loadTransformer
+        (followingTransformerId (versionNumber2, versionNumber3))
+      >>= loadVersion (followingVersionId versionNumber3)
 
 successfulChain :: TestTree
 successfulChain =

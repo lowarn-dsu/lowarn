@@ -1,21 +1,26 @@
-module Main (main) where
+module Following
+  ( versionNumber0,
+    versionNumber1,
+    versionNumber2,
+    versionNumber3,
+    followingProgramName,
+    followingVersionId,
+    followingTransformerId,
+  )
+where
 
-import Control.Monad (void)
 import Data.Maybe (fromJust)
 import Lowarn.ParserCombinators (runParser)
 import Lowarn.ProgramName (ProgramName (ProgramName))
-import Lowarn.Runtime
-  ( loadTransformer,
-    loadVersion,
-    runRuntime,
-    updatePackageDatabase,
-  )
 import Lowarn.TransformerId (TransformerId (TransformerId))
 import Lowarn.VersionId (VersionId (VersionId))
 import Lowarn.VersionNumber (VersionNumber, parseWithDots)
 
 mkVersionNumber :: String -> VersionNumber
 mkVersionNumber = fromJust . runParser parseWithDots
+
+versionNumber0 :: VersionNumber
+versionNumber0 = mkVersionNumber "0"
 
 versionNumber1 :: VersionNumber
 versionNumber1 = mkVersionNumber "1.0.0"
@@ -35,23 +40,3 @@ followingVersionId = VersionId followingProgramName
 followingTransformerId :: (VersionNumber, VersionNumber) -> TransformerId
 followingTransformerId (previousVersionNumber, nextVersionNumber) =
   TransformerId followingProgramName previousVersionNumber nextVersionNumber
-
-main :: IO ()
-main =
-  runRuntime $ do
-    state1 <-
-      loadVersion (followingVersionId versionNumber1) Nothing
-
-    updatePackageDatabase
-    state2 <-
-      loadVersion (followingVersionId versionNumber2)
-        =<< loadTransformer
-          (followingTransformerId (versionNumber1, versionNumber2))
-          state1
-
-    updatePackageDatabase
-    void $
-      loadVersion (followingVersionId versionNumber3)
-        =<< loadTransformer
-          (followingTransformerId (versionNumber2, versionNumber3))
-          state2

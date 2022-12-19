@@ -9,14 +9,23 @@ import DsuTest
     outputLines,
     writeInfo,
   )
-import Lowarn.Runtime (Runtime, loadProgram)
+import Lowarn.Runtime (Runtime, loadTransformer, loadVersion)
 import System.IO (Handle)
 import Test.Tasty (TestTree, testGroup)
+import Following
+  ( followingTransformerId,
+    followingVersionId,
+    versionNumber0,
+    versionNumber1,
+  )
 
 getExampleRuntime :: (Handle, Handle) -> Runtime ()
 getExampleRuntime handles =
   void $
-    loadProgram "Lowarn.ExamplePrograms.Following.Following1" handles
+    loadTransformer
+      (followingTransformerId (versionNumber0, versionNumber1))
+      handles
+      >>= loadVersion (followingVersionId versionNumber1)
 
 inputTimeout :: TestTree
 inputTimeout =
