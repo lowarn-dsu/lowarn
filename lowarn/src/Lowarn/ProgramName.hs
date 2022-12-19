@@ -22,6 +22,7 @@ where
 
 --- $setup
 -- >>> import Lowarn.ParserCombinators (readWithParser)
+-- >>> import Data.Maybe (fromJust)
 
 import Control.Monad (void)
 import Lowarn.ParserCombinators
@@ -103,7 +104,7 @@ showModuleNameWithPrefix prefix =
 --
 -- ==== __Examples__
 --
--- >>> showEntryPointModuleName (ProgramName "foo-bar")
+-- >>> showEntryPointModuleName (fromJust $ mkProgramName "foo-bar")
 -- "EntryPoint_foo_bar"
 showEntryPointModuleName :: ProgramName -> String
 showEntryPointModuleName = showModuleNameWithPrefix "EntryPoint"
@@ -115,7 +116,7 @@ showEntryPointModuleName = showModuleNameWithPrefix "EntryPoint"
 --
 -- ==== __Examples__
 --
--- >>> showTransformerModuleName (ProgramName "foo-bar")
+-- >>> showTransformerModuleName (fromJust $ mkProgramName "foo-bar")
 -- "Transformer_foo_bar"
 showTransformerModuleName :: ProgramName -> String
 showTransformerModuleName = showModuleNameWithPrefix "Transformer"
