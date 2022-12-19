@@ -20,10 +20,6 @@ module Lowarn.ProgramName
   )
 where
 
---- $setup
--- >>> import Lowarn.ParserCombinators (readWithParser)
--- >>> import Data.Maybe (fromJust)
-
 import Control.Monad (void)
 import Lowarn.ParserCombinators
   ( parsePackageName,
@@ -31,6 +27,9 @@ import Lowarn.ParserCombinators
     readWithParser,
   )
 import Text.ParserCombinators.ReadP
+
+--- $setup
+-- >>> import Data.Maybe (fromJust)
 
 -- | The name of a program. This is a non-empty sequence of "words" separated by
 -- hyphens, where each "word" is a non-empty string of lowercase ASCII letters
