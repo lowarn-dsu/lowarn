@@ -9,15 +9,15 @@ import DsuTest
     outputLines,
     writeInfo,
   )
-import Lowarn.Runtime (Runtime, loadTransformer, loadVersion)
-import System.IO (Handle)
-import Test.Tasty (TestTree, testGroup)
 import Following
   ( followingTransformerId,
     followingVersionId,
     versionNumber0,
     versionNumber1,
   )
+import Lowarn.Runtime (Runtime, loadTransformer, loadVersion)
+import System.IO (Handle)
+import Test.Tasty (TestTree, testGroup)
 
 getExampleRuntime :: (Handle, Handle) -> Runtime ()
 getExampleRuntime handles =
