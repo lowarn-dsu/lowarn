@@ -21,6 +21,9 @@ import Data.List (intercalate)
 import Data.Maybe (listToMaybe)
 import Text.ParserCombinators.ReadP
 
+-- $setup
+-- >>> import Text.ParserCombinators.ReadP (many, readP_to_S, satisfy, string, (+++))
+
 -- | Read a value from a 'String' using a 'ReadP' parser. The parser must accept
 -- the entire input, without any trailing whitespace. If the parse is ambiguous,
 -- the first result is returned.

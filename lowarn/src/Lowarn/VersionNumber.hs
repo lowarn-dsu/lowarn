@@ -28,7 +28,9 @@ import Text.ParserCombinators.ReadP
 
 -- $setup
 -- >>> import Data.Maybe (fromJust, listToMaybe)
+-- >>> import Data.List.NonEmpty (NonEmpty ((:|)))
 -- >>> import Lowarn.ParserCombinators (readWithParser)
+-- >>> import Text.ParserCombinators.ReadP (readP_to_S)
 
 -- | The version number of a program. This is a non-empty sequence of
 -- non-negative integers.
