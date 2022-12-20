@@ -16,11 +16,16 @@ module Lowarn.TransformerId
     -- * Package names
     showTransformerPackageName,
     parseTransformerPackageName,
+
+    -- * Version IDs
+    previousVersionId,
+    nextVersionId,
   )
 where
 
 import Control.Monad (void)
 import Lowarn.ProgramName (ProgramName, parseProgramName, unProgramName)
+import Lowarn.VersionId (VersionId (VersionId))
 import Lowarn.VersionNumber
   ( VersionNumber,
     parseWithDots,
@@ -125,3 +130,26 @@ parseTransformerId = parseWithParsers (return ()) parseWithDots
 parseTransformerPackageName :: ReadP TransformerId
 parseTransformerPackageName =
   parseWithParsers (void $ string "lowarn-transformer-") parseWithLetters
+
+-- | Give the version ID corresponding to the program that the state transformer
+-- corresponding to a given transformer ID transforms state from.
+--
+-- ==== __Examples__
+--
+-- >>> previousVersionId (TransformerId (fromJust (mkProgramName "foo-bar")) (fromJust (mkVersionNumber (1 :| [2, 3]))) (fromJust (mkVersionNumber (1 :| [2, 4]))))
+-- VersionId {_programName = ProgramName {unProgramName = "foo-bar"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}}
+previousVersionId :: TransformerId -> VersionId
+previousVersionId (TransformerId programName previousVersionNumber _) =
+  VersionId programName previousVersionNumber
+
+-- | Give the version ID corresponding to the program that takes state that has
+-- been transformed by the state transformer corresponding to a given
+-- transformer ID.
+--
+-- ==== __Examples__
+--
+-- >>> nextVersionId (TransformerId (fromJust (mkProgramName "foo-bar")) (fromJust (mkVersionNumber (1 :| [2, 3]))) (fromJust (mkVersionNumber (1 :| [2, 4]))))
+-- VersionId {_programName = ProgramName {unProgramName = "foo-bar"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}}
+nextVersionId :: TransformerId -> VersionId
+nextVersionId (TransformerId programName _ nextVersionNumber) =
+  VersionId programName nextVersionNumber
