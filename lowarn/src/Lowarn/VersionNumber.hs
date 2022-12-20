@@ -34,6 +34,9 @@ import Text.ParserCombinators.ReadP
 
 -- | The version number of a program. This is a non-empty sequence of
 -- non-negative integers.
+--
+-- Version numbers are compared lexicographically, so @1.2@ is greater than
+-- @1.2.0@:
 newtype VersionNumber = VersionNumber
   { unVersionNumber :: NonEmpty Int
   }
