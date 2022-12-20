@@ -111,6 +111,24 @@ parseWithParsers parsePrefix parseVersionNumber = do
 --
 -- >>> readWithParser parseTransformerId "foo-bar-1.2.3-1.2.4"
 -- Just (TransformerId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}})
+--
+-- >>> readWithParser parseTransformerId "foo-bar-1.2.3-"
+-- Nothing
+--
+-- >>> readWithParser parseTransformerId "foo-bar-1.2.3"
+-- Nothing
+--
+-- >>> readWithParser parseTransformerId "foo-bar-"
+-- Nothing
+--
+-- >>> readWithParser parseTransformerId "foo-bar"
+-- Nothing
+--
+-- >>> readWithParser parseTransformerId ""
+-- Nothing
+--
+-- >>> readWithParser parseTransformerId "foo-bar-1.2.3-1.2.4-1.2.5"
+-- Nothing
 parseTransformerId :: ReadP TransformerId
 parseTransformerId = parseWithParsers (return ()) parseWithDots
 
@@ -127,6 +145,33 @@ parseTransformerId = parseWithParsers (return ()) parseWithDots
 --
 -- >>> readWithParser parseTransformerPackageName "lowarn-transformer-foo-bar-v1v2v3-v1v2v4"
 -- Just (TransformerId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}})
+--
+-- >>> readWithParser parseTransformerPackageName "lowarn-transformer-foo-bar-v1v2v3-"
+-- Nothing
+--
+-- >>> readWithParser parseTransformerPackageName "lowarn-transformer-foo-bar-v1v2v3"
+-- Nothing
+--
+-- >>> readWithParser parseTransformerPackageName "lowarn-transformer-foo-bar-"
+-- Nothing
+--
+-- >>> readWithParser parseTransformerPackageName "lowarn-transformer-foo-bar"
+-- Nothing
+--
+-- >>> readWithParser parseTransformerPackageName "lowarn-transformer-"
+-- Nothing
+--
+-- >>> readWithParser parseTransformerPackageName "lowarn-transformer"
+-- Nothing
+--
+-- >>> readWithParser parseTransformerPackageName ""
+-- Nothing
+--
+-- >>> readP_to_S parseTransformerPackageName "lowarn-transformer-foo-bar-v1v2v3-v1v2v4-v1v2v5"
+-- [(TransformerId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| []}},"v2v4-v1v2v5"),(TransformerId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2]}},"v4-v1v2v5"),(TransformerId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}},"-v1v2v5"),(TransformerId {_programName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| []}},"v2v5"),(TransformerId {_programName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2]}},"v5"),(TransformerId {_programName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,5]}},"")]
+--
+-- >>> readWithParser parseTransformerPackageName "lowarn-transformer-foo-bar-v1v2v3-v1v2v4-v1v2v5"
+-- Just (TransformerId {_programName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,5]}})
 parseTransformerPackageName :: ReadP TransformerId
 parseTransformerPackageName =
   parseWithParsers (void $ string "lowarn-transformer-") parseWithLetters

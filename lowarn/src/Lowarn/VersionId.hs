@@ -89,6 +89,18 @@ parseWithParsers parsePrefix parseVersionNumber = do
 --
 -- >>> readWithParser parseVersionId "foo-bar-1.2.3"
 -- Just (VersionId {_programName = ProgramName {unProgramName = "foo-bar"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}})
+--
+-- >>> readWithParser parseVersionId "foo-bar-"
+-- Nothing
+--
+-- >>> readWithParser parseVersionId "foo-bar"
+-- Nothing
+--
+-- >>> readWithParser parseVersionId ""
+-- Nothing
+--
+-- >>> readWithParser parseVersionId "foo-bar-1.2.3-1.2.4"
+-- Nothing
 parseVersionId :: ReadP VersionId
 parseVersionId = parseWithParsers (return ()) parseWithDots
 
@@ -104,6 +116,27 @@ parseVersionId = parseWithParsers (return ()) parseWithDots
 --
 -- >>> readWithParser parseVersionPackageName "lowarn-version-foo-bar-v1v2v3"
 -- Just (VersionId {_programName = ProgramName {unProgramName = "foo-bar"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}})
+--
+-- >>> readWithParser parseVersionPackageName "lowarn-version-foo-bar-"
+-- Nothing
+--
+-- >>> readWithParser parseVersionPackageName "lowarn-version-foo-bar"
+-- Nothing
+--
+-- >>> readWithParser parseVersionPackageName "lowarn-version-"
+-- Nothing
+--
+-- >>> readWithParser parseVersionPackageName "lowarn-version"
+-- Nothing
+--
+-- >>> readWithParser parseVersionPackageName ""
+-- Nothing
+--
+-- >>> readP_to_S parseVersionPackageName "lowarn-version-foo-bar-v1v2v3-v1v2v4"
+-- [(VersionId {_programName = ProgramName {unProgramName = "foo-bar"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| []}},"v2v3-v1v2v4"),(VersionId {_programName = ProgramName {unProgramName = "foo-bar"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| [2]}},"v3-v1v2v4"),(VersionId {_programName = ProgramName {unProgramName = "foo-bar"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}},"-v1v2v4"),(VersionId {_programName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| []}},"v2v4"),(VersionId {_programName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| [2]}},"v4"),(VersionId {_programName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}},"")]
+--
+-- >>> readWithParser parseVersionPackageName "lowarn-version-foo-bar-v1v2v3-v1v2v4"
+-- Just (VersionId {_programName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}})
 parseVersionPackageName :: ReadP VersionId
 parseVersionPackageName =
   parseWithParsers (void $ string "lowarn-version-") parseWithLetters

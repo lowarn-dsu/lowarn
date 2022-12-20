@@ -207,5 +207,8 @@ parseEntryPointModuleName = parseModuleNameWithPrefix "EntryPoint"
 --
 -- >>> readWithParser parseTransformerModuleName "Transformer"
 -- Nothing
+--
+-- >>> readWithParser parseTransformerModuleName ""
+-- Nothing
 parseTransformerModuleName :: ReadP ProgramName
 parseTransformerModuleName = parseModuleNameWithPrefix "Transformer"
