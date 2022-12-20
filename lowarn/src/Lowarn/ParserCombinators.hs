@@ -6,9 +6,12 @@
 --
 -- Module for helper functions for using parser combinators.
 module Lowarn.ParserCombinators
-  ( parsePackageName,
-    parseProgramModuleName,
+  ( -- * Using parsers
     readWithParser,
+
+    -- * Parsers
+    parsePackageName,
+    parseProgramModuleName,
   )
 where
 
@@ -17,6 +20,29 @@ import Data.Char (isAsciiLower, isDigit)
 import Data.List (intercalate)
 import Data.Maybe (listToMaybe)
 import Text.ParserCombinators.ReadP
+
+-- | Read a value from a 'String' using a 'ReadP' parser. The parser must accept
+-- the entire input, without any trailing whitespace. If the parse is ambiguous,
+-- the first result is returned.
+--
+-- ==== __Examples__
+--
+-- >>> readWithParser (string "foo") "foo"
+-- Just "foo"
+--
+-- >>> readWithParser (string "foo") "foo "
+-- Nothing
+--
+-- >>> readWithParser (string "foo") " foo"
+-- Nothing
+--
+-- >>> readWithParser (many (satisfy $ const True)) "foo"
+-- Just "foo"
+--
+-- >>> readWithParser (string "foo" *> (return 1 +++ return 2)) "foo"
+-- Just 1
+readWithParser :: ReadP a -> String -> Maybe a
+readWithParser parser = fmap fst . listToMaybe . readP_to_S (parser <* eof)
 
 parsePackageWord :: ReadP String
 parsePackageWord =
@@ -112,26 +138,3 @@ parsePackageName = parsePackageWordSequence '-'
 -- Nothing
 parseProgramModuleName :: ReadP String
 parseProgramModuleName = parsePackageWordSequence '_'
-
--- | Read a value from a 'String' using a 'ReadP' parser. The parser must accept
--- the entire input, without any trailing whitespace. If the parse is ambiguous,
--- the first result is returned.
---
--- ==== __Examples__
---
--- >>> readWithParser (string "foo") "foo"
--- Just "foo"
---
--- >>> readWithParser (string "foo") "foo "
--- Nothing
---
--- >>> readWithParser (string "foo") " foo"
--- Nothing
---
--- >>> readWithParser (many (satisfy $ const True)) "foo"
--- Just "foo"
---
--- >>> readWithParser (string "foo" *> (return 1 +++ return 2)) "foo"
--- Just 1
-readWithParser :: ReadP a -> String -> Maybe a
-readWithParser parser = fmap fst . listToMaybe . readP_to_S (parser <* eof)
