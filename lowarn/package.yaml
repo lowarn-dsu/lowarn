@@ -65,6 +65,7 @@ tests:
     - tasty-golden
     - filepath
     - process
+    - doctest
     - lowarn-version-following-v1v0v0
     - lowarn-version-following-v2v0v0
     - lowarn-version-following-v3v0v0

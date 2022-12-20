@@ -1,3 +1,4 @@
+import DocTest (docTest)
 import qualified DsuTestTests
 import qualified SimpleDsuTests
 import Test.Tasty (TestTree, defaultMain, testGroup)
@@ -11,4 +12,10 @@ goldenTests =
     ]
 
 main :: IO ()
-main = defaultMain goldenTests
+main =
+  defaultMain $
+    testGroup
+      "Tests"
+      [ goldenTests,
+        docTest
+      ]
