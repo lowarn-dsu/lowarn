@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskellQuotes #-}
 
-module Spec.StoryTest (storyTests) where
+module Spec.Story (storyTests) where
 
 import Control.Monad (void)
 import Lowarn.ExampleProgram.Following.TransformerId (followingTransformerId_0_1)

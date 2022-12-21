@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskellQuotes #-}
 
-module Spec.ManualDsuTest (manualDsuTests) where
+module Spec.ManualDsu (manualDsuTests) where
 
 import Control.Monad (void)
 import Lowarn.ExampleProgram.Following.TransformerId

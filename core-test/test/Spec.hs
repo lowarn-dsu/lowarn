@@ -1,6 +1,6 @@
-import Spec.ManualDsuTest (manualDsuTests)
-import Spec.StoryTest (storyTests)
-import Test.Tasty (TestTree, defaultMain, testGroup)
+import Spec.ManualDsu (manualDsuTests)
+import Spec.Story (storyTests)
+import Test.Tasty (defaultMain, testGroup)
 
 main :: IO ()
 main =
