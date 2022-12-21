@@ -6,7 +6,13 @@ author:              "Jonathan Watson"
 maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
 copyright:           "2022 Jonathan Watson"
 
-description:         Testing utilities and test suite for lowarn
+extra-source-files:
+- README.md
+
+synopsis:            Testing utilities and test suite for lowarn
+category:            System
+
+description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/core-test#readme>
 
 dependencies:
 - base ^>= 4.7
