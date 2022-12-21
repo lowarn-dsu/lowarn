@@ -29,7 +29,7 @@ jobs:
           xz -d < cabal-docspec.xz > $HOME/.cabal/bin/cabal-docspec
           rm -f cabal-docspec.xz
           chmod a+x $HOME/.cabal/bin/cabal-docspec
-          echo "~/.cabal/bin" >> $GITHUB_PATH
+          echo "$HOME/.cabal/bin" >> $GITHUB_PATH
           cabal-docspec --version
       - name: Cache ~/.stack
         uses: actions/cache@v3
