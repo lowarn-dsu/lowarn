@@ -84,7 +84,7 @@ duplicatedUpdateSignal =
 manualDsuTests :: TestTree
 manualDsuTests =
   testGroup
-    "Manual DSU tests"
+    "Manual DSU"
     [ successfulChain,
       duplicatedUpdateSignal
     ]

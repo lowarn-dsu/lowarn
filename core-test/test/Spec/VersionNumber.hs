@@ -37,7 +37,7 @@ withLettersRoundTrip =
 versionNumberTests :: TestTree
 versionNumberTests =
   testGroup
-    "Version number tests"
+    "Version number"
     [ lexicographicOrdering,
       withDotsRoundTrip,
       withLettersRoundTrip

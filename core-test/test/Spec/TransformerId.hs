@@ -26,7 +26,7 @@ transformerPackageNameRoundTrip =
 transformerIdTests :: TestTree
 transformerIdTests =
   testGroup
-    "Transformer ID tests"
+    "Transformer ID"
     [ transformerIdRoundTrip,
       transformerPackageNameRoundTrip
     ]

@@ -64,7 +64,7 @@ info =
 storyTests :: TestTree
 storyTests =
   testGroup
-    "Story framework tests"
+    "Story framework"
     [ inputTimeout,
       outputTimeout,
       pipeOrderingWithInputFirst,

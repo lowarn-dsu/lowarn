@@ -26,7 +26,7 @@ versionPackageNameRoundTrip =
 versionIdTests :: TestTree
 versionIdTests =
   testGroup
-    "Version ID tests"
+    "Version ID"
     [ versionIdRoundTrip,
       versionPackageNameRoundTrip
     ]

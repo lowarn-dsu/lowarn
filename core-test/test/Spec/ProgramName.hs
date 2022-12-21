@@ -33,7 +33,7 @@ transformerModuleNameRoundTrip =
 programNameTests :: TestTree
 programNameTests =
   testGroup
-    "Program name tests"
+    "Program name"
     [ programNameRoundTrip,
       entryPointModuleNameRoundTrip,
       transformerModuleNameRoundTrip

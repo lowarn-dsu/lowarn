@@ -10,7 +10,7 @@ main :: IO ()
 main =
   defaultMain $
     testGroup
-      "Lowarn tests"
+      "Lowarn"
       [ manualDsuTests,
         storyTests,
         versionNumberTests,
