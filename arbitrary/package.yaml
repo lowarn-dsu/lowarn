@@ -15,10 +15,10 @@ category:            System
 description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/arbitrary#readme>
 
 dependencies:
-- base ^>= 4.7
+- base >= 4.7 && < 5
 - combinat >= 0.2.10
 - lowarn
-- QuickCheck ^>= 2.14
+- QuickCheck >= 2.14 && < 3
 - random
 
 ghc-options:
