@@ -21,6 +21,8 @@ jobs:
         with:
           ghc-version: ${{ matrix.ghc }}
           enable-stack: true
+      - name: Add Cabal programs to PATH
+        run: echo "$HOME/.cabal/bin" >> $GITHUB_PATH
       - name: Install cabal-docspec
         run: |
           mkdir -p $HOME/.cabal/bin
@@ -29,7 +31,6 @@ jobs:
           xz -d < cabal-docspec.xz > $HOME/.cabal/bin/cabal-docspec
           rm -f cabal-docspec.xz
           chmod a+x $HOME/.cabal/bin/cabal-docspec
-          echo "${HOME}/.cabal/bin" >> $GITHUB_PATH
           cabal-docspec --version
       - name: Cache ~/.stack
         uses: actions/cache@v3
