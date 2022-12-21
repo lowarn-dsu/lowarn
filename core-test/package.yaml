@@ -17,6 +17,7 @@ dependencies:
 - tasty-golden
 - transformers
 - unix
+- QuickCheck
 
 ghc-options:
 - -Wall
