@@ -10,9 +10,9 @@ description:         Lowarn demo program 2
 
 dependencies:
 - base >= 4.7 && < 5
+- containers
 - lowarn
 - regex-tdfa ^>= 1.3.2
-- containers
 
 ghc-options:
 - -Wall

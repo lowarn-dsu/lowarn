@@ -17,9 +17,9 @@ description:         Please see the README on GitHub at <https://github.com/jona
 
 dependencies:
 - base >= 4.7 && < 5
+- combinat >= 0.2.10
 - lowarn
 - QuickCheck >= 2.14 && < 3
-- combinat >= 0.2.10
 - random
 
 ghc-options:

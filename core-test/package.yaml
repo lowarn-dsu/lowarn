@@ -13,11 +13,11 @@ dependencies:
 - filepath
 - lowarn
 - process
+- QuickCheck
 - tasty
 - tasty-golden
 - transformers
 - unix
-- QuickCheck
 
 ghc-options:
 - -Wall
