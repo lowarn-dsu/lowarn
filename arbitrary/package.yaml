@@ -12,7 +12,7 @@ extra-source-files:
 synopsis:            Arbitrary instances for Lowarn.
 category:            System
 
-description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/arbitrary#readme>
+description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/arbitrary#readme>
 
 dependencies:
 - base ^>= 4.7
