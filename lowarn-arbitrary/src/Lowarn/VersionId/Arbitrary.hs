@@ -1,3 +1,10 @@
+-- |
+-- Module                  : Lowarn.VersionId.Arbitrary
+-- SPDX-License-Identifier : MIT
+-- Stability               : stable
+-- Portability             : portable
+--
+-- Module for 'Arbitrary' instances for 'VersionId'.
 module Lowarn.VersionId.Arbitrary () where
 
 import Lowarn.ProgramName.Arbitrary ()

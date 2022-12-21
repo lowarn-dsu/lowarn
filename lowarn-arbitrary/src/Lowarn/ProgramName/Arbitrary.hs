@@ -1,3 +1,10 @@
+-- |
+-- Module                  : Lowarn.ProgramName.Arbitrary
+-- SPDX-License-Identifier : MIT
+-- Stability               : stable
+-- Portability             : portable
+--
+-- Module for 'Arbitrary' instances for 'ProgramName'.
 module Lowarn.ProgramName.Arbitrary () where
 
 import Control.Applicative (liftA2)

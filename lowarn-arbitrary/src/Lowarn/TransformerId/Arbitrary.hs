@@ -1,3 +1,10 @@
+-- |
+-- Module                  : Lowarn.TransformerId.Arbitrary
+-- SPDX-License-Identifier : MIT
+-- Stability               : stable
+-- Portability             : portable
+--
+-- Module for 'Arbitrary' instances for 'TransformerId'.
 module Lowarn.TransformerId.Arbitrary () where
 
 import Lowarn.ProgramName.Arbitrary ()
