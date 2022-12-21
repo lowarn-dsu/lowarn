@@ -13,3 +13,4 @@ packages:
 - example-programs/following/transformers/0-1.0.0
 - example-programs/following/transformers/1.0.0-2.0.0
 - example-programs/following/transformers/2.0.0-3.0.0
+- example-programs/following/demo

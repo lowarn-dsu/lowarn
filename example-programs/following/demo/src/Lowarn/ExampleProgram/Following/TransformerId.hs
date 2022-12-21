@@ -1,21 +1,22 @@
-module Main (main) where
+module Lowarn.ExampleProgram.Following.TransformerId
+  ( followingTransformerId_0_1,
+    followingTransformerId_1_2,
+    followingTransformerId_2_3,
+  )
+where
 
-import Control.Monad (void)
 import Data.Maybe (fromJust)
 import Lowarn.ParserCombinators (readWithParser)
 import Lowarn.ProgramName (ProgramName, mkProgramName)
-import Lowarn.Runtime
-  ( loadTransformer,
-    loadVersion,
-    runRuntime,
-    updatePackageDatabase,
-  )
 import Lowarn.TransformerId (TransformerId (TransformerId))
 import Lowarn.VersionId (VersionId (VersionId))
 import Lowarn.VersionNumber (VersionNumber, parseWithDots)
 
 mkVersionNumber :: String -> VersionNumber
 mkVersionNumber = fromJust . readWithParser parseWithDots
+
+versionNumber0 :: VersionNumber
+versionNumber0 = mkVersionNumber "0"
 
 versionNumber1 :: VersionNumber
 versionNumber1 = mkVersionNumber "1.0.0"
@@ -36,22 +37,14 @@ followingTransformerId :: (VersionNumber, VersionNumber) -> TransformerId
 followingTransformerId (previousVersionNumber, nextVersionNumber) =
   TransformerId followingProgramName previousVersionNumber nextVersionNumber
 
-main :: IO ()
-main =
-  runRuntime $ do
-    state1 <-
-      loadVersion (followingVersionId versionNumber1) Nothing
+followingTransformerId_0_1 :: TransformerId
+followingTransformerId_0_1 =
+  followingTransformerId (versionNumber0, versionNumber1)
 
-    updatePackageDatabase
-    state2 <-
-      loadVersion (followingVersionId versionNumber2)
-        =<< loadTransformer
-          (followingTransformerId (versionNumber1, versionNumber2))
-          state1
+followingTransformerId_1_2 :: TransformerId
+followingTransformerId_1_2 =
+  followingTransformerId (versionNumber1, versionNumber2)
 
-    updatePackageDatabase
-    void $
-      loadVersion (followingVersionId versionNumber3)
-        =<< loadTransformer
-          (followingTransformerId (versionNumber2, versionNumber3))
-          state2
+followingTransformerId_2_3 :: TransformerId
+followingTransformerId_2_3 =
+  followingTransformerId (versionNumber2, versionNumber3)

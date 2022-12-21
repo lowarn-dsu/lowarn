@@ -9,12 +9,7 @@ import DsuTest
     outputLines,
     writeInfo,
   )
-import Following
-  ( followingTransformerId,
-    followingVersionId,
-    versionNumber0,
-    versionNumber1,
-  )
+import Following (followingTransformerId_0_1, followingVersionId_1)
 import Lowarn.Runtime (Runtime, loadTransformer, loadVersion)
 import System.IO (Handle)
 import Test.Tasty (TestTree, testGroup)
@@ -22,10 +17,8 @@ import Test.Tasty (TestTree, testGroup)
 getExampleRuntime :: (Handle, Handle) -> Runtime ()
 getExampleRuntime handles =
   void $
-    loadTransformer
-      (followingTransformerId (versionNumber0, versionNumber1))
-      handles
-      >>= loadVersion (followingVersionId versionNumber1)
+    loadTransformer followingTransformerId_0_1 handles
+      >>= loadVersion followingVersionId_1
 
 inputTimeout :: TestTree
 inputTimeout =

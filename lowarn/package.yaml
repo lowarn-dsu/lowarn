@@ -40,17 +40,6 @@ ghc-options:
 library:
   source-dirs: src
 
-executables:
-  lowarn-exe:
-    main:                Main.hs
-    source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - lowarn
-
 tests:
   lowarn-test:
     main:                Spec.hs
@@ -66,6 +55,7 @@ tests:
     - filepath
     - process
     - doctest
+    - QuickCheck
     - lowarn-version-following-v1v0v0
     - lowarn-version-following-v2v0v0
     - lowarn-version-following-v3v0v0
