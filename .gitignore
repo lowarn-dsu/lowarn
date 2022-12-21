@@ -2,7 +2,6 @@
 
 .stack-work/
 *~
-*.cabal
 
 dist
 dist-*
