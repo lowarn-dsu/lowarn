@@ -22,8 +22,8 @@ dependencies:
 - base >= 4.7 && < 5
 - ghc == 9.0.2
 - ghc-paths
-- unix
 - transformers
+- unix
 
 ghc-options:
 - -Wall
@@ -39,26 +39,3 @@ ghc-options:
 
 library:
   source-dirs: src
-
-tests:
-  lowarn-test:
-    main:                Spec.hs
-    source-dirs:         test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - lowarn
-    - tasty
-    - tasty-golden
-    - filepath
-    - process
-    - doctest
-    - QuickCheck
-    - lowarn-version-following-v1v0v0
-    - lowarn-version-following-v2v0v0
-    - lowarn-version-following-v3v0v0
-    - lowarn-transformer-following-v0-v1v0v0
-    - lowarn-transformer-following-v1v0v0-v2v0v0
-    - lowarn-transformer-following-v2v0v0-v3v0v0

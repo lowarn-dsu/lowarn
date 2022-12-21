@@ -6,6 +6,7 @@ extra-deps:
 
 packages:
 - lowarn
+- core-test
 - arbitrary
 - example-programs/following/versions/1.0.0
 - example-programs/following/versions/2.0.0

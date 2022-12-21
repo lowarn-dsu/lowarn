@@ -1,18 +1,19 @@
 {-# LANGUAGE TemplateHaskellQuotes #-}
 
-module SimpleDsuTests (goldenTests) where
+module Spec.ManualDsuTest (manualDsuTests) where
 
 import Control.Monad (void)
-import DsuTest
-  ( dsuGoldenTest,
-    inputLine,
-    outputLine,
-    outputLines,
-    updateProgram,
-  )
-import Following
+import Lowarn.ExampleProgram.Following.TransformerId
+import Lowarn.ExampleProgram.Following.VersionId
 import Lowarn.Runtime (Runtime, loadTransformer, loadVersion)
 import System.IO (Handle)
+import Test.Lowarn.Story
+  ( inputLine,
+    outputLine,
+    outputLines,
+    storyGoldenTest,
+    updateProgram,
+  )
 import Test.Tasty (TestTree, testGroup)
 
 getExampleRuntime :: (Handle, Handle) -> Runtime ()
@@ -27,7 +28,7 @@ getExampleRuntime handles =
 
 successfulChain :: TestTree
 successfulChain =
-  dsuGoldenTest
+  storyGoldenTest
     (show 'successfulChain)
     getExampleRuntime
     dsuTest
@@ -58,7 +59,7 @@ successfulChain =
 
 duplicatedUpdateSignal :: TestTree
 duplicatedUpdateSignal =
-  dsuGoldenTest
+  storyGoldenTest
     (show 'duplicatedUpdateSignal)
     getExampleRuntime
     dsuTest
@@ -80,10 +81,10 @@ duplicatedUpdateSignal =
       _ <- outputLines 6
       return ()
 
-goldenTests :: TestTree
-goldenTests =
+manualDsuTests :: TestTree
+manualDsuTests =
   testGroup
-    "Simple DSU runtime golden tests"
+    "Manual DSU tests"
     [ successfulChain,
       duplicatedUpdateSignal
     ]

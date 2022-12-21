@@ -1,16 +1,16 @@
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 
-module DsuTest
-  ( DsuTest,
-    runDsuTest,
+module Test.Lowarn.Story
+  ( Story,
+    runStory,
     inputLine,
     outputLine,
     outputLines,
     writeInfo,
     updateProgram,
     liftIO,
-    dsuGoldenTest,
+    storyGoldenTest,
   )
 where
 
@@ -50,15 +50,15 @@ import Test.Tasty (TestTree)
 import Test.Tasty.Golden (goldenVsFileDiff)
 import Text.Printf (printf)
 
-data DsuTestData = DsuTestData
+data StoryData = StoryData
   { _inputHandle :: Handle,
     _outputHandle :: Handle,
     _fileHandle :: Handle,
     _processId :: ProcessID
   }
 
-newtype DsuTest a = DsuTest
-  { unDsuTest :: ReaderT DsuTestData IO a
+newtype Story a = Story
+  { unStory :: ReaderT StoryData IO a
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
@@ -75,13 +75,13 @@ createPipeWithLineBuffering = do
   hSetBuffering writeHandle LineBuffering
   return (readHandle, writeHandle)
 
-runDsuTest ::
-  DsuTest () ->
+runStory ::
+  Story () ->
   ((Handle, Handle) -> Runtime ()) ->
   FilePath ->
   Int ->
   IO ()
-runDsuTest dsuTest getRuntime outputPath timeout = do
+runStory story getRuntime outputPath timeout = do
   (inputReadHandle, inputWriteHandle) <- createPipeWithLineBuffering
   (outputReadHandle, outputWriteHandle) <- createPipeWithLineBuffering
   withFile outputPath WriteMode $ \fileHandle -> do
@@ -101,8 +101,8 @@ runDsuTest dsuTest getRuntime outputPath timeout = do
           )
     Timeout.timeout
       timeout
-      ( runReaderT (unDsuTest dsuTest) $
-          DsuTestData inputWriteHandle outputReadHandle fileHandle processId
+      ( runReaderT (unStory story) $
+          StoryData inputWriteHandle outputReadHandle fileHandle processId
       )
       >>= \case
         Just () -> return ()
@@ -146,16 +146,16 @@ runDsuTest dsuTest getRuntime outputPath timeout = do
     normalProcessStatusTimeout = 1000000
     ciProcessStatusTimeout = 30000000
 
-inputLine :: String -> DsuTest ()
-inputLine line = DsuTest $ do
+inputLine :: String -> Story ()
+inputLine line = Story $ do
   inputHandle <- asks _inputHandle
   fileHandle <- asks _fileHandle
   liftIO $ do
     hPutStrLn inputHandle line
     writeLog fileHandle Input line
 
-outputLine :: DsuTest String
-outputLine = DsuTest $ do
+outputLine :: Story String
+outputLine = Story $ do
   outputHandle <- asks _outputHandle
   fileHandle <- asks _fileHandle
   liftIO $ do
@@ -163,16 +163,16 @@ outputLine = DsuTest $ do
     writeLog fileHandle Output line
     return line
 
-outputLines :: Int -> DsuTest [String]
+outputLines :: Int -> Story [String]
 outputLines n = replicateM n outputLine
 
-writeInfo :: String -> DsuTest ()
-writeInfo info = DsuTest $ do
+writeInfo :: String -> Story ()
+writeInfo info = Story $ do
   fileHandle <- asks _fileHandle
   liftIO $ writeLog fileHandle Info info
 
-updateProgram :: DsuTest ()
-updateProgram = DsuTest $ do
+updateProgram :: Story ()
+updateProgram = Story $ do
   processId <- asks _processId
   fileHandle <- asks _fileHandle
   liftIO $ do
@@ -180,18 +180,18 @@ updateProgram = DsuTest $ do
     writeLog fileHandle Info "Update signal sent."
     threadDelay 1000000
 
-dsuGoldenTest ::
+storyGoldenTest ::
   String ->
   ((Handle, Handle) -> Runtime ()) ->
-  DsuTest () ->
+  Story () ->
   Int ->
   TestTree
-dsuGoldenTest testName getRuntime dsuTest timeout =
+storyGoldenTest testName getRuntime story timeout =
   goldenVsFileDiff
     testName
     (\a b -> ["diff", "-u", a, b])
     (testPath <.> "golden")
     (testPath <.> "log")
-    $ runDsuTest dsuTest getRuntime (testPath <.> "log") timeout
+    $ runStory story getRuntime (testPath <.> "log") timeout
   where
     testPath = "test" </> "golden" </> testName

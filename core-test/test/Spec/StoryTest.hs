@@ -1,17 +1,18 @@
 {-# LANGUAGE TemplateHaskellQuotes #-}
 
-module DsuTestTests (goldenTests) where
+module Spec.StoryTest (storyTests) where
 
 import Control.Monad (void)
-import DsuTest
-  ( dsuGoldenTest,
-    inputLine,
-    outputLines,
-    writeInfo,
-  )
-import Following (followingTransformerId_0_1, followingVersionId_1)
+import Lowarn.ExampleProgram.Following.TransformerId (followingTransformerId_0_1)
+import Lowarn.ExampleProgram.Following.VersionId (followingVersionId_1)
 import Lowarn.Runtime (Runtime, loadTransformer, loadVersion)
 import System.IO (Handle)
+import Test.Lowarn.Story
+  ( inputLine,
+    outputLines,
+    storyGoldenTest,
+    writeInfo,
+  )
 import Test.Tasty (TestTree, testGroup)
 
 getExampleRuntime :: (Handle, Handle) -> Runtime ()
@@ -22,7 +23,7 @@ getExampleRuntime handles =
 
 inputTimeout :: TestTree
 inputTimeout =
-  dsuGoldenTest
+  storyGoldenTest
     (show 'inputTimeout)
     getExampleRuntime
     (void $ outputLines 3)
@@ -30,7 +31,7 @@ inputTimeout =
 
 outputTimeout :: TestTree
 outputTimeout =
-  dsuGoldenTest
+  storyGoldenTest
     (show 'outputTimeout)
     getExampleRuntime
     (void $ outputLines 7)
@@ -38,7 +39,7 @@ outputTimeout =
 
 pipeOrderingWithInputFirst :: TestTree
 pipeOrderingWithInputFirst =
-  dsuGoldenTest
+  storyGoldenTest
     (show 'pipeOrderingWithInputFirst)
     getExampleRuntime
     (void $ inputLine "A" >> outputLines 7)
@@ -46,7 +47,7 @@ pipeOrderingWithInputFirst =
 
 pipeOrderingWithOutputFirst :: TestTree
 pipeOrderingWithOutputFirst =
-  dsuGoldenTest
+  storyGoldenTest
     (show 'pipeOrderingWithOutputFirst)
     getExampleRuntime
     (outputLines 7 >> inputLine "A")
@@ -54,16 +55,16 @@ pipeOrderingWithOutputFirst =
 
 info :: TestTree
 info =
-  dsuGoldenTest
+  storyGoldenTest
     (show 'info)
     (const $ return ())
     (writeInfo "Test")
     3000000
 
-goldenTests :: TestTree
-goldenTests =
+storyTests :: TestTree
+storyTests =
   testGroup
-    "DSU testing framework golden tests"
+    "Story framework tests"
     [ inputTimeout,
       outputTimeout,
       pipeOrderingWithInputFirst,
