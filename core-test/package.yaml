@@ -9,7 +9,7 @@ copyright:           "2022 Jonathan Watson"
 description:         Testing utilities and test suite for lowarn
 
 dependencies:
-- base >= 4.7 && < 5
+- base ^>= 4.7
 - filepath
 - lowarn
 - process

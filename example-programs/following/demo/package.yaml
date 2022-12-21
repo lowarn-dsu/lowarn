@@ -9,7 +9,7 @@ copyright:           "2022 Jonathan Watson"
 description:         Lowarn demo program
 
 dependencies:
-- base >= 4.7 && < 5
+- base ^>= 4.7
 - lowarn
 
 ghc-options:

@@ -16,10 +16,10 @@ copyright:           "2022 Jonathan Watson"
 description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn#readme>
 
 dependencies:
-- base >= 4.7 && < 5
+- base ^>= 4.7
 - combinat >= 0.2.10
 - lowarn
-- QuickCheck >= 2.14 && < 3
+- QuickCheck ^>= 2.14
 - random
 
 ghc-options:
