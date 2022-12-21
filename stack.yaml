@@ -5,7 +5,7 @@ extra-deps:
 - compact-word-vectors-0.2.0.2@sha256:49cf00f224000f149306e7043c228fa33e3dba87f10589e8326388c3278ba594,2709
 
 packages:
-- lowarn
+- core
 - core-test
 - arbitrary
 - example-programs/following/versions/1.0.0
