@@ -47,7 +47,7 @@ instance Arbitrary ProgramName where
     numWords <- chooseInt (1, n + 1)
     seed <- arbitrary
     let numNonHyphensPerWord =
-          fst $ randomComposition1 numWords n $ mkStdGen seed
+          fst $ randomComposition1 numWords (n + 1) $ mkStdGen seed
     programNameWords <-
       mapM arbitraryProgramNameWordWithLength numNonHyphensPerWord
     return $ fromJust $ mkProgramName $ intercalate "-" programNameWords
