@@ -16,10 +16,20 @@ jobs:
     name: GHC ${{ matrix.ghc }}
     steps:
       - uses: actions/checkout@v3
-      - uses: haskell/actions/setup@v2
+      - name: Install Haskell
+        uses: haskell/actions/setup@v2
         with:
           ghc-version: ${{ matrix.ghc }}
           enable-stack: true
+      - name: Install cabal-docspec
+        run: |
+          mkdir -p $HOME/.cabal/bin
+          curl -sL https://github.com/phadej/cabal-extras/releases/download/cabal-docspec-0.0.0.20211114/cabal-docspec-0.0.0.20211114.xz > cabal-docspec.xz
+          echo 'e224700d9e8c9ec7ec6bc3f542ba433cd9925a5d356676c62a9bd1f2c8be8f8a  cabal-docspec.xz' | sha256sum -c -
+          xz -d < cabal-docspec.xz > $HOME/.cabal/bin/cabal-docspec
+          rm -f cabal-docspec.xz
+          chmod a+x $HOME/.cabal/bin/cabal-docspec
+          cabal-docspec --version
       - name: Cache ~/.stack
         uses: actions/cache@v3
         with:
@@ -36,5 +46,10 @@ jobs:
         run: stack build --fast --test --only-dependencies --verbosity error
       - name: Build
         run: stack build --fast
-      - name: Test
+      - name: Stack test
         run: stack test --fast
+      - name: Doctests
+        run: |
+          cd core
+          cabal new-build
+          cabal-docspec
