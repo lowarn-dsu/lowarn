@@ -8,10 +8,10 @@ packages:
 - core
 - core-test
 - arbitrary
-- example-programs/following/versions/1.0.0
-- example-programs/following/versions/2.0.0
-- example-programs/following/versions/3.0.0
-- example-programs/following/transformers/0-1.0.0
-- example-programs/following/transformers/1.0.0-2.0.0
-- example-programs/following/transformers/2.0.0-3.0.0
-- example-programs/following/demo
+- examples/following/versions/1.0.0
+- examples/following/versions/2.0.0
+- examples/following/versions/3.0.0
+- examples/following/transformers/0-1.0.0
+- examples/following/transformers/1.0.0-2.0.0
+- examples/following/transformers/2.0.0-3.0.0
+- examples/following/demo
