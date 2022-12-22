@@ -17,10 +17,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Install Haskell
+        id: install-haskell
         uses: haskell/actions/setup@v2
         with:
           ghc-version: ${{ matrix.ghc }}
-          enable-stack: true
       - name: Add Cabal programs to PATH
         run: echo "$HOME/.cabal/bin" >> $GITHUB_PATH
       - name: Install cabal-docspec
@@ -32,26 +32,25 @@ jobs:
           rm -f cabal-docspec.xz
           chmod a+x $HOME/.cabal/bin/cabal-docspec
           cabal-docspec --version
-      - name: Cache ~/.stack
+      - name: Cabal freeze
+        run: cabal freeze
+      - name: Cache cabal-store
         uses: actions/cache@v3
         with:
-          path: ~/.stack
-          key: ${{ runner.os }}-stack-global-${{ hashFiles('stack.yaml') }}-${{ hashFiles('package.yaml') }}
-          restore-keys: ${{ runner.os }}-stack-global-
-      - name: Cache .stack-work
-        uses: actions/cache@v3
-        with:
-          path: .stack-work
-          key: ${{ runner.os }}-stack-work-${{ hashFiles('stack.yaml') }}-${{ hashFiles('package.yaml') }}-${{ hashFiles('**/*.hs') }}
-          restore-keys: ${{ runner.os }}-stack-work-
+          key: ${{ runner.os }}-${{ matrix.ghc }}-cabal-${{ hashFiles('cabal.project.freeze') }}"
+          path: |
+            ${{ steps.install-haskell.outputs.cabal-store }}
+            dist-newstyle
       - name: Install dependencies
-        run: stack build --fast --test --only-dependencies --verbosity error
+        run: cabal build all --enable-tests --only-dependencies
       - name: Build
-        run: stack build --fast
-      - name: Stack test
-        run: stack test --fast
-      - name: Doctests
+        run: cabal build all --enable-tests
+      - name: Set test suite package environment
         run: |
-          cd core
-          cabal new-build
-          cabal-docspec
+          echo "LOWARN_PACKAGE_ENV=$(echo .ghc.environment*)" >> $GITHUB_ENV
+      - name: Run test suite
+        run: cabal test all --enable-tests
+      - name: Run doctests
+        run: cabal-docspec
+      - name: Run Haddock
+        run: cabal haddock lowarn lowarn-test lowarn-arbitrary

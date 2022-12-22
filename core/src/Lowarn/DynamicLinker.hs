@@ -1,4 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase #-}
 
 -- |
 -- Module                  : Lowarn.Runtime
@@ -29,6 +30,7 @@ import GHC.Runtime.Linker
 import GHC.Types.Name
 import GHC.Types.Unique
 import GHC.Unit hiding (moduleName)
+import System.Environment (lookupEnv)
 import Unsafe.Coerce (unsafeCoerce)
 
 -- | Monad for linking modules from the package database and accessing their
@@ -44,10 +46,18 @@ runLinker linker =
   defaultErrorHandler defaultFatalMessager defaultFlushOut $
     runGhc (Just libdir) $ do
       flags <- getSessionDynFlags
+      flags' <-
+        liftIO $
+          lookupEnv "LOWARN_PACKAGE_ENV"
+            >>= \case
+              Just "" -> return flags
+              Nothing -> return flags
+              Just lowarnPackageEnv -> do
+                interpretPackageEnv $ flags {packageEnv = Just lowarnPackageEnv}
       void $
         setSessionDynFlags $
           addWay' WayDyn $
-            flags {ghcMode = CompManager, ghcLink = LinkDynLib}
+            flags' {ghcMode = CompManager, ghcLink = LinkDynLib}
       liftIO . initDynLinker =<< getSession
       unLinker linker
 
