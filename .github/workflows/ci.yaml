@@ -49,7 +49,7 @@ jobs:
         run: |
           echo "LOWARN_PACKAGE_ENV=$(realpath .ghc.environment*)" >> $GITHUB_ENV
       - name: Run test suite
-        run: cabal test all --enable-tests --show-details=streaming
+        run: cabal test all --enable-tests --test-show-details=streaming
       - name: Run doctests
         run: cabal-docspec
       - name: Run Haddock
