@@ -3,6 +3,7 @@ on: push
 jobs:
   ormolu:
     runs-on: ubuntu-latest
+    name: Ormolu
     steps:
       - uses: actions/checkout@v3
       - uses: mrkkrp/ormolu-action@v8
