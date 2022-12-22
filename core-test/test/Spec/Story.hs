@@ -21,13 +21,16 @@ getExampleRuntime handles =
     loadTransformer followingTransformerId_0_1 handles
       >>= loadVersion followingVersionId_1
 
+timeout :: Int
+timeout = 10000000
+
 inputTimeout :: TestTree
 inputTimeout =
   storyGoldenTest
     (show 'inputTimeout)
     getExampleRuntime
     (void $ outputLines 3)
-    3000000
+    timeout
 
 outputTimeout :: TestTree
 outputTimeout =
@@ -35,7 +38,7 @@ outputTimeout =
     (show 'outputTimeout)
     getExampleRuntime
     (void $ outputLines 7)
-    3000000
+    timeout
 
 pipeOrderingWithInputFirst :: TestTree
 pipeOrderingWithInputFirst =
@@ -43,7 +46,7 @@ pipeOrderingWithInputFirst =
     (show 'pipeOrderingWithInputFirst)
     getExampleRuntime
     (void $ inputLine "A" >> outputLines 7)
-    3000000
+    timeout
 
 pipeOrderingWithOutputFirst :: TestTree
 pipeOrderingWithOutputFirst =
@@ -51,7 +54,7 @@ pipeOrderingWithOutputFirst =
     (show 'pipeOrderingWithOutputFirst)
     getExampleRuntime
     (outputLines 7 >> inputLine "A")
-    3000000
+    timeout
 
 info :: TestTree
 info =
@@ -59,7 +62,7 @@ info =
     (show 'info)
     (const $ return ())
     (writeInfo "Test")
-    3000000
+    timeout
 
 storyTests :: TestTree
 storyTests =

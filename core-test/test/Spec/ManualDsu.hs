@@ -26,13 +26,16 @@ getExampleRuntime handles =
       >>= loadTransformer followingTransformerId_2_3
       >>= loadVersion followingVersionId_3
 
+timeout :: Int
+timeout = 40000000
+
 successfulChain :: TestTree
 successfulChain =
   storyGoldenTest
     (show 'successfulChain)
     getExampleRuntime
     dsuTest
-    10000000
+    timeout
   where
     dsuTest = do
       _ <- outputLines 3
@@ -63,7 +66,7 @@ duplicatedUpdateSignal =
     (show 'duplicatedUpdateSignal)
     getExampleRuntime
     dsuTest
-    10000000
+    timeout
   where
     dsuTest = do
       _ <- outputLines 3
