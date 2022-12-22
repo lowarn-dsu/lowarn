@@ -34,7 +34,7 @@ jobs:
           cabal-docspec --version
       - name: Cabal freeze
         run: cabal freeze
-      - name: Cache cabal-store
+      - name: Cache Cabal
         uses: actions/cache@v3
         with:
           key: ${{ runner.os }}-${{ matrix.ghc }}-cabal-${{ hashFiles('cabal.project.freeze') }}"
