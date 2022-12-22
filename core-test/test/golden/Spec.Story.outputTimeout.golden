@@ -1,5 +1,5 @@
 Output: Following:
 Output: ------
 Output: Input username of user to follow:
- Error: Timeout of 3000000 microseconds reached.
+ Error: Timeout of 10000000 microseconds reached.
  Error: Process did not end.
