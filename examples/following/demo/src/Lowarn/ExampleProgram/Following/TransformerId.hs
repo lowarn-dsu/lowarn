@@ -30,9 +30,6 @@ versionNumber3 = mkVersionNumber "3.0.0"
 followingProgramName :: ProgramName
 followingProgramName = fromJust $ mkProgramName "following"
 
-followingVersionId :: VersionNumber -> VersionId
-followingVersionId = VersionId followingProgramName
-
 followingTransformerId :: (VersionNumber, VersionNumber) -> TransformerId
 followingTransformerId (previousVersionNumber, nextVersionNumber) =
   TransformerId followingProgramName previousVersionNumber nextVersionNumber
