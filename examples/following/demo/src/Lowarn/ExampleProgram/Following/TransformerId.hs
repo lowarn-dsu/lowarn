@@ -9,7 +9,6 @@ import Data.Maybe (fromJust)
 import Lowarn.ParserCombinators (readWithParser)
 import Lowarn.ProgramName (ProgramName, mkProgramName)
 import Lowarn.TransformerId (TransformerId (TransformerId))
-import Lowarn.VersionId (VersionId (VersionId))
 import Lowarn.VersionNumber (VersionNumber, parseWithDots)
 
 mkVersionNumber :: String -> VersionNumber
