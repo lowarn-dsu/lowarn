@@ -47,7 +47,7 @@ jobs:
         run: cabal build all --enable-tests
       - name: Set test suite package environment
         run: |
-          echo "LOWARN_PACKAGE_ENV=$(echo .ghc.environment*)" >> $GITHUB_ENV
+          echo "LOWARN_PACKAGE_ENV=$(realpath .ghc.environment*)" >> $GITHUB_ENV
       - name: Run test suite
         run: cabal test all --enable-tests
       - name: Run doctests
