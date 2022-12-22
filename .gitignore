@@ -2,7 +2,11 @@
 
 .stack-work/
 *~
-*.cabal
+
+dist
+dist-*
+
+.ghc.environment*
 
 *.o
 *.hi

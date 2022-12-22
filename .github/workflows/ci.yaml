@@ -3,38 +3,93 @@ on: push
 jobs:
   ormolu:
     runs-on: ubuntu-latest
+    name: Ormolu
     steps:
       - uses: actions/checkout@v3
-      - uses: mrkkrp/ormolu-action@v7
-  build:
+      - uses: mrkkrp/ormolu-action@v8
+  cabal:
     runs-on: ubuntu-latest
     needs: ormolu
     strategy:
       matrix:
         ghc: ["9.0.2"]
-      fail-fast: true
-    name: GHC ${{ matrix.ghc }}
+    name: Cabal with GHC ${{ matrix.ghc }}
     steps:
       - uses: actions/checkout@v3
-      - uses: haskell/actions/setup@v2
+      - name: Install Haskell
+        id: install-haskell
+        uses: haskell/actions/setup@v2
+        with:
+          ghc-version: ${{ matrix.ghc }}
+      - name: Add Cabal programs to PATH
+        run: echo "$HOME/.cabal/bin" >> $GITHUB_PATH
+      - name: Install cabal-docspec
+        run: |
+          mkdir -p $HOME/.cabal/bin
+          curl -sL https://github.com/phadej/cabal-extras/releases/download/cabal-docspec-0.0.0.20211114/cabal-docspec-0.0.0.20211114.xz > cabal-docspec.xz
+          echo 'e224700d9e8c9ec7ec6bc3f542ba433cd9925a5d356676c62a9bd1f2c8be8f8a  cabal-docspec.xz' | sha256sum -c -
+          xz -d < cabal-docspec.xz > $HOME/.cabal/bin/cabal-docspec
+          rm -f cabal-docspec.xz
+          chmod a+x $HOME/.cabal/bin/cabal-docspec
+          cabal-docspec --version
+      - name: Cabal freeze
+        run: cabal freeze
+      - name: Cache Cabal
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ steps.install-haskell.outputs.cabal-store }}
+            dist-newstyle
+          key: ${{ runner.os }}-${{ matrix.ghc }}-cabal-${{ hashFiles('cabal.project.freeze') }}"
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.ghc }}-cabal-
+      - name: Install dependencies
+        run: cabal build all --enable-tests --only-dependencies
+      - name: Build
+        run: cabal build all --enable-tests
+      - name: Set test suite package environment
+        run: |
+          echo "LOWARN_PACKAGE_ENV=$(realpath .ghc.environment*)" >> $GITHUB_ENV
+      - name: Run test suite
+        run: cabal test all --enable-tests --test-show-details=streaming
+      - name: Run doctests
+        run: cabal-docspec
+      - name: Run Haddock
+        run: cabal haddock lowarn lowarn-test lowarn-arbitrary
+  stack:
+    runs-on: ubuntu-latest
+    needs: ormolu
+    strategy:
+      matrix:
+        ghc: ["9.0.2"]
+    name: Stack with GHC ${{ matrix.ghc }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install Haskell
+        id: install-haskell
+        uses: haskell/actions/setup@v2
         with:
           ghc-version: ${{ matrix.ghc }}
           enable-stack: true
-      - name: Cache ~/.stack
+      - name: Cache global Stack
         uses: actions/cache@v3
         with:
           path: ~/.stack
-          key: ${{ runner.os }}-stack-global-${{ hashFiles('stack.yaml') }}-${{ hashFiles('package.yaml') }}
-          restore-keys: ${{ runner.os }}-stack-global-
-      - name: Cache .stack-work
+          key: ${{ runner.os }}-${{ matrix.ghc }}-global-stack-${{ hashFiles('stack.yaml') }}-${{ hashFiles('**/package.yaml') }}"
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.ghc }}-global-stack-${{ hashFiles('stack.yaml') }}-
+            ${{ runner.os }}-${{ matrix.ghc }}-global-stack-
+      - name: Cache local Stack
         uses: actions/cache@v3
         with:
           path: .stack-work
-          key: ${{ runner.os }}-stack-work-${{ hashFiles('stack.yaml') }}-${{ hashFiles('package.yaml') }}-${{ hashFiles('**/*.hs') }}
-          restore-keys: ${{ runner.os }}-stack-work-
+          key: ${{ runner.os }}-${{ matrix.ghc }}-local-stack-${{ hashFiles('stack.yaml') }}-${{ hashFiles('**/*.hs') }}"
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.ghc }}-local-stack-${{ hashFiles('stack.yaml') }}-
+            ${{ runner.os }}-${{ matrix.ghc }}-local-stack-
       - name: Install dependencies
-        run: stack build --fast --test --only-dependencies --verbosity error
+        run: stack build --test --only-dependencies
       - name: Build
-        run: stack build --fast
-      - name: Test
-        run: stack test --fast
+        run: stack build
+      - name: Run test suite
+        run: stack test

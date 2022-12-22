@@ -1,0 +1,61 @@
+name:                lowarn-test
+version:             0.1.0.0
+github:              "jonathanjameswatson/lowarn"
+license:             MIT
+author:              "Jonathan Watson"
+maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
+copyright:           "2022 Jonathan Watson"
+
+extra-source-files:
+- README.md
+
+synopsis:            Testing utilities and test suite for lowarn
+category:            System
+
+description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/core-test#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- filepath
+- lowarn
+- process
+- QuickCheck
+- tasty
+- tasty-golden
+- transformers
+- unix
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+- -dynamic
+
+library:
+  source-dirs: src
+
+tests:
+  lowarn-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - following
+    - lowarn-arbitrary
+    - lowarn-test
+    - lowarn-transformer-following-v0-v1v0v0
+    - lowarn-transformer-following-v1v0v0-v2v0v0
+    - lowarn-transformer-following-v2v0v0-v3v0v0
+    - lowarn-version-following-v1v0v0
+    - lowarn-version-following-v2v0v0
+    - lowarn-version-following-v3v0v0
+    - tasty-quickcheck

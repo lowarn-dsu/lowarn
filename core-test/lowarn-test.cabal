@@ -1,0 +1,81 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           lowarn-test
+version:        0.1.0.0
+synopsis:       Testing utilities and test suite for lowarn
+description:    Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/core-test#readme>
+category:       System
+homepage:       https://github.com/jonathanjameswatson/lowarn#readme
+bug-reports:    https://github.com/jonathanjameswatson/lowarn/issues
+author:         Jonathan Watson
+maintainer:     23344719+jonathanjameswatson@users.noreply.github.com
+copyright:      2022 Jonathan Watson
+license:        MIT
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/jonathanjameswatson/lowarn
+
+library
+  exposed-modules:
+      Test.Lowarn.Property
+      Test.Lowarn.Story
+  other-modules:
+      Paths_lowarn_test
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -dynamic
+  build-depends:
+      QuickCheck
+    , base >=4.7 && <5
+    , filepath
+    , lowarn
+    , process
+    , tasty
+    , tasty-golden
+    , transformers
+    , unix
+  default-language: Haskell2010
+
+test-suite lowarn-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Spec.ManualDsu
+      Spec.ProgramName
+      Spec.Story
+      Spec.TransformerId
+      Spec.VersionId
+      Spec.VersionNumber
+      Paths_lowarn_test
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -dynamic -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      QuickCheck
+    , base >=4.7 && <5
+    , filepath
+    , following
+    , lowarn
+    , lowarn-arbitrary
+    , lowarn-test
+    , lowarn-transformer-following-v0-v1v0v0
+    , lowarn-transformer-following-v1v0v0-v2v0v0
+    , lowarn-transformer-following-v2v0v0-v3v0v0
+    , lowarn-version-following-v1v0v0
+    , lowarn-version-following-v2v0v0
+    , lowarn-version-following-v3v0v0
+    , process
+    , tasty
+    , tasty-golden
+    , tasty-quickcheck
+    , transformers
+    , unix
+  default-language: Haskell2010
