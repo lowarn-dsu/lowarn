@@ -36,6 +36,8 @@ ghc-options:
 - -Wpartial-fields
 - -Wredundant-constraints
 - -dynamic
+- -shared
+- -fPIC
 
 library:
   source-dirs: src

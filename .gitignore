@@ -10,5 +10,7 @@ dist-*
 
 *.o
 *.hi
+a.out
+Main
 
 .vscode
