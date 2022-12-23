@@ -9,20 +9,23 @@
 --
 -- Module for interacting with GHC to link modules and load their entities.
 module Lowarn.DynamicLinker
-  ( Linker,
+  ( -- * Monad
+    Linker,
     runLinker,
-    load,
     liftIO,
+
+    -- * Actions
+    load,
+    updatePackageDatabase,
   )
 where
 
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
-import GHC hiding (load, moduleName, unitState)
+import GHC hiding (load, moduleName)
 import GHC.Data.FastString
 import GHC.Driver.Monad
-import GHC.Driver.Session hiding (unitState)
-import qualified GHC.Driver.Session as Session
+import GHC.Driver.Session
 import GHC.Driver.Ways
 import GHC.Paths (libdir)
 import GHC.Runtime.Interpreter
@@ -100,6 +103,20 @@ load packageName' moduleName' symbol = Linker $ do
             return $ Just $ unsafeCoerce value
         )
 
+-- | Update the package database. This uses the package environment if it is
+-- specified with @LOWARN_PACKAGE_ENV@. If this environment variable is not set,
+-- the package database is instead updated by resetting the unit state and unit
+-- databases.
+updatePackageDatabase :: Linker ()
+updatePackageDatabase = Linker $ do
+  flags <- getSessionDynFlags
+  flagsWithInterpretedPackageEnv <- case packageEnv flags of
+    Nothing ->
+      return $ flags {unitState = emptyUnitState, unitDatabases = Nothing}
+    Just _ -> do
+      liftIO $ interpretPackageEnv flags
+  setSessionDynFlags =<< liftIO (initUnits flagsWithInterpretedPackageEnv)
+
 lookupUnitInfo :: DynFlags -> PackageName -> ModuleName -> IO (Maybe UnitInfo)
 lookupUnitInfo flags packageName moduleName = do
   case exposedModulesAndPackages of
@@ -108,8 +125,7 @@ lookupUnitInfo flags packageName moduleName = do
       return Nothing
     (_, unitInfo) : _ -> return $ Just unitInfo
   where
-    unitState = Session.unitState flags
-    modulesAndPackages = lookupModuleInAllUnits unitState moduleName
+    modulesAndPackages = lookupModuleInAllUnits (unitState flags) moduleName
     exposedModulesAndPackages =
       filter
         ( \(_, unitInfo) ->
