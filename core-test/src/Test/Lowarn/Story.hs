@@ -131,9 +131,7 @@ runStory story getRuntime outputPath timeout = do
       )
       >>= \case
         Just () -> return ()
-        Nothing ->
-          writeLog fileHandle Error $
-            printf "Timeout reached." timeout
+        Nothing -> writeLog fileHandle Error "Timeout reached."
 
     processStatusTimeout <-
       lookupEnv "CI"
