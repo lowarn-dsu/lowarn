@@ -160,7 +160,8 @@ loadTransformer transformerId previousState =
       showTransformerModuleName . TransformerId._programName $ transformerId
     packageName = showTransformerPackageName transformerId
 
--- | Action that updates the package database.
+-- | Action that updates the package database, using
+-- 'DynamicLinker.updatePackageDatabase'.
 updatePackageDatabase :: Runtime ()
 updatePackageDatabase = liftLinker DynamicLinker.updatePackageDatabase
 

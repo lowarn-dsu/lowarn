@@ -103,10 +103,10 @@ load packageName' moduleName' symbol = Linker $ do
             return $ Just $ unsafeCoerce value
         )
 
--- | Update the package database. This uses the package environment if it is
--- specified with @LOWARN_PACKAGE_ENV@. If this environment variable is not set,
--- the package database is instead updated by resetting the unit state and unit
--- databases.
+-- | Action that updates the package database. This uses the package environment
+-- if it is specified. This can be specified with the @LOWARN_PACKAGE_ENV@
+-- environment variable. If the package environment is not set, the package
+-- database is instead updated by resetting the unit state and unit databases.
 updatePackageDatabase :: Linker ()
 updatePackageDatabase = Linker $ do
   flags <- getSessionDynFlags
