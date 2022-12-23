@@ -104,9 +104,9 @@ load packageName' moduleName' symbol = Linker $ do
         )
 
 -- | Action that updates the package database. This uses the package environment
--- if it is specified. This can be specified with the @LOWARN_PACKAGE_ENV@
--- environment variable. If the package environment is not set, the package
--- database is instead updated by resetting the unit state and unit databases.
+-- if it is specified. This can be set with the @LOWARN_PACKAGE_ENV@ environment
+-- variable. If the package environment is not set, the package database is
+-- instead updated by resetting the unit state and unit databases.
 updatePackageDatabase :: Linker ()
 updatePackageDatabase = Linker $ do
   flags <- getSessionDynFlags
