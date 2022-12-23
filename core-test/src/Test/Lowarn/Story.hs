@@ -148,6 +148,7 @@ runStory story getRuntime outputPath timeout = do
       (getProcessStatus True True processId)
       >>= \case
         Nothing -> do
+          writeLog fileHandle Error "Process did not end."
           signalProcess sigKILL processId
         Just Nothing -> do
           writeLog fileHandle Error "Process not available."
