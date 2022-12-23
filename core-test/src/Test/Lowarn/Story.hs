@@ -131,9 +131,7 @@ runStory story getRuntime outputPath timeout = do
       )
       >>= \case
         Just () -> return ()
-        Nothing ->
-          writeLog fileHandle Error $
-            printf "Timeout of %d microseconds reached." timeout
+        Nothing -> writeLog fileHandle Error "Timeout reached."
 
     processStatusTimeout <-
       lookupEnv "CI"
@@ -169,7 +167,7 @@ runStory story getRuntime outputPath timeout = do
     hClose inputWriteHandle
   where
     normalProcessStatusTimeout = 1000000
-    ciProcessStatusTimeout = 30000000
+    ciProcessStatusTimeout = 120000000
 
 -- | Action that queues a line to be read by the program.
 inputLine :: String -> Story ()
