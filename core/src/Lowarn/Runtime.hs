@@ -35,9 +35,11 @@ where
 import Control.Concurrent (MVar, newEmptyMVar, tryPutMVar, tryTakeMVar)
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Maybe (isJust)
 import Lowarn.DynamicLinker (Linker, liftIO, load, runLinker)
+import qualified Lowarn.DynamicLinker as DynamicLinker (updatePackageDatabase)
 import Lowarn.ProgramName (showEntryPointModuleName, showTransformerModuleName)
 import Lowarn.TransformerId (TransformerId, showTransformerPackageName)
 import qualified Lowarn.TransformerId as TransformerId (_programName)
@@ -53,7 +55,7 @@ newtype UpdateSignal = UpdateSignal
 -- | Monad for loading versions of programs while handling signals and
 -- transferring state.
 newtype Runtime a = Runtime
-  { unRuntime :: ReaderT UpdateSignal IO a
+  { unRuntime :: ReaderT UpdateSignal Linker a
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
@@ -88,24 +90,30 @@ runRuntime runtime = do
       sigUSR2
       (Catch (void $ tryPutMVar updateSignal ()))
       Nothing
-  output <- runReaderT (unRuntime runtime) $ UpdateSignal updateSignal
+  output <-
+    runLinker $
+      runReaderT (unRuntime runtime) $
+        UpdateSignal updateSignal
   liftIO $ void $ installHandler sigUSR2 previousSignalHandler Nothing
   return output
 
+-- | Lift a computation from the 'Linker' monad.
+liftLinker :: Linker a -> Runtime a
+liftLinker = Runtime . lift
+
 withLinkedEntity :: String -> String -> String -> (a -> IO b) -> Runtime b
 withLinkedEntity packageName moduleName entityName f =
-  liftIO $ do
-    runLinker (load packageName moduleName entityName)
+  liftLinker $
+    load packageName moduleName entityName
       >>= maybe
-        ( error
-            ( printf
-                "Could not find entity %s in module %s in package %s"
-                entityName
-                moduleName
-                packageName
-            )
+        ( error $
+            printf
+              "Could not find entity %s in module %s in package %s"
+              entityName
+              moduleName
+              packageName
         )
-        f
+        (liftIO . f)
 
 -- | Action that loads and runs a given version of a program, producing the
 -- final state of the program when it finishes.
@@ -152,13 +160,10 @@ loadTransformer transformerId previousState =
       showTransformerModuleName . TransformerId._programName $ transformerId
     packageName = showTransformerPackageName transformerId
 
--- | Action that updates the package database.
+-- | Action that updates the package database, using
+-- 'DynamicLinker.updatePackageDatabase'.
 updatePackageDatabase :: Runtime ()
-updatePackageDatabase = return ()
-
--- | Lift a computation from the 'Linker' monad.
-liftLinker :: Linker a -> Runtime a
-liftLinker = Runtime . liftIO . runLinker
+updatePackageDatabase = liftLinker DynamicLinker.updatePackageDatabase
 
 -- | Return @True@ if the runtime has a program update that can be applied.
 isUpdateAvailable :: RuntimeData a -> IO Bool
