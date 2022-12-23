@@ -1,10 +1,11 @@
-name: Auto assign PRs
+name: PR
 on:
   pull_request:
     types: [opened]
 jobs:
   assignment:
     runs-on: ubuntu-latest
+    name: Auto assign PR
     steps:
       - uses: actions/checkout@v3
       - uses: kyoya0819/auto-assignment@v1
