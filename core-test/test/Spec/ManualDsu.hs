@@ -14,6 +14,7 @@ import Test.Lowarn.Story
     storyGoldenTest,
     updateProgram,
   )
+import Test.Lowarn.Tasty (BinarySemaphore)
 import Test.Tasty (TestTree, testGroup)
 
 getExampleRuntime :: (Handle, Handle) -> Runtime ()
@@ -29,7 +30,7 @@ getExampleRuntime handles =
 timeout :: Int
 timeout = 40000000
 
-successfulChain :: TestTree
+successfulChain :: IO BinarySemaphore -> TestTree
 successfulChain =
   storyGoldenTest
     (show 'successfulChain)
@@ -60,7 +61,7 @@ successfulChain =
       updateProgram
       inputLine "F#4567"
 
-duplicatedUpdateSignal :: TestTree
+duplicatedUpdateSignal :: IO BinarySemaphore -> TestTree
 duplicatedUpdateSignal =
   storyGoldenTest
     (show 'duplicatedUpdateSignal)
@@ -84,10 +85,11 @@ duplicatedUpdateSignal =
       _ <- outputLines 6
       return ()
 
-manualDsuTests :: TestTree
-manualDsuTests =
+manualDsuTests :: IO BinarySemaphore -> TestTree
+manualDsuTests binarySemaphoreAction =
   testGroup
     "Manual DSU"
-    [ successfulChain,
-      duplicatedUpdateSignal
-    ]
+    $ [ successfulChain,
+        duplicatedUpdateSignal
+      ]
+      <*> [binarySemaphoreAction]
