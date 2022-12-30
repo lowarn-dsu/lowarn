@@ -1,5 +1,5 @@
 -- |
--- Module                  : Lowarn.Runtime
+-- Module                  : Lowarn.Plugin
 -- SPDX-License-Identifier : MIT
 -- Stability               : experimental
 -- Portability             : non-portable (POSIX, GHC)
