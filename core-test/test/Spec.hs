@@ -4,17 +4,27 @@ import Spec.Story (storyTests)
 import Spec.TransformerId (transformerIdTests)
 import Spec.VersionId (versionIdTests)
 import Spec.VersionNumber (versionNumberTests)
-import Test.Tasty (defaultMain, testGroup)
+import Test.Lowarn.Tasty (withBinarySemaphore)
+import Test.Tasty (DependencyType (AllFinish), after, defaultMain, testGroup)
 
 main :: IO ()
 main =
-  defaultMain $
-    testGroup
+  defaultMain
+    $ testGroup
       "Lowarn"
-      [ manualDsuTests,
-        storyTests,
-        versionNumberTests,
-        programNameTests,
-        versionIdTests,
-        transformerIdTests
-      ]
+    $ withBinarySemaphore
+      ( \binarySemaphoreAction ->
+          testGroup
+            "Runtime"
+            $ [ manualDsuTests,
+                storyTests
+              ]
+              <*> [binarySemaphoreAction]
+      )
+      : ( after AllFinish "$1 == \"Runtime\""
+            <$> [ versionNumberTests,
+                  programNameTests,
+                  versionIdTests,
+                  transformerIdTests
+                ]
+        )

@@ -26,7 +26,7 @@ module Test.Lowarn.Story
   )
 where
 
-import Control.Concurrent (threadDelay)
+import Control.Concurrent (threadDelay, withMVar)
 import Control.Exception (SomeException, catch, displayException)
 import Control.Monad (replicateM)
 import Control.Monad.IO.Class (MonadIO, liftIO)
@@ -58,6 +58,7 @@ import System.Posix
   )
 import System.Process (createPipe)
 import qualified System.Timeout as Timeout (timeout)
+import Test.Lowarn.Tasty (BinarySemaphore)
 import Test.Tasty (TestTree)
 import Test.Tasty.Golden (goldenVsFileDiff)
 import Text.Printf (printf)
@@ -211,7 +212,7 @@ updateProgram = Story $ do
     threadDelay 1000000
 
 -- | Run a test that compares a golden file to the output of running a story
--- with a runtime.
+-- with a runtime, once a binary semaphore has been acquired.
 --
 -- The location of the golden and log files is
 -- @PACKAGE_DIR\/test\/golden\/TEST_NAME.{log,golden}@, where @PACKAGE_DIR@ is
@@ -228,13 +229,19 @@ storyGoldenTest ::
   Story () ->
   -- | A timeout in microseconds.
   Int ->
+  -- | An action that returns a binary semaphore.
+  IO BinarySemaphore ->
   TestTree
-storyGoldenTest testName getRuntime story timeout =
+storyGoldenTest testName getRuntime story timeout binarySemaphoreAction =
   goldenVsFileDiff
     testName
     (\a b -> ["diff", "-u", a, b])
     (testPath <.> "golden")
     (testPath <.> "log")
-    $ runStory story getRuntime (testPath <.> "log") timeout
+    $ do
+      binarySemaphore <- binarySemaphoreAction
+      withMVar binarySemaphore $
+        const $
+          runStory story getRuntime (testPath <.> "log") timeout
   where
     testPath = "test" </> "golden" </> testName

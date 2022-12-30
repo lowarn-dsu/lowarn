@@ -13,6 +13,7 @@ import Test.Lowarn.Story
     storyGoldenTest,
     writeInfo,
   )
+import Test.Lowarn.Tasty (BinarySemaphore)
 import Test.Tasty (TestTree, testGroup)
 
 getExampleRuntime :: (Handle, Handle) -> Runtime ()
@@ -24,7 +25,7 @@ getExampleRuntime handles =
 timeout :: Int
 timeout = 10000000
 
-inputTimeout :: TestTree
+inputTimeout :: IO BinarySemaphore -> TestTree
 inputTimeout =
   storyGoldenTest
     (show 'inputTimeout)
@@ -32,7 +33,7 @@ inputTimeout =
     (void $ outputLines 3)
     timeout
 
-outputTimeout :: TestTree
+outputTimeout :: IO BinarySemaphore -> TestTree
 outputTimeout =
   storyGoldenTest
     (show 'outputTimeout)
@@ -40,7 +41,7 @@ outputTimeout =
     (void $ outputLines 7)
     timeout
 
-pipeOrderingWithInputFirst :: TestTree
+pipeOrderingWithInputFirst :: IO BinarySemaphore -> TestTree
 pipeOrderingWithInputFirst =
   storyGoldenTest
     (show 'pipeOrderingWithInputFirst)
@@ -48,7 +49,7 @@ pipeOrderingWithInputFirst =
     (void $ inputLine "A" >> outputLines 7)
     timeout
 
-pipeOrderingWithOutputFirst :: TestTree
+pipeOrderingWithOutputFirst :: IO BinarySemaphore -> TestTree
 pipeOrderingWithOutputFirst =
   storyGoldenTest
     (show 'pipeOrderingWithOutputFirst)
@@ -56,7 +57,7 @@ pipeOrderingWithOutputFirst =
     (outputLines 7 >> inputLine "A")
     timeout
 
-info :: TestTree
+info :: IO BinarySemaphore -> TestTree
 info =
   storyGoldenTest
     (show 'info)
@@ -64,13 +65,14 @@ info =
     (writeInfo "Test")
     timeout
 
-storyTests :: TestTree
-storyTests =
+storyTests :: IO BinarySemaphore -> TestTree
+storyTests binarySemaphoreAction =
   testGroup
     "Story framework"
-    [ inputTimeout,
-      outputTimeout,
-      pipeOrderingWithInputFirst,
-      pipeOrderingWithOutputFirst,
-      info
-    ]
+    $ [ inputTimeout,
+        outputTimeout,
+        pipeOrderingWithInputFirst,
+        pipeOrderingWithOutputFirst,
+        info
+      ]
+      <*> [binarySemaphoreAction]

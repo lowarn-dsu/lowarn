@@ -27,6 +27,7 @@ library
   exposed-modules:
       Test.Lowarn.Property
       Test.Lowarn.Story
+      Test.Lowarn.Tasty
   other-modules:
       Paths_lowarn_test
   hs-source-dirs:
