@@ -2,13 +2,13 @@
 {-# LANGUAGE LambdaCase #-}
 
 -- |
--- Module                  : Lowarn.Runtime
+-- Module                  : Lowarn.Linker
 -- SPDX-License-Identifier : MIT
 -- Stability               : experimental
 -- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for interacting with GHC to link modules and load their entities.
-module Lowarn.DynamicLinker
+module Lowarn.Linker
   ( -- * Monad
     Linker,
     runLinker,
@@ -26,7 +26,6 @@ import GHC hiding (load, moduleName)
 import GHC.Data.FastString
 import GHC.Driver.Monad
 import GHC.Driver.Session
-import GHC.Driver.Ways
 import GHC.Paths (libdir)
 import GHC.Runtime.Interpreter
 import GHC.Runtime.Linker
@@ -57,10 +56,7 @@ runLinker linker =
               Nothing -> return flags
               Just lowarnPackageEnv -> do
                 interpretPackageEnv $ flags {packageEnv = Just lowarnPackageEnv}
-      void $
-        setSessionDynFlags $
-          addWay' WayDyn $
-            flags' {ghcMode = CompManager, ghcLink = LinkDynLib}
+      void $ setSessionDynFlags $ flags' {ghcLink = LinkStaticLib}
       liftIO . initDynLinker =<< getSession
       unLinker linker
 

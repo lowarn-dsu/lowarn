@@ -26,7 +26,6 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
-- -dynamic
 
 library:
   source-dirs: src

@@ -38,8 +38,8 @@ import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Maybe (isJust)
-import Lowarn.DynamicLinker (Linker, liftIO, load, runLinker)
-import qualified Lowarn.DynamicLinker as DynamicLinker (updatePackageDatabase)
+import Lowarn.Linker (Linker, liftIO, load, runLinker)
+import qualified Lowarn.Linker as Linker (updatePackageDatabase)
 import Lowarn.ProgramName (showEntryPointModuleName, showTransformerModuleName)
 import Lowarn.TransformerId (TransformerId, showTransformerPackageName)
 import qualified Lowarn.TransformerId as TransformerId (_programName)
@@ -161,9 +161,9 @@ loadTransformer transformerId previousState =
     packageName = showTransformerPackageName transformerId
 
 -- | Action that updates the package database, using
--- 'DynamicLinker.updatePackageDatabase'.
+-- 'Linker.updatePackageDatabase'.
 updatePackageDatabase :: Runtime ()
-updatePackageDatabase = liftLinker DynamicLinker.updatePackageDatabase
+updatePackageDatabase = liftLinker Linker.updatePackageDatabase
 
 -- | Return @True@ if the runtime has a program update that can be applied.
 isUpdateAvailable :: RuntimeData a -> IO Bool

@@ -24,7 +24,6 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
-- -dynamic
 - -fplugin Lowarn.Plugin
 
 library:
