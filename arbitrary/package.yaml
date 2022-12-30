@@ -32,7 +32,6 @@ ghc-options:
 - -Wpartial-fields
 - -Wredundant-constraints
 - -Wno-orphans
-- -dynamic
 
 library:
   source-dirs: src
