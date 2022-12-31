@@ -22,6 +22,8 @@ where
 
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
+import Data.List (minimumBy)
+import Data.Ord (comparing)
 import GHC hiding (load, moduleName)
 import GHC.Data.FastString
 import GHC.Driver.Monad
@@ -33,6 +35,8 @@ import GHC.Types.Name
 import GHC.Types.Unique
 import GHC.Unit hiding (moduleName)
 import System.Environment (lookupEnv)
+import System.FilePath.Glob (CompOptions (..), compileWith, globDir1)
+import Text.Printf (printf)
 import Unsafe.Coerce (unsafeCoerce)
 
 -- | Monad for linking modules from the package database and accessing their
@@ -128,3 +132,31 @@ lookupUnitInfo flags packageName moduleName = do
             unitIsExposed unitInfo && unitPackageName unitInfo == packageName
         )
         modulesAndPackages
+
+findArchiveFile :: UnitInfo -> IO (Maybe FilePath)
+findArchiveFile unitInfo = do
+  archiveFiles <-
+    concat
+      <$> sequence
+        [ let pattern =
+                compileWith compOptions $
+                  printf "%s/libHS%s*.a" searchDir packageName
+           in globDir1 pattern searchDir
+          | searchDir <- searchDirs
+        ]
+  return $ case archiveFiles of
+    [] -> Nothing
+    _ : _ -> Just $ minimumBy (comparing length) archiveFiles
+  where
+    searchDirs = unitLibraryDirs unitInfo
+    packageName = show $ unPackageName $ unitPackageName unitInfo
+    compOptions =
+      CompOptions
+        { characterClasses = False,
+          characterRanges = False,
+          numberRanges = False,
+          wildcards = True,
+          recursiveWildcards = False,
+          pathSepInRanges = False,
+          errorRecovery = True
+        }

@@ -33,7 +33,8 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.7 && <5
+      Glob >=0.10.2 && <0.11
+    , base >=4.7 && <5
     , ghc ==9.0.2
     , ghc-paths
     , lowarn
