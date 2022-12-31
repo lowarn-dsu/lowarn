@@ -7,7 +7,7 @@ cabal-version: 1.12
 name:           lowarn-test
 version:        0.1.0.0
 synopsis:       Testing utilities and test suite for lowarn
-description:    Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/core-test#readme>
+description:    Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/test#readme>
 category:       System
 homepage:       https://github.com/jonathanjameswatson/lowarn#readme
 bug-reports:    https://github.com/jonathanjameswatson/lowarn/issues
@@ -45,6 +45,7 @@ library
     , base >=4.7 && <5
     , filepath
     , lowarn
+    , lowarn-runtime
     , process
     , tasty
     , tasty-golden
@@ -73,6 +74,7 @@ test-suite lowarn-test
     , following
     , lowarn
     , lowarn-arbitrary
+    , lowarn-runtime
     , lowarn-test
     , lowarn-transformer-following-v0-v1v0v0
     , lowarn-transformer-following-v1v0v0-v2v0v0

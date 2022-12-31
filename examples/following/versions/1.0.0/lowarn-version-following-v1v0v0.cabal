@@ -31,5 +31,6 @@ library
   build-depends:
       base >=4.7 && <5
     , lowarn
+    , lowarn-plugin
     , regex-tdfa >=1.3.2 && <1.4
   default-language: Haskell2010

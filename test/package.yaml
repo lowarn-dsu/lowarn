@@ -13,12 +13,13 @@ extra-source-files:
 synopsis:            Testing utilities and test suite for lowarn
 category:            System
 
-description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/core-test#readme>
+description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/test#readme>
 
 dependencies:
 - base >= 4.7 && < 5
 - filepath
 - lowarn
+- lowarn-runtime
 - process
 - QuickCheck
 - tasty

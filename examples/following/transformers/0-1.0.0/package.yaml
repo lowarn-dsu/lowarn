@@ -11,6 +11,7 @@ description:         Lowarn demo program transformer from version 0 to 1.0.0
 dependencies:
 - base >= 4.7 && < 5
 - lowarn
+- lowarn-plugin
 - lowarn-version-following-v1v0v0
 
 ghc-options:

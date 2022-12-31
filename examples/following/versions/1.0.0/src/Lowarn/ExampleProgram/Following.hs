@@ -6,7 +6,7 @@ module Lowarn.ExampleProgram.Following
   )
 where
 
-import Lowarn.Runtime (RuntimeData, isUpdateAvailable)
+import Lowarn (RuntimeData, isUpdateAvailable)
 import System.IO
   ( Handle,
     hFlush,
