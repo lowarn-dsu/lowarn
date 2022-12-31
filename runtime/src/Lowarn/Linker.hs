@@ -149,7 +149,7 @@ findArchiveFile unitInfo = do
     _ : _ -> Just $ minimumBy (comparing length) archiveFiles
   where
     searchDirs = unitLibraryDirs unitInfo
-    packageName = show $ unPackageName $ unitPackageName unitInfo
+    packageName = unpackFS $ unPackageName $ unitPackageName unitInfo
     compOptions =
       CompOptions
         { characterClasses = False,
