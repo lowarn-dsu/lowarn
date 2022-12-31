@@ -3,8 +3,8 @@ module Transformer_following
   )
 where
 
+import Lowarn (Transformer (Transformer))
 import Lowarn.ExampleProgram.Following (State (State))
-import Lowarn.Runtime (Transformer (Transformer))
 import System.IO (Handle)
 
 transformer :: Transformer (Handle, Handle) State

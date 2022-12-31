@@ -8,7 +8,7 @@ where
 
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
-import Lowarn.Runtime (RuntimeData, isUpdateAvailable)
+import Lowarn (RuntimeData, isUpdateAvailable)
 import System.IO
   ( Handle,
     hFlush,

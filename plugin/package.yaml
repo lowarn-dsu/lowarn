@@ -1,18 +1,22 @@
-name:                lowarn-version-following-v1v0v0
-version:             1.0.0
+name:                lowarn-plugin
+version:             0.1.0.0
 github:              "jonathanjameswatson/lowarn"
 license:             MIT
 author:              "Jonathan Watson"
 maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
 copyright:           "2022 Jonathan Watson"
 
-description:         Lowarn demo program 1
+extra-source-files:
+- README.md
+
+synopsis:            Plugins for Lowarn
+category:            System
+
+description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/plugin#readme>
 
 dependencies:
 - base >= 4.7 && < 5
-- lowarn
-- lowarn-plugin
-- regex-tdfa ^>= 1.3.2
+- ghc == 9.0.2
 
 ghc-options:
 - -Wall
@@ -24,7 +28,6 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
-- -fplugin Lowarn.Plugin
 
 library:
   source-dirs: src

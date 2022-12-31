@@ -7,7 +7,7 @@ where
 
 import Control.Arrow (first)
 import qualified Data.Sequence as Seq
-import Lowarn.Runtime (Transformer (Transformer))
+import Lowarn (Transformer (Transformer))
 import System.Random (mkStdGen, randomR)
 import System.Random.Stateful (applyIOGen, newIOGenM)
 import qualified "lowarn-version-following-v1v0v0" Lowarn.ExampleProgram.Following as PreviousVersion

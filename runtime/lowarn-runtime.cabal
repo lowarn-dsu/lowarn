@@ -4,9 +4,11 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           following
-version:        1.0.0
-description:    Lowarn demo program
+name:           lowarn-runtime
+version:        0.1.0.0
+synopsis:       Runtime system for Lowarn
+description:    Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/runtime#readme>
+category:       System
 homepage:       https://github.com/jonathanjameswatson/lowarn#readme
 bug-reports:    https://github.com/jonathanjameswatson/lowarn/issues
 author:         Jonathan Watson
@@ -14,6 +16,8 @@ maintainer:     23344719+jonathanjameswatson@users.noreply.github.com
 copyright:      2022 Jonathan Watson
 license:        MIT
 build-type:     Simple
+extra-source-files:
+    README.md
 
 source-repository head
   type: git
@@ -21,29 +25,18 @@ source-repository head
 
 library
   exposed-modules:
-      Lowarn.ExampleProgram.Following.TransformerId
-      Lowarn.ExampleProgram.Following.VersionId
+      Lowarn.Linker
+      Lowarn.Runtime
   other-modules:
-      Paths_following
+      Paths_lowarn_runtime
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
+    , ghc ==9.0.2
+    , ghc-paths
     , lowarn
-    , lowarn-runtime
-  default-language: Haskell2010
-
-executable following-exe
-  main-is: Main.hs
-  other-modules:
-      Paths_following
-  hs-source-dirs:
-      app
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      base >=4.7 && <5
-    , following
-    , lowarn
-    , lowarn-runtime
+    , transformers
+    , unix
   default-language: Haskell2010

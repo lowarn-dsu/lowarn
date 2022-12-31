@@ -6,7 +6,7 @@ module Transformer_following
 where
 
 import Data.Foldable (toList)
-import Lowarn.Runtime (Transformer (Transformer))
+import Lowarn (Transformer (Transformer))
 import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Following as PreviousVersion
 import qualified "lowarn-version-following-v3v0v0" Lowarn.ExampleProgram.Following as NextVersion
 
