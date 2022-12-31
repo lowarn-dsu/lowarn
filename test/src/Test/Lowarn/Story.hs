@@ -94,7 +94,7 @@ createPipeWithLineBuffering = do
 -- handles and returns a runtime. This function must also be given a file path
 -- for the log file, and a timeout in microseconds.
 --
--- Examples of the format of the log file can be found in Lowarn's test suite,
+-- Examples of the format of the log file can be found in Lowarn's test suite.
 runStory ::
   -- | A story.
   Story () ->
