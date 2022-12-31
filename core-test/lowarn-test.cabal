@@ -18,6 +18,13 @@ license:        MIT
 build-type:     Simple
 extra-source-files:
     README.md
+    test/golden/Spec.ManualDsu.duplicatedUpdateSignal.golden
+    test/golden/Spec.ManualDsu.successfulChain.golden
+    test/golden/Spec.Story.info.golden
+    test/golden/Spec.Story.inputTimeout.golden
+    test/golden/Spec.Story.outputTimeout.golden
+    test/golden/Spec.Story.pipeOrderingWithInputFirst.golden
+    test/golden/Spec.Story.pipeOrderingWithOutputFirst.golden
 
 source-repository head
   type: git
