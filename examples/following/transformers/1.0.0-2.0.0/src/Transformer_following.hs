@@ -8,10 +8,10 @@ where
 import Control.Arrow (first)
 import qualified Data.Sequence as Seq
 import Lowarn (Transformer (Transformer))
-import qualified "lowarn-version-following-v1v0v0" Lowarn.ExampleProgram.Following as PreviousVersion
-import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Following as NextVersion
 import System.Random (mkStdGen, randomR)
 import System.Random.Stateful (applyIOGen, newIOGenM)
+import qualified "lowarn-version-following-v1v0v0" Lowarn.ExampleProgram.Following as PreviousVersion
+import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Following as NextVersion
 
 transformer :: Transformer PreviousVersion.State NextVersion.State
 transformer = Transformer $
