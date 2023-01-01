@@ -13,7 +13,7 @@ transformer = Transformer $
   \(inHandle, outHandle) ->
     return $ Just $ State [] inHandle outHandle
 
-foreign export ccall "hs_transformer"
+foreign export ccall "hs_transformer_v0_v1v0v0"
   hsTransformer :: IO (StablePtr (Transformer (Handle, Handle) State))
 
 hsTransformer :: IO (StablePtr (Transformer (Handle, Handle) State))

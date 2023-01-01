@@ -18,7 +18,7 @@ entryPoint = EntryPoint $
     eventLoop runtimeData $
       fromMaybe (State [] stdin stdout) (lastState runtimeData)
 
-foreign export ccall "hs_entryPoint"
+foreign export ccall "hs_entryPoint_v3v0v0"
   hsEntryPoint :: IO (StablePtr (EntryPoint State))
 
 hsEntryPoint :: IO (StablePtr (EntryPoint State))

@@ -24,7 +24,7 @@ transformer = Transformer $
           inHandle
           outHandle
 
-foreign export ccall "hs_transformer"
+foreign export ccall "hs_transformer_v2v0v0_v3v0v0"
   hsTransformer ::
     IO (StablePtr (Transformer PreviousVersion.State NextVersion.State))
 
