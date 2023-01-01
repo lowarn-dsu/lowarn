@@ -104,7 +104,9 @@ load packageName' moduleName' symbol = Linker $ do
             Set.fromList . catMaybes
               <$> sequence
                 [ liftIO $ findArchiveFile dependencyUnitInfo
-                  | dependencyUnitInfo <- findDependencyUnitInfo flags unitInfo
+                  | dependencyUnitInfo <- findDependencyUnitInfo flags unitInfo,
+                    unitId dependencyUnitInfo
+                      `notElem` preloadUnits (unitState flags)
                 ]
 
           put nextArchiveFiles
