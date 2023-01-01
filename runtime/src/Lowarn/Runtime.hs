@@ -87,7 +87,7 @@ loadVersion versionId mPreviousState = do
   withLinkedEntity
     packageName
     moduleName
-    "entryPoint"
+    "hs_entryPoint"
     ( \entryPoint ->
         unEntryPoint entryPoint $
           RuntimeData updateSignalRegister (UpdateInfo <$> mPreviousState)
@@ -109,7 +109,7 @@ loadTransformer transformerId previousState =
   withLinkedEntity
     packageName
     moduleName
-    "transformer"
+    "hs_transformer"
     (`unTransformer` previousState)
   where
     moduleName =
