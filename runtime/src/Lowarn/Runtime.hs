@@ -34,10 +34,14 @@ import Lowarn
 import Lowarn.Linker (Linker, liftIO, load, runLinker)
 import qualified Lowarn.Linker as Linker (updatePackageDatabase)
 import Lowarn.ProgramName (showEntryPointModuleName, showTransformerModuleName)
-import Lowarn.TransformerId (TransformerId, showTransformerPackageName)
+import Lowarn.TransformerId
+  ( TransformerId (_nextVersionNumber, _previousVersionNumber),
+    showTransformerPackageName,
+  )
 import qualified Lowarn.TransformerId as TransformerId (_programName)
-import Lowarn.VersionId (VersionId, showVersionPackageName)
+import Lowarn.VersionId (VersionId (_versionNumber), showVersionPackageName)
 import qualified Lowarn.VersionId as VersionId (_programName)
+import Lowarn.VersionNumber (showEntryPointExport, showTransformerExport)
 import System.Posix.Signals (Handler (Catch), installHandler, sigUSR2)
 import Text.Printf (printf)
 
@@ -95,11 +99,10 @@ loadVersion versionId mPreviousState = do
   withLinkedEntity
     packageName
     moduleName
-    "hs_entryPoint"
-    ( \entryPoint ->
-        unEntryPoint entryPoint $
-          RuntimeData updateSignalRegister (UpdateInfo <$> mPreviousState)
-    )
+    (showEntryPointExport $ _versionNumber versionId)
+    $ \entryPoint ->
+      unEntryPoint entryPoint $
+        RuntimeData updateSignalRegister (UpdateInfo <$> mPreviousState)
   where
     moduleName =
       showEntryPointModuleName . VersionId._programName $ versionId
@@ -117,7 +120,10 @@ loadTransformer transformerId previousState =
   withLinkedEntity
     packageName
     moduleName
-    "hs_transformer"
+    ( showTransformerExport
+        (_previousVersionNumber transformerId)
+        (_nextVersionNumber transformerId)
+    )
     (`unTransformer` previousState)
   where
     moduleName =
