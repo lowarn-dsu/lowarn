@@ -16,6 +16,7 @@ description:         Please see the README on GitHub at <https://github.com/jona
 
 dependencies:
 - base >= 4.7 && < 5
+- containers
 - ghc == 9.0.2
 - ghc-paths
 - Glob >= 0.10.2 && < 0.11

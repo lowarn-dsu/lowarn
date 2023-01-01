@@ -160,3 +160,21 @@ findArchiveFile unitInfo = do
           pathSepInRanges = False,
           errorRecovery = True
         }
+
+findDependencyUnitInfo :: DynFlags -> UnitInfo -> [UnitInfo]
+findDependencyUnitInfo flags rootUnitInfo =
+  transitiveClosure [rootUnitInfo] (Set.singleton $ unitId rootUnitInfo) []
+  where
+    transitiveClosure :: [UnitInfo] -> Set UnitId -> [UnitInfo] -> [UnitInfo]
+    transitiveClosure [] _ acc = acc
+    transitiveClosure (unitInfo : unvisitedDependencies) seenDependencyIds acc =
+      transitiveClosure
+        (newUnvisitedDependencies ++ unvisitedDependencies)
+        (Set.union seenDependencyIds $ Set.fromList newUnvisitedDependencyIds)
+        (unitInfo : acc)
+      where
+        dependencyIds = unitDepends unitInfo
+        newUnvisitedDependencyIds =
+          filter (`Set.notMember` seenDependencyIds) dependencyIds
+        newUnvisitedDependencies =
+          mapMaybe (lookupUnitId $ unitState flags) newUnvisitedDependencyIds
