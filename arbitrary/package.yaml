@@ -33,8 +33,6 @@ ghc-options:
 - -Wredundant-constraints
 - -Wno-orphans
 - -dynamic
-- -shared
-- -fPIC
 
 library:
   source-dirs: src

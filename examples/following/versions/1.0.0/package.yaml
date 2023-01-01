@@ -24,8 +24,6 @@ ghc-options:
 - -Wpartial-fields
 - -Wredundant-constraints
 - -dynamic
-- -shared
-- -fPIC
 - -fplugin Lowarn.Plugin
 
 library:
