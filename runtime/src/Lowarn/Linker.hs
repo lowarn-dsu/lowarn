@@ -23,8 +23,10 @@ where
 import Control.Exception (bracket)
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.State.Strict (StateT, evalStateT, get, put)
 import Data.List (minimumBy)
-import Data.Maybe (mapMaybe)
+import Data.Maybe (catMaybes, mapMaybe)
 import Data.Ord (comparing)
 import Data.Set (Set)
 import qualified Data.Set as Set
@@ -47,7 +49,7 @@ foreign import ccall "dynamic"
 -- | Monad for linking modules from the package database and accessing their
 -- exported entities.
 newtype Linker a = Linker
-  { unLinker :: Ghc a
+  { unLinker :: StateT (Set String) Ghc a
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
@@ -67,7 +69,7 @@ runLinker linker =
                 interpretPackageEnv $ flags {packageEnv = Just lowarnPackageEnv}
       void $ setSessionDynFlags $ flags' {ghcLink = LinkStaticLib}
       liftIO . initDynLinker =<< getSession
-      unLinker linker
+      evalStateT (unLinker linker) Set.empty
 
 -- | Action that gives an entity exported by a module in a package in the
 -- package database. The module is linked if it hasn't already been. @Nothing@
@@ -81,24 +83,33 @@ load ::
   String ->
   Linker (Maybe a)
 load packageName' moduleName' symbol = Linker $ do
-  flags <- getSessionDynFlags
-  session <- getSession
+  flags <- lift getSessionDynFlags
+  session <- lift getSession
 
   let moduleName = mkModuleName moduleName'
       packageName = PackageName $ mkFastString packageName'
 
-  liftIO $
-    lookupUnitInfo flags packageName moduleName
-      >>= maybe
-        (return Nothing)
-        ( \unitInfo -> liftIO $ do
-            sequence_
-              [ findArchiveFile dependencyUnitInfo
-                  >>= maybe (return ()) (loadArchive session)
-                | dependencyUnitInfo <- findDependencyUnitInfo flags unitInfo
-              ]
+  liftIO (lookupUnitInfo flags packageName moduleName)
+    >>= maybe
+      (return Nothing)
+      ( \unitInfo -> do
+          archiveFiles <-
+            catMaybes
+              <$> sequence
+                [ liftIO $ findArchiveFile dependencyUnitInfo
+                  | dependencyUnitInfo <- findDependencyUnitInfo flags unitInfo
+                ]
 
-            _ <- resolveObjs session
+          previousArchiveFiles <- get
+          put $ Set.fromList archiveFiles
+
+          liftIO $ do
+            purgeLookupSymbolCache session
+
+            mapM_ (unloadObj session) previousArchiveFiles
+            mapM_ (loadArchive session) archiveFiles
+
+            void $ resolveObjs session
 
             lookupSymbol session (mkFastString symbol)
               >>= maybe
@@ -110,14 +121,14 @@ load packageName' moduleName' symbol = Linker $ do
                         freeStablePtr
                         deRefStablePtr
                 )
-        )
+      )
 
 -- | Action that updates the package database. This uses the package environment
 -- if it is specified. This can be set with the @LOWARN_PACKAGE_ENV@ environment
 -- variable. If the package environment is not set, the package database is
 -- instead updated by resetting the unit state and unit databases.
 updatePackageDatabase :: Linker ()
-updatePackageDatabase = Linker $ do
+updatePackageDatabase = Linker $ lift $ do
   flags <- getSessionDynFlags
   flagsWithInterpretedPackageEnv <- case packageEnv flags of
     Nothing ->
