@@ -6,6 +6,7 @@ module Transformer_following
 where
 
 import Data.Foldable (toList)
+import Foreign (StablePtr, newStablePtr)
 import Lowarn (Transformer (Transformer))
 import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Following as PreviousVersion
 import qualified "lowarn-version-following-v3v0v0" Lowarn.ExampleProgram.Following as NextVersion
@@ -22,3 +23,11 @@ transformer = Transformer $
           )
           inHandle
           outHandle
+
+foreign export ccall "hs_transformer"
+  hsTransformer ::
+    IO (StablePtr (Transformer PreviousVersion.State NextVersion.State))
+
+hsTransformer ::
+  IO (StablePtr (Transformer PreviousVersion.State NextVersion.State))
+hsTransformer = newStablePtr transformer

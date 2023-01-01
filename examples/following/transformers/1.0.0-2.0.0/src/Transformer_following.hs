@@ -7,6 +7,7 @@ where
 
 import Control.Arrow (first)
 import qualified Data.Sequence as Seq
+import Foreign (StablePtr, newStablePtr)
 import Lowarn (Transformer (Transformer))
 import System.Random (mkStdGen, randomR)
 import System.Random.Stateful (applyIOGen, newIOGenM)
@@ -27,3 +28,11 @@ transformer = Transformer $
           )
           users
     return $ Just $ NextVersion.State users' inHandle outHandle
+
+foreign export ccall "hs_transformer"
+  hsTransformer ::
+    IO (StablePtr (Transformer PreviousVersion.State NextVersion.State))
+
+hsTransformer ::
+  IO (StablePtr (Transformer PreviousVersion.State NextVersion.State))
+hsTransformer = newStablePtr transformer
