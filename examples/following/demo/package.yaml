@@ -11,6 +11,7 @@ description:         Lowarn demo program
 dependencies:
 - base >= 4.7 && < 5
 - lowarn
+- lowarn-runtime
 
 ghc-options:
 - -Wall
@@ -22,7 +23,6 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
-- -dynamic
 
 library:
   source-dirs: src

@@ -2,13 +2,13 @@
 {-# LANGUAGE LambdaCase #-}
 
 -- |
--- Module                  : Lowarn.Runtime
+-- Module                  : Lowarn.Linker
 -- SPDX-License-Identifier : MIT
 -- Stability               : experimental
 -- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for interacting with GHC to link modules and load their entities.
-module Lowarn.DynamicLinker
+module Lowarn.Linker
   ( -- * Monad
     Linker,
     runLinker,
@@ -20,21 +20,29 @@ module Lowarn.DynamicLinker
   )
 where
 
+import Control.Exception (bracket)
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
+import Data.List (minimumBy)
+import Data.Maybe (mapMaybe)
+import Data.Ord (comparing)
+import Data.Set (Set)
+import qualified Data.Set as Set
+import Foreign (FunPtr, StablePtr, castPtrToFunPtr, deRefStablePtr, freeStablePtr)
 import GHC hiding (load, moduleName)
 import GHC.Data.FastString
 import GHC.Driver.Monad
 import GHC.Driver.Session
-import GHC.Driver.Ways
 import GHC.Paths (libdir)
 import GHC.Runtime.Interpreter
 import GHC.Runtime.Linker
-import GHC.Types.Name
-import GHC.Types.Unique
 import GHC.Unit hiding (moduleName)
 import System.Environment (lookupEnv)
-import Unsafe.Coerce (unsafeCoerce)
+import System.FilePath.Glob (CompOptions (..), compileWith, globDir1)
+import Text.Printf (printf)
+
+foreign import ccall "dynamic"
+  mkStablePtr :: FunPtr (IO (StablePtr a)) -> IO (StablePtr a)
 
 -- | Monad for linking modules from the package database and accessing their
 -- exported entities.
@@ -57,10 +65,7 @@ runLinker linker =
               Nothing -> return flags
               Just lowarnPackageEnv -> do
                 interpretPackageEnv $ flags {packageEnv = Just lowarnPackageEnv}
-      void $
-        setSessionDynFlags $
-          addWay' WayDyn $
-            flags' {ghcMode = CompManager, ghcLink = LinkDynLib}
+      void $ setSessionDynFlags $ flags' {ghcLink = LinkStaticLib}
       liftIO . initDynLinker =<< getSession
       unLinker linker
 
@@ -87,20 +92,24 @@ load packageName' moduleName' symbol = Linker $ do
       >>= maybe
         (return Nothing)
         ( \unitInfo -> liftIO $ do
-            let unit = mkUnit unitInfo
-            let module_ = mkModule unit moduleName
-            let name =
-                  mkExternalName
-                    (mkBuiltinUnique 0)
-                    module_
-                    (mkVarOcc symbol)
-                    noSrcSpan
+            sequence_
+              [ findArchiveFile dependencyUnitInfo
+                  >>= maybe (return ()) (loadArchive session)
+                | dependencyUnitInfo <- findDependencyUnitInfo flags unitInfo
+              ]
 
-            linkModule session module_
+            _ <- resolveObjs session
 
-            value <- withInterp session $
-              \interp -> getHValue session name >>= wormhole interp
-            return $ Just $ unsafeCoerce value
+            lookupSymbol session (mkFastString symbol)
+              >>= maybe
+                (return Nothing)
+                ( \symbolPtr ->
+                    Just
+                      <$> bracket
+                        (mkStablePtr $ castPtrToFunPtr symbolPtr)
+                        freeStablePtr
+                        deRefStablePtr
+                )
         )
 
 -- | Action that updates the package database. This uses the package environment
@@ -132,3 +141,49 @@ lookupUnitInfo flags packageName moduleName = do
             unitIsExposed unitInfo && unitPackageName unitInfo == packageName
         )
         modulesAndPackages
+
+findArchiveFile :: UnitInfo -> IO (Maybe FilePath)
+findArchiveFile unitInfo = do
+  archiveFiles <-
+    concat
+      <$> sequence
+        [ let pattern =
+                compileWith compOptions $
+                  printf "%s/libHS%s*.a" searchDir packageName
+           in globDir1 pattern searchDir
+          | searchDir <- searchDirs
+        ]
+  return $ case archiveFiles of
+    [] -> Nothing
+    _ : _ -> Just $ minimumBy (comparing length) archiveFiles
+  where
+    searchDirs = unitLibraryDirs unitInfo
+    packageName = unpackFS $ unPackageName $ unitPackageName unitInfo
+    compOptions =
+      CompOptions
+        { characterClasses = False,
+          characterRanges = False,
+          numberRanges = False,
+          wildcards = True,
+          recursiveWildcards = False,
+          pathSepInRanges = False,
+          errorRecovery = True
+        }
+
+findDependencyUnitInfo :: DynFlags -> UnitInfo -> [UnitInfo]
+findDependencyUnitInfo flags rootUnitInfo =
+  transitiveClosure [rootUnitInfo] (Set.singleton $ unitId rootUnitInfo) []
+  where
+    transitiveClosure :: [UnitInfo] -> Set UnitId -> [UnitInfo] -> [UnitInfo]
+    transitiveClosure [] _ acc = acc
+    transitiveClosure (unitInfo : unvisitedDependencies) seenDependencyIds acc =
+      transitiveClosure
+        (newUnvisitedDependencies ++ unvisitedDependencies)
+        (Set.union seenDependencyIds $ Set.fromList newUnvisitedDependencyIds)
+        (unitInfo : acc)
+      where
+        dependencyIds = unitDepends unitInfo
+        newUnvisitedDependencyIds =
+          filter (`Set.notMember` seenDependencyIds) dependencyIds
+        newUnvisitedDependencies =
+          mapMaybe (lookupUnitId $ unitState flags) newUnvisitedDependencyIds

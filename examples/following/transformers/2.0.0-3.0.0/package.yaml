@@ -11,6 +11,7 @@ description:         Lowarn demo program transformer from version 2.0.0 to 3.0.0
 dependencies:
 - base >= 4.7 && < 5
 - lowarn
+- lowarn-plugin
 - lowarn-version-following-v2v0v0
 - lowarn-version-following-v3v0v0
 
@@ -24,7 +25,6 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
-- -dynamic
 
 library:
   source-dirs: src

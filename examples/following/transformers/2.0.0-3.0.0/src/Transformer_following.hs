@@ -7,9 +7,9 @@ where
 
 import Data.Foldable (toList)
 import Foreign (StablePtr, newStablePtr)
+import Lowarn (Transformer (Transformer))
 import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Following as PreviousVersion
 import qualified "lowarn-version-following-v3v0v0" Lowarn.ExampleProgram.Following as NextVersion
-import Lowarn.Runtime (Transformer (Transformer))
 
 transformer :: Transformer PreviousVersion.State NextVersion.State
 transformer = Transformer $

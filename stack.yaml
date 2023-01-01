@@ -5,13 +5,15 @@ extra-deps:
 - compact-word-vectors-0.2.0.2@sha256:49cf00f224000f149306e7043c228fa33e3dba87f10589e8326388c3278ba594,2709
 
 packages:
-- core
-- core-test
 - arbitrary
-- examples/following/versions/1.0.0
-- examples/following/versions/2.0.0
-- examples/following/versions/3.0.0
+- core
+- examples/following/demo
 - examples/following/transformers/0-1.0.0
 - examples/following/transformers/1.0.0-2.0.0
 - examples/following/transformers/2.0.0-3.0.0
-- examples/following/demo
+- examples/following/versions/1.0.0
+- examples/following/versions/2.0.0
+- examples/following/versions/3.0.0
+- plugin
+- runtime
+- test

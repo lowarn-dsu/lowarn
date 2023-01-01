@@ -6,8 +6,8 @@ where
 import Data.Maybe (fromMaybe)
 import qualified Data.Sequence as Seq
 import Foreign (StablePtr, newStablePtr)
+import Lowarn (EntryPoint (..), lastState)
 import Lowarn.ExampleProgram.Following (State (State), eventLoop)
-import Lowarn.Runtime (EntryPoint (..), lastState)
 import System.IO
   ( stdin,
     stdout,

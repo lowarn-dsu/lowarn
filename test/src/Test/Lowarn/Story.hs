@@ -26,14 +26,13 @@ module Test.Lowarn.Story
   )
 where
 
-import Control.Concurrent (threadDelay)
+import Control.Concurrent (threadDelay, withMVar)
 import Control.Exception (SomeException, catch, displayException)
-import Control.Monad (replicateM)
+import Control.Monad (replicateM, when)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Trans.Reader (ReaderT, asks, runReaderT)
-import Data.Functor ((<&>))
+import Data.IORef (newIORef, readIORef, writeIORef)
 import Lowarn.Runtime (Runtime, runRuntime)
-import System.Environment (lookupEnv)
 import System.Exit (ExitCode (ExitFailure, ExitSuccess))
 import System.FilePath ((<.>), (</>))
 import System.IO
@@ -58,6 +57,7 @@ import System.Posix
   )
 import System.Process (createPipe)
 import qualified System.Timeout as Timeout (timeout)
+import Test.Lowarn.Tasty (BinarySemaphore)
 import Test.Tasty (TestTree)
 import Test.Tasty.Golden (goldenVsFileDiff)
 import Text.Printf (printf)
@@ -94,7 +94,7 @@ createPipeWithLineBuffering = do
 -- handles and returns a runtime. This function must also be given a file path
 -- for the log file, and a timeout in microseconds.
 --
--- Examples of the format of the log file can be found in Lowarn's test suite,
+-- Examples of the format of the log file can be found in Lowarn's test suite.
 runStory ::
   -- | A story.
   Story () ->
@@ -113,6 +113,8 @@ runStory story getRuntime outputPath timeout = do
     hSetBinaryMode fileHandle True
     hSetBuffering fileHandle LineBuffering
 
+    shouldWriteExceptionsRef <- newIORef True
+
     processId <-
       forkProcessWithUnmask $ \unmask ->
         catch
@@ -120,10 +122,13 @@ runStory story getRuntime outputPath timeout = do
               runRuntime $
                 getRuntime (inputReadHandle, outputWriteHandle)
           )
-          ( \exception ->
-              writeLog fileHandle Error $
-                displayException (exception :: SomeException)
+          ( \exception -> do
+              shouldWriteExceptions <- readIORef shouldWriteExceptionsRef
+              when shouldWriteExceptions $
+                writeLog fileHandle Error $
+                  displayException (exception :: SomeException)
           )
+
     Timeout.timeout
       timeout
       ( runReaderT (unStory story) $
@@ -133,41 +138,26 @@ runStory story getRuntime outputPath timeout = do
         Just () -> return ()
         Nothing -> writeLog fileHandle Error "Timeout reached."
 
-    processStatusTimeout <-
-      lookupEnv "CI"
-        <&> ( \case
-                Nothing -> normalProcessStatusTimeout
-                Just "" -> normalProcessStatusTimeout
-                Just _ -> ciProcessStatusTimeout
-            )
-
-    Timeout.timeout
-      processStatusTimeout
-      (getProcessStatus True True processId)
+    getProcessStatus False True processId
       >>= \case
-        Nothing -> do
-          writeLog fileHandle Error "Process did not end."
-          signalProcess sigKILL processId
-        Just Nothing -> do
-          writeLog fileHandle Error "Process not available."
-          signalProcess sigKILL processId
-        Just (Just (Exited ExitSuccess)) -> return ()
-        Just (Just (Exited (ExitFailure exitCode))) ->
+        Nothing -> return ()
+        Just (Exited ExitSuccess) -> return ()
+        Just (Exited (ExitFailure exitCode)) ->
           writeLog fileHandle Error $
             printf "Process exited with exit code %d." exitCode
-        Just (Just (Terminated signal _)) ->
+        Just (Terminated signal _) ->
           writeLog fileHandle Error $
             printf "Process terminated by signal %s." $
               show signal
-        Just (Just (Stopped signal)) ->
+        Just (Stopped signal) ->
           writeLog fileHandle Error $
             printf "Process stopped by signal %s." $
               show signal
 
+    writeIORef shouldWriteExceptionsRef False
+    signalProcess sigKILL processId
+
     hClose inputWriteHandle
-  where
-    normalProcessStatusTimeout = 1000000
-    ciProcessStatusTimeout = 120000000
 
 -- | Action that queues a line to be read by the program.
 inputLine :: String -> Story ()
@@ -211,7 +201,7 @@ updateProgram = Story $ do
     threadDelay 1000000
 
 -- | Run a test that compares a golden file to the output of running a story
--- with a runtime.
+-- with a runtime, once a binary semaphore has been acquired.
 --
 -- The location of the golden and log files is
 -- @PACKAGE_DIR\/test\/golden\/TEST_NAME.{log,golden}@, where @PACKAGE_DIR@ is
@@ -228,13 +218,19 @@ storyGoldenTest ::
   Story () ->
   -- | A timeout in microseconds.
   Int ->
+  -- | An action that returns a binary semaphore.
+  IO BinarySemaphore ->
   TestTree
-storyGoldenTest testName getRuntime story timeout =
+storyGoldenTest testName getRuntime story timeout binarySemaphoreAction =
   goldenVsFileDiff
     testName
     (\a b -> ["diff", "-u", a, b])
     (testPath <.> "golden")
     (testPath <.> "log")
-    $ runStory story getRuntime (testPath <.> "log") timeout
+    $ do
+      binarySemaphore <- binarySemaphoreAction
+      withMVar binarySemaphore $
+        const $
+          runStory story getRuntime (testPath <.> "log") timeout
   where
     testPath = "test" </> "golden" </> testName

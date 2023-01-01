@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.0.
+-- This file has been generated from package.yaml by hpack version 0.35.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -25,11 +25,9 @@ source-repository head
 
 library
   exposed-modules:
-      Lowarn.DynamicLinker
+      Lowarn
       Lowarn.ParserCombinators
-      Lowarn.Plugin
       Lowarn.ProgramName
-      Lowarn.Runtime
       Lowarn.TransformerId
       Lowarn.VersionId
       Lowarn.VersionNumber
@@ -37,11 +35,7 @@ library
       Paths_lowarn
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -dynamic
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
-    , ghc ==9.0.2
-    , ghc-paths
-    , transformers
-    , unix
   default-language: Haskell2010

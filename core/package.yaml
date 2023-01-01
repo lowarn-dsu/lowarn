@@ -16,10 +16,6 @@ description:         Please see the README on GitHub at <https://github.com/jona
 
 dependencies:
 - base >= 4.7 && < 5
-- ghc == 9.0.2
-- ghc-paths
-- transformers
-- unix
 
 ghc-options:
 - -Wall
@@ -31,7 +27,6 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
-- -dynamic
 
 library:
   source-dirs: src

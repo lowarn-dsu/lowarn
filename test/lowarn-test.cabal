@@ -1,13 +1,13 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.0.
+-- This file has been generated from package.yaml by hpack version 0.35.1.
 --
 -- see: https://github.com/sol/hpack
 
 name:           lowarn-test
 version:        0.1.0.0
 synopsis:       Testing utilities and test suite for lowarn
-description:    Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/core-test#readme>
+description:    Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/test#readme>
 category:       System
 homepage:       https://github.com/jonathanjameswatson/lowarn#readme
 bug-reports:    https://github.com/jonathanjameswatson/lowarn/issues
@@ -18,6 +18,13 @@ license:        MIT
 build-type:     Simple
 extra-source-files:
     README.md
+    test/golden/Spec.ManualDsu.duplicatedUpdateSignal.golden
+    test/golden/Spec.ManualDsu.successfulChain.golden
+    test/golden/Spec.Story.info.golden
+    test/golden/Spec.Story.inputTimeout.golden
+    test/golden/Spec.Story.outputTimeout.golden
+    test/golden/Spec.Story.pipeOrderingWithInputFirst.golden
+    test/golden/Spec.Story.pipeOrderingWithOutputFirst.golden
 
 source-repository head
   type: git
@@ -27,16 +34,18 @@ library
   exposed-modules:
       Test.Lowarn.Property
       Test.Lowarn.Story
+      Test.Lowarn.Tasty
   other-modules:
       Paths_lowarn_test
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -dynamic
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       QuickCheck
     , base >=4.7 && <5
     , filepath
     , lowarn
+    , lowarn-runtime
     , process
     , tasty
     , tasty-golden
@@ -57,7 +66,7 @@ test-suite lowarn-test
       Paths_lowarn_test
   hs-source-dirs:
       test
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -dynamic -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       QuickCheck
     , base >=4.7 && <5
@@ -65,6 +74,7 @@ test-suite lowarn-test
     , following
     , lowarn
     , lowarn-arbitrary
+    , lowarn-runtime
     , lowarn-test
     , lowarn-transformer-following-v0-v1v0v0
     , lowarn-transformer-following-v1v0v0-v2v0v0
