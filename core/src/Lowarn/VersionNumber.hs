@@ -106,7 +106,7 @@ showEntryPointExport = ("hs_entryPoint_" <>) . showWithLetters
 --
 -- ==== __Examples__
 --
--- >>> showEntryPointExport (fromJust $ mkVersionNumber (1 :| [2, 3])) (fromJust $ mkVersionNumber (1 :| [2, 3]))
+-- >>> showTransformerExport (fromJust $ mkVersionNumber (1 :| [2, 3])) (fromJust $ mkVersionNumber (1 :| [2, 3]))
 -- "hs_transformer_v1v2v3_v1v2v4"
 showTransformerExport :: VersionNumber -> VersionNumber -> String
 showTransformerExport previousVersionNumber nextVersionNUmber =
