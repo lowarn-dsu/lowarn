@@ -18,6 +18,10 @@ module Lowarn.VersionNumber
     showWithLetters,
     parseWithDots,
     parseWithLetters,
+
+    -- * Exports
+    showEntryPointExport,
+    showTransformerExport,
   )
 where
 
@@ -86,6 +90,30 @@ showWithDots = showWithSeparator "."
 -- "v1v2v3"
 showWithLetters :: VersionNumber -> String
 showWithLetters = ("v" <>) . showWithSeparator "v"
+
+-- | Show the identifier that is used to export the entry point of a program's
+-- version that corresponds to a given version number.
+--
+-- ==== __Examples__
+--
+-- >>> showEntryPointExport (fromJust $ mkVersionNumber (1 :| [2, 3]))
+-- "hs_entryPoint_v1v2v3"
+showEntryPointExport :: VersionNumber -> String
+showEntryPointExport = ("hs_entryPoint_" <>) . showWithLetters
+
+-- | Show the identifier that is used to export a state transformer from one
+-- version of a program to another, with the version's version numbers given.
+--
+-- ==== __Examples__
+--
+-- >>> showTransformerExport (fromJust $ mkVersionNumber (1 :| [2, 3])) (fromJust $ mkVersionNumber (1 :| [2, 4]))
+-- "hs_transformer_v1v2v3_v1v2v4"
+showTransformerExport :: VersionNumber -> VersionNumber -> String
+showTransformerExport previousVersionNumber nextVersionNUmber =
+  "hs_transformer_"
+    <> showWithLetters previousVersionNumber
+    <> "_"
+    <> showWithLetters nextVersionNUmber
 
 parseWithSeparator :: Char -> ReadP VersionNumber
 parseWithSeparator separator =

@@ -22,14 +22,26 @@ import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
-import Lowarn (EntryPoint (unEntryPoint), RuntimeData (RuntimeData), Transformer (unTransformer), UpdateInfo (UpdateInfo), UpdateSignalRegister, fillUpdateSignalRegister, mkUpdateSignalRegister)
+import Lowarn
+  ( EntryPoint (unEntryPoint),
+    RuntimeData (RuntimeData),
+    Transformer (unTransformer),
+    UpdateInfo (UpdateInfo),
+    UpdateSignalRegister,
+    fillUpdateSignalRegister,
+    mkUpdateSignalRegister,
+  )
 import Lowarn.Linker (Linker, liftIO, load, runLinker)
 import qualified Lowarn.Linker as Linker (updatePackageDatabase)
 import Lowarn.ProgramName (showEntryPointModuleName, showTransformerModuleName)
-import Lowarn.TransformerId (TransformerId, showTransformerPackageName)
+import Lowarn.TransformerId
+  ( TransformerId (_nextVersionNumber, _previousVersionNumber),
+    showTransformerPackageName,
+  )
 import qualified Lowarn.TransformerId as TransformerId (_programName)
-import Lowarn.VersionId (VersionId, showVersionPackageName)
+import Lowarn.VersionId (VersionId (_versionNumber), showVersionPackageName)
 import qualified Lowarn.VersionId as VersionId (_programName)
+import Lowarn.VersionNumber (showEntryPointExport, showTransformerExport)
 import System.Posix.Signals (Handler (Catch), installHandler, sigUSR2)
 import Text.Printf (printf)
 
@@ -87,11 +99,10 @@ loadVersion versionId mPreviousState = do
   withLinkedEntity
     packageName
     moduleName
-    "entryPoint"
-    ( \entryPoint ->
-        unEntryPoint entryPoint $
-          RuntimeData updateSignalRegister (UpdateInfo <$> mPreviousState)
-    )
+    (showEntryPointExport $ _versionNumber versionId)
+    $ \entryPoint ->
+      unEntryPoint entryPoint $
+        RuntimeData updateSignalRegister (UpdateInfo <$> mPreviousState)
   where
     moduleName =
       showEntryPointModuleName . VersionId._programName $ versionId
@@ -109,7 +120,10 @@ loadTransformer transformerId previousState =
   withLinkedEntity
     packageName
     moduleName
-    "transformer"
+    ( showTransformerExport
+        (_previousVersionNumber transformerId)
+        (_nextVersionNumber transformerId)
+    )
     (`unTransformer` previousState)
   where
     moduleName =

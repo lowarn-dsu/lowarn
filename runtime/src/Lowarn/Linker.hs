@@ -20,8 +20,23 @@ module Lowarn.Linker
   )
 where
 
+import Control.Exception (bracket)
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.State.Strict (StateT, evalStateT, get, put)
+import Data.List (minimumBy)
+import Data.Maybe (catMaybes, mapMaybe)
+import Data.Ord (comparing)
+import Data.Set (Set)
+import qualified Data.Set as Set
+import Foreign
+  ( FunPtr,
+    StablePtr,
+    castPtrToFunPtr,
+    deRefStablePtr,
+    freeStablePtr,
+  )
 import GHC hiding (load, moduleName)
 import GHC.Data.FastString
 import GHC.Driver.Monad
@@ -29,16 +44,18 @@ import GHC.Driver.Session
 import GHC.Paths (libdir)
 import GHC.Runtime.Interpreter
 import GHC.Runtime.Linker
-import GHC.Types.Name
-import GHC.Types.Unique
 import GHC.Unit hiding (moduleName)
 import System.Environment (lookupEnv)
-import Unsafe.Coerce (unsafeCoerce)
+import System.FilePath.Glob (CompOptions (..), compileWith, globDir1)
+import Text.Printf (printf)
+
+foreign import ccall "dynamic"
+  mkStablePtr :: FunPtr (IO (StablePtr a)) -> IO (StablePtr a)
 
 -- | Monad for linking modules from the package database and accessing their
 -- exported entities.
 newtype Linker a = Linker
-  { unLinker :: Ghc a
+  { unLinker :: StateT (Set String) Ghc a
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
@@ -58,7 +75,7 @@ runLinker linker =
                 interpretPackageEnv $ flags {packageEnv = Just lowarnPackageEnv}
       void $ setSessionDynFlags $ flags' {ghcLink = LinkStaticLib}
       liftIO . initDynLinker =<< getSession
-      unLinker linker
+      evalStateT (unLinker linker) Set.empty
 
 -- | Action that gives an entity exported by a module in a package in the
 -- package database. The module is linked if it hasn't already been. @Nothing@
@@ -72,39 +89,58 @@ load ::
   String ->
   Linker (Maybe a)
 load packageName' moduleName' symbol = Linker $ do
-  flags <- getSessionDynFlags
-  session <- getSession
+  flags <- lift getSessionDynFlags
+  session <- lift getSession
 
   let moduleName = mkModuleName moduleName'
       packageName = PackageName $ mkFastString packageName'
 
-  liftIO $
-    lookupUnitInfo flags packageName moduleName
-      >>= maybe
-        (return Nothing)
-        ( \unitInfo -> liftIO $ do
-            let unit = mkUnit unitInfo
-            let module_ = mkModule unit moduleName
-            let name =
-                  mkExternalName
-                    (mkBuiltinUnique 0)
-                    module_
-                    (mkVarOcc symbol)
-                    noSrcSpan
+  liftIO (lookupUnitInfo flags packageName moduleName)
+    >>= maybe
+      (return Nothing)
+      ( \unitInfo -> do
+          previousArchiveFiles <- get
+          nextArchiveFiles <-
+            Set.fromList . catMaybes
+              <$> sequence
+                [ liftIO $ findArchiveFile dependencyUnitInfo
+                  | dependencyUnitInfo <- findDependencyUnitInfo flags unitInfo,
+                    unitId dependencyUnitInfo
+                      `notElem` preloadUnits (unitState flags)
+                ]
 
-            linkModule session module_
+          put nextArchiveFiles
 
-            value <- withInterp session $
-              \interp -> getHValue session name >>= wormhole interp
-            return $ Just $ unsafeCoerce value
-        )
+          let unloadArchiveFiles =
+                Set.difference previousArchiveFiles nextArchiveFiles
+              loadArchiveFiles =
+                Set.difference nextArchiveFiles previousArchiveFiles
+
+          liftIO $ do
+            mapM_ (unloadObj session) unloadArchiveFiles
+            mapM_ (loadArchive session) loadArchiveFiles
+
+            resolveObjs session >>= \case
+              Failed -> return Nothing
+              Succeeded ->
+                lookupSymbol session (mkFastString symbol)
+                  >>= maybe
+                    (return Nothing)
+                    ( \symbolPtr ->
+                        Just
+                          <$> bracket
+                            (mkStablePtr $ castPtrToFunPtr symbolPtr)
+                            freeStablePtr
+                            deRefStablePtr
+                    )
+      )
 
 -- | Action that updates the package database. This uses the package environment
 -- if it is specified. This can be set with the @LOWARN_PACKAGE_ENV@ environment
 -- variable. If the package environment is not set, the package database is
 -- instead updated by resetting the unit state and unit databases.
 updatePackageDatabase :: Linker ()
-updatePackageDatabase = Linker $ do
+updatePackageDatabase = Linker $ lift $ do
   flags <- getSessionDynFlags
   flagsWithInterpretedPackageEnv <- case packageEnv flags of
     Nothing ->
@@ -128,3 +164,49 @@ lookupUnitInfo flags packageName moduleName = do
             unitIsExposed unitInfo && unitPackageName unitInfo == packageName
         )
         modulesAndPackages
+
+findArchiveFile :: UnitInfo -> IO (Maybe FilePath)
+findArchiveFile unitInfo = do
+  archiveFiles <-
+    concat
+      <$> sequence
+        [ let pattern =
+                compileWith compOptions $
+                  printf "%s/libHS%s*.a" searchDir packageName
+           in globDir1 pattern searchDir
+          | searchDir <- searchDirs
+        ]
+  return $ case archiveFiles of
+    [] -> Nothing
+    _ : _ -> Just $ minimumBy (comparing length) archiveFiles
+  where
+    searchDirs = unitLibraryDirs unitInfo
+    packageName = unpackFS $ unPackageName $ unitPackageName unitInfo
+    compOptions =
+      CompOptions
+        { characterClasses = False,
+          characterRanges = False,
+          numberRanges = False,
+          wildcards = True,
+          recursiveWildcards = False,
+          pathSepInRanges = False,
+          errorRecovery = True
+        }
+
+findDependencyUnitInfo :: DynFlags -> UnitInfo -> [UnitInfo]
+findDependencyUnitInfo flags rootUnitInfo =
+  transitiveClosure [rootUnitInfo] (Set.singleton $ unitId rootUnitInfo) []
+  where
+    transitiveClosure :: [UnitInfo] -> Set UnitId -> [UnitInfo] -> [UnitInfo]
+    transitiveClosure [] _ acc = acc
+    transitiveClosure (unitInfo : unvisitedDependencies) seenDependencyIds acc =
+      transitiveClosure
+        (newUnvisitedDependencies ++ unvisitedDependencies)
+        (Set.union seenDependencyIds $ Set.fromList newUnvisitedDependencyIds)
+        (unitInfo : acc)
+      where
+        dependencyIds = unitDepends unitInfo
+        newUnvisitedDependencyIds =
+          filter (`Set.notMember` seenDependencyIds) dependencyIds
+        newUnvisitedDependencies =
+          mapMaybe (lookupUnitId $ unitState flags) newUnvisitedDependencyIds
