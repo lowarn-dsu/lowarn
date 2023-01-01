@@ -23,7 +23,10 @@ where
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
 import Data.List (minimumBy)
+import Data.Maybe (mapMaybe)
 import Data.Ord (comparing)
+import Data.Set (Set)
+import qualified Data.Set as Set
 import GHC hiding (load, moduleName)
 import GHC.Data.FastString
 import GHC.Driver.Monad
