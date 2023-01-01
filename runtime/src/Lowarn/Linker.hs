@@ -20,6 +20,7 @@ module Lowarn.Linker
   )
 where
 
+import Control.Exception (bracket)
 import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
 import Data.List (minimumBy)
@@ -27,6 +28,7 @@ import Data.Maybe (mapMaybe)
 import Data.Ord (comparing)
 import Data.Set (Set)
 import qualified Data.Set as Set
+import Foreign (FunPtr, StablePtr, castPtrToFunPtr, deRefStablePtr, freeStablePtr)
 import GHC hiding (load, moduleName)
 import GHC.Data.FastString
 import GHC.Driver.Monad
@@ -34,13 +36,13 @@ import GHC.Driver.Session
 import GHC.Paths (libdir)
 import GHC.Runtime.Interpreter
 import GHC.Runtime.Linker
-import GHC.Types.Name
-import GHC.Types.Unique
 import GHC.Unit hiding (moduleName)
 import System.Environment (lookupEnv)
 import System.FilePath.Glob (CompOptions (..), compileWith, globDir1)
 import Text.Printf (printf)
-import Unsafe.Coerce (unsafeCoerce)
+
+foreign import ccall "dynamic"
+  mkStablePtr :: FunPtr (IO (StablePtr a)) -> IO (StablePtr a)
 
 -- | Monad for linking modules from the package database and accessing their
 -- exported entities.
@@ -90,20 +92,24 @@ load packageName' moduleName' symbol = Linker $ do
       >>= maybe
         (return Nothing)
         ( \unitInfo -> liftIO $ do
-            let unit = mkUnit unitInfo
-            let module_ = mkModule unit moduleName
-            let name =
-                  mkExternalName
-                    (mkBuiltinUnique 0)
-                    module_
-                    (mkVarOcc symbol)
-                    noSrcSpan
+            sequence_
+              [ findArchiveFile dependencyUnitInfo
+                  >>= maybe (return ()) (loadArchive session)
+                | dependencyUnitInfo <- findDependencyUnitInfo flags unitInfo
+              ]
 
-            linkModule session module_
+            _ <- resolveObjs session
 
-            value <- withInterp session $
-              \interp -> getHValue session name >>= wormhole interp
-            return $ Just $ unsafeCoerce value
+            lookupSymbol session (mkFastString symbol)
+              >>= maybe
+                (return Nothing)
+                ( \symbolPtr ->
+                    Just
+                      <$> bracket
+                        (mkStablePtr $ castPtrToFunPtr symbolPtr)
+                        freeStablePtr
+                        deRefStablePtr
+                )
         )
 
 -- | Action that updates the package database. This uses the package environment
