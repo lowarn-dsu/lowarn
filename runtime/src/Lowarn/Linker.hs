@@ -93,34 +93,38 @@ load packageName' moduleName' symbol = Linker $ do
     >>= maybe
       (return Nothing)
       ( \unitInfo -> do
-          archiveFiles <-
-            catMaybes
+          previousArchiveFiles <- get
+          nextArchiveFiles <-
+            Set.fromList . catMaybes
               <$> sequence
                 [ liftIO $ findArchiveFile dependencyUnitInfo
                   | dependencyUnitInfo <- findDependencyUnitInfo flags unitInfo
                 ]
 
-          previousArchiveFiles <- get
-          put $ Set.fromList archiveFiles
+          put nextArchiveFiles
+
+          let unloadArchiveFiles =
+                Set.difference previousArchiveFiles nextArchiveFiles
+              loadArchiveFiles =
+                Set.difference nextArchiveFiles previousArchiveFiles
 
           liftIO $ do
-            purgeLookupSymbolCache session
+            mapM_ (unloadObj session) unloadArchiveFiles
+            mapM_ (loadArchive session) loadArchiveFiles
 
-            mapM_ (unloadObj session) previousArchiveFiles
-            mapM_ (loadArchive session) archiveFiles
-
-            void $ resolveObjs session
-
-            lookupSymbol session (mkFastString symbol)
-              >>= maybe
-                (return Nothing)
-                ( \symbolPtr ->
-                    Just
-                      <$> bracket
-                        (mkStablePtr $ castPtrToFunPtr symbolPtr)
-                        freeStablePtr
-                        deRefStablePtr
-                )
+            resolveObjs session >>= \case
+              Failed -> return Nothing
+              Succeeded ->
+                lookupSymbol session (mkFastString symbol)
+                  >>= maybe
+                    (return Nothing)
+                    ( \symbolPtr ->
+                        Just
+                          <$> bracket
+                            (mkStablePtr $ castPtrToFunPtr symbolPtr)
+                            freeStablePtr
+                            deRefStablePtr
+                    )
       )
 
 -- | Action that updates the package database. This uses the package environment
