@@ -30,7 +30,13 @@ import Data.Maybe (catMaybes, mapMaybe)
 import Data.Ord (comparing)
 import Data.Set (Set)
 import qualified Data.Set as Set
-import Foreign (FunPtr, StablePtr, castPtrToFunPtr, deRefStablePtr, freeStablePtr)
+import Foreign
+  ( FunPtr,
+    StablePtr,
+    castPtrToFunPtr,
+    deRefStablePtr,
+    freeStablePtr,
+  )
 import GHC hiding (load, moduleName)
 import GHC.Data.FastString
 import GHC.Driver.Monad

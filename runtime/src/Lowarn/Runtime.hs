@@ -22,7 +22,15 @@ import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
-import Lowarn (EntryPoint (unEntryPoint), RuntimeData (RuntimeData), Transformer (unTransformer), UpdateInfo (UpdateInfo), UpdateSignalRegister, fillUpdateSignalRegister, mkUpdateSignalRegister)
+import Lowarn
+  ( EntryPoint (unEntryPoint),
+    RuntimeData (RuntimeData),
+    Transformer (unTransformer),
+    UpdateInfo (UpdateInfo),
+    UpdateSignalRegister,
+    fillUpdateSignalRegister,
+    mkUpdateSignalRegister,
+  )
 import Lowarn.Linker (Linker, liftIO, load, runLinker)
 import qualified Lowarn.Linker as Linker (updatePackageDatabase)
 import Lowarn.ProgramName (showEntryPointModuleName, showTransformerModuleName)
