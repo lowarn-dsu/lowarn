@@ -1,3 +1,6 @@
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE TupleSections #-}
+
 -- |
 -- Module                  : Lowarn
 -- SPDX-License-Identifier : MIT
@@ -30,7 +33,11 @@ module Lowarn
   )
 where
 
+import Control.Applicative
+import Control.Arrow
+import qualified Control.Category as Cat
 import Control.Concurrent (MVar, newEmptyMVar, tryPutMVar, tryTakeMVar)
+import Control.Monad
 import Data.Maybe (isJust)
 
 -- | Type for storing whether or not Lowarn should try to update a program.
@@ -64,6 +71,74 @@ newtype EntryPoint a = EntryPoint
 newtype Transformer a b = Transformer
   { unTransformer :: a -> IO (Maybe b)
   }
+
+instance Functor (Transformer a) where
+  fmap :: (b -> c) -> Transformer a b -> Transformer a c
+  fmap f t = Transformer $ fmap (fmap f) . unTransformer t
+
+instance Applicative (Transformer a) where
+  pure :: b -> Transformer a b
+  pure = Transformer . const . return . Just
+
+  (<*>) :: Transformer a (b -> c) -> Transformer a b -> Transformer a c
+  tf <*> t = Transformer $ \x ->
+    unTransformer t x
+      >>= maybe (return Nothing) (\y -> fmap ($ y) <$> unTransformer tf x)
+
+instance Monad (Transformer a) where
+  (>>=) :: Transformer a b -> (b -> Transformer a c) -> Transformer a c
+  t >>= f = Transformer $ \x ->
+    unTransformer t x >>= maybe (return Nothing) (\y -> unTransformer (f y) x)
+
+instance Cat.Category Transformer where
+  id :: Transformer a a
+  id = Transformer $ return . Just
+
+  (.) :: Transformer b c -> Transformer a b -> Transformer a c
+  t2 . t1 =
+    Transformer $ unTransformer t1 >=> maybe (return Nothing) (unTransformer t2)
+
+instance Arrow Transformer where
+  arr :: (a -> b) -> Transformer a b
+  arr = Transformer . ((return . Just) .)
+
+  first :: Transformer a b -> Transformer (a, c) (b, c)
+  first t = Transformer $ \(x, y) -> fmap (,y) <$> unTransformer t x
+
+instance Semigroup (Transformer a b) where
+  (<>) :: Transformer a b -> Transformer a b -> Transformer a b
+  t1 <> t2 = Transformer $ \x ->
+    unTransformer t1 x >>= maybe (unTransformer t2 x) (return . Just)
+
+instance Monoid (Transformer a b) where
+  mempty = Transformer $ const $ return Nothing
+
+instance Alternative (Transformer a) where
+  empty :: Transformer a b
+  empty = mempty
+
+  (<|>) :: Transformer a b -> Transformer a b -> Transformer a b
+  (<|>) = (<>)
+
+instance MonadPlus (Transformer a)
+
+instance ArrowZero Transformer where
+  zeroArrow :: Transformer a b
+  zeroArrow = mempty
+
+instance ArrowPlus Transformer where
+  (<+>) :: Transformer a b -> Transformer a b -> Transformer a b
+  (<+>) = (<>)
+
+instance ArrowChoice Transformer where
+  left :: Transformer a b -> Transformer (Either a c) (Either b c)
+  left t =
+    Transformer $
+      either (fmap (fmap Left) . unTransformer t) (return . Just . Right)
+
+instance ArrowApply Transformer where
+  app :: Transformer (Transformer a b, a) b
+  app = Transformer $ uncurry unTransformer
 
 -- | Create an update signal register.
 mkUpdateSignalRegister :: IO UpdateSignalRegister
