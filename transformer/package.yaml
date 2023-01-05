@@ -1,0 +1,34 @@
+name:                lowarn-transformer
+version:             0.1.0.0
+github:              "jonathanjameswatson/lowarn"
+license:             MIT
+author:              "Jonathan Watson"
+maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
+copyright:           "2022 Jonathan Watson"
+
+extra-source-files:
+- README.md
+
+synopsis:            State transformer utilities for Lowarn
+category:            System
+
+description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/transformer#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- generics-sop >= 0.5.1 && < 0.6
+- lowarn
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+
+library:
+  source-dirs: src
