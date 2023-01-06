@@ -58,7 +58,7 @@ jobs:
         run: cabal haddock lowarn lowarn-runtime lowarn-plugin lowarn-arbitrary lowarn-test
   stack:
     runs-on: ubuntu-latest
-    needs: cabal
+    needs: ormolu
     strategy:
       matrix:
         ghc: ["9.0.2"]
