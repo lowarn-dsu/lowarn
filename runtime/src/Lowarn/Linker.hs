@@ -43,7 +43,6 @@ import GHC.Driver.Monad
 import GHC.Driver.Session
 import GHC.Paths (libdir)
 import GHC.Runtime.Interpreter
-import GHC.Runtime.Linker
 import GHC.Unit hiding (moduleName)
 import System.Environment (lookupEnv)
 import System.FilePath.Glob (CompOptions (..), compileWith, globDir1)
@@ -74,7 +73,7 @@ runLinker linker =
               Just lowarnPackageEnv -> do
                 interpretPackageEnv $ flags {packageEnv = Just lowarnPackageEnv}
       void $ setSessionDynFlags $ flags' {ghcLink = LinkStaticLib}
-      liftIO . initDynLinker =<< getSession
+      liftIO . initObjLinker =<< getSession
       evalStateT (unLinker linker) Set.empty
 
 -- | Action that gives an entity exported by a module in a package in the
@@ -105,8 +104,7 @@ load packageName' moduleName' symbol = Linker $ do
               <$> sequence
                 [ liftIO $ findArchiveFile dependencyUnitInfo
                   | dependencyUnitInfo <- findDependencyUnitInfo flags unitInfo,
-                    unitId dependencyUnitInfo
-                      `notElem` preloadUnits (unitState flags)
+                    unitId dependencyUnitInfo /= rtsUnitId
                 ]
 
           put nextArchiveFiles
