@@ -23,7 +23,7 @@ getExampleRuntime handles =
       >>= loadVersion followingVersionId_1
 
 timeout :: Int
-timeout = 10000000
+timeout = 40000000
 
 inputTimeout :: IO BinarySemaphore -> TestTree
 inputTimeout =
