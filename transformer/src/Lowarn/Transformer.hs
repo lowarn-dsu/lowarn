@@ -34,6 +34,7 @@ module Lowarn.Transformer
     -- * Aliases
     DatatypeNameAlias,
     ConstructorNameAlias,
+    FieldNameAlias,
 
     -- * Re-exports from generic-sop
     Generic,
@@ -238,6 +239,17 @@ type family ConstructorNameOf (a :: M.ConstructorInfo) :: Symbol where
   ConstructorNameOf ('M.Infix constructorName _ _) = constructorName
   ConstructorNameOf ('M.Record constructorName _) = constructorName
 
+type family
+  FieldInfosOf (a :: M.ConstructorInfo) ::
+    [M.FieldInfo]
+  where
+  FieldInfosOf ('M.Constructor _) = '[]
+  FieldInfosOf ('M.Infix _ _ _) = '[]
+  FieldInfosOf ('M.Record _ fieldInfos) = fieldInfos
+
+type family FieldNameOf (a :: M.FieldInfo) :: Symbol where
+  FieldNameOf ('M.FieldInfo fieldName) = fieldName
+
 type family SymbolEquals (a :: Symbol) (b :: Symbol) :: Constraint where
   SymbolEquals a b = (a `CmpSymbol` b) ~ 'EQ
 
@@ -249,9 +261,21 @@ class ConstructorNameAlias (a :: Symbol) (b :: Symbol)
 
 instance {-# OVERLAPPABLE #-} SymbolEquals a b => ConstructorNameAlias a b
 
-type family ConstructorNamesOf (as :: [a]) :: [b] where
-  ConstructorNamesOf '[] = '[]
-  ConstructorNamesOf (x ': xs) = ConstructorNameOf x ': ConstructorNamesOf xs
+class FieldNameAlias (a :: Symbol) (b :: Symbol)
+
+instance {-# OVERLAPPABLE #-} SymbolEquals a b => FieldNameAlias a b
+
+class FieldsMatch a b
+
+instance (FieldNameAlias (FieldNameOf a) (FieldNameOf b)) => FieldsMatch a b
+
+class ConstructorsMatch a b
+
+instance
+  ( ConstructorNameAlias (ConstructorNameOf a) (ConstructorNameOf b),
+    AllZip FieldsMatch (FieldInfosOf a) (FieldInfosOf b)
+  ) =>
+  ConstructorsMatch a b
 
 class DatatypesMatch a b
 
@@ -261,12 +285,7 @@ instance
     da ~ DatatypeInfoOf a,
     db ~ DatatypeInfoOf b,
     DatatypeNameAlias (DatatypeNameOf da) (DatatypeNameOf db),
-    cas ~ ConstructorInfosOf da,
-    cbs ~ ConstructorInfosOf db,
-    AllZip
-      ConstructorNameAlias
-      (ConstructorNamesOf cas)
-      (ConstructorNamesOf cbs)
+    AllZip ConstructorsMatch (ConstructorInfosOf da) (ConstructorInfosOf db)
   ) =>
   DatatypesMatch a b
 
