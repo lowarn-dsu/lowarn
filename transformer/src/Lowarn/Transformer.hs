@@ -1,11 +1,16 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PolyKinds #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 -- |
 -- Module                  : Lowarn.Transformer
@@ -21,7 +26,14 @@ module Lowarn.Transformer
     -- * Transformers
     traversableTransformer,
     genericTransformer,
+    genericTransformer',
+    genericUnwrapTransformer,
+    genericWrapTransformer,
     coerceTransformer,
+
+    -- * Aliases
+    DatatypeNameAlias,
+    ConstructorNameAlias,
 
     -- * Re-exports from generic-sop
     Generic,
@@ -32,8 +44,12 @@ where
 import Control.Arrow
 import qualified Control.Category as Cat
 import Data.Coerce (Coercible, coerce)
+import GHC.Base (Symbol)
+import GHC.TypeLits (CmpSymbol)
 import Generics.SOP
+import Generics.SOP.Constraint
 import Generics.SOP.TH (deriveGeneric)
+import qualified Generics.SOP.Type.Metadata as M
 import Lowarn (Transformer (..))
 
 -- | A two-parameter typeclass that has instances for types @a@ and @b@ if a
@@ -100,6 +116,12 @@ import Lowarn (Transformer (..))
 -- >   transformer :: Transformer Variable VariableWithValue
 -- >   transformer = arr VariableWithValue `ap` Transformer lookupEnv <<^ name
 -- >
+-- > instance DatatypeNameAlias "PreviousState" "NextState"
+-- >
+-- > instance ConstructorNameAlias "AccumulatedVariables" "AccumulatedValues"
+-- >
+-- > instance ConstructorNameAlias "Variables" "VariablesWithValues"
+-- >
 -- > customTransformer :: Transformer (PreviousState a) (NextState a)
 -- > customTransformer = transformer
 --
@@ -126,28 +148,26 @@ class Transformable a b where
 -- overlapping at once, and we have two derived instances of
 -- @Transformable' a b@.
 
-data Strategy = IdentityStrategy | OtherStrategy
+type family Equals a b :: Bool where
+  Equals a a = 'True
+  Equals a b = 'False
 
-type family StrategyFor a b where
-  StrategyFor a a = 'IdentityStrategy
-  StrategyFor a b = 'OtherStrategy
-
-class Transformable' (strategy :: Strategy) a b where
-  transformer' :: Proxy strategy -> Transformer a b
+class Transformable' (isEqual :: Bool) a b where
+  transformer' :: Proxy isEqual -> Transformer a b
 
 -- By having only one derived instance of @Transformable a b@, we can make it
 -- overlappable without any errors.
 
 instance
   {-# OVERLAPPABLE #-}
-  (StrategyFor a b ~ strategy, Transformable' strategy a b) =>
+  (isEqual ~ a `Equals` b, Transformable' isEqual a b) =>
   Transformable a b
   where
   transformer :: Transformer a b
-  transformer = transformer' (Proxy :: Proxy strategy)
+  transformer = transformer' (Proxy :: Proxy isEqual)
 
-instance Transformable' 'IdentityStrategy a a where
-  transformer' :: Proxy 'IdentityStrategy -> Transformer a a
+instance Transformable' 'True a a where
+  transformer' :: Proxy 'True -> Transformer a a
   transformer' = const Cat.id
 
 -- | A transformer that transforms each element of a traversable data structure.
@@ -159,31 +179,112 @@ traversableTransformer = Transformer $ fmap sequence . mapM transform
 
 instance
   (Traversable t, Transformable a b) =>
-  Transformable' 'OtherStrategy (t a) (t b)
+  Transformable' 'False (t a) (t b)
   where
-  transformer' :: Proxy 'OtherStrategy -> Transformer (t a) (t b)
+  transformer' :: Proxy 'False -> Transformer (t a) (t b)
   transformer' = const traversableTransformer
+
+genericTransform ::
+  ( HTrans h1 h2,
+    HSequence h2,
+    SListIN h2 ys,
+    SListIN (Prod h2) ys,
+    AllZipN (Prod h1) Transformable xs ys
+  ) =>
+  h1 I xs ->
+  IO (Maybe (h2 I ys))
+genericTransform =
+  fmap hsequence
+    . hsequence'
+    . htrans (Proxy :: Proxy Transformable) (Comp . transform . unI)
+
+type TransformableCodes a b =
+  (Generic a, Generic b, AllZip2 Transformable (Code a) (Code b))
 
 -- | A transformer that transforms each field of a term into the field of
 -- another term with the same structure. If one transformation fails, this
 -- transformer fails. However, this is not short-circuiting, so every 'IO'
 -- action will be run.
 genericTransformer ::
-  (Generic a, Generic b, AllZip2 Transformable (Code a) (Code b)) =>
+  TransformableCodes a b =>
   Transformer a b
 genericTransformer =
   Transformer $
-    fmap (fmap to . hsequence)
-      . hsequence'
-      . htrans (Proxy :: Proxy Transformable) (Comp . transform . unI)
+    fmap (fmap to)
+      . genericTransform
       . from
+
+genericUnwrapTransformer ::
+  (IsWrappedType a b', Transformable b' b) => Transformer a b
+genericUnwrapTransformer = transformer <<^ wrappedTypeFrom
+
+genericWrapTransformer ::
+  (IsWrappedType b a', Transformable a a') => Transformer a b
+genericWrapTransformer = wrappedTypeTo ^<< transformer
+
+type family DatatypeNameOf (a :: M.DatatypeInfo) :: Symbol where
+  DatatypeNameOf ('M.ADT _ datatypeName _ _) = datatypeName
+  DatatypeNameOf ('M.Newtype _ datatypeName _) = datatypeName
+
+type family
+  ConstructorInfosOf (a :: M.DatatypeInfo) ::
+    [M.ConstructorInfo]
+  where
+  DatatypeNameOf ('M.ADT _ _ constructorInfos _) = constructorInfos
+  DatatypeNameOf ('M.Newtype _ _ constructorInfo) = '[constructorInfo]
+
+type family ConstructorNameOf (a :: M.ConstructorInfo) :: Symbol where
+  ConstructorNameOf ('M.Constructor constructorName) = constructorName
+  ConstructorNameOf ('M.Infix constructorName _ _) = constructorName
+  ConstructorNameOf ('M.Record constructorName _) = constructorName
+
+type family SymbolEquals (a :: Symbol) (b :: Symbol) :: Constraint where
+  SymbolEquals a b = (a `CmpSymbol` b) ~ 'EQ
+
+class DatatypeNameAlias (a :: Symbol) (b :: Symbol)
+
+instance {-# OVERLAPPABLE #-} SymbolEquals a b => DatatypeNameAlias a b
+
+class ConstructorNameAlias (a :: Symbol) (b :: Symbol)
+
+instance {-# OVERLAPPABLE #-} SymbolEquals a b => ConstructorNameAlias a b
+
+type family ConstructorNamesOf (as :: [a]) :: [b] where
+  ConstructorNamesOf '[] = '[]
+  ConstructorNamesOf (x ': xs) = ConstructorNameOf x ': ConstructorNamesOf xs
+
+class DatatypesMatch a b
+
+instance
+  ( HasDatatypeInfo a,
+    HasDatatypeInfo b,
+    da ~ DatatypeInfoOf a,
+    db ~ DatatypeInfoOf b,
+    DatatypeNameAlias (DatatypeNameOf da) (DatatypeNameOf db),
+    cas ~ ConstructorInfosOf da,
+    cbs ~ ConstructorInfosOf db,
+    AllZip
+      ConstructorNameAlias
+      (ConstructorNamesOf cas)
+      (ConstructorNamesOf cbs)
+  ) =>
+  DatatypesMatch a b
+
+genericTransformer' ::
+  ( TransformableCodes a b,
+    DatatypesMatch a b
+  ) =>
+  Transformer a b
+genericTransformer' = genericTransformer
 
 instance
   {-# OVERLAPPABLE #-}
-  (Generic a, Generic b, AllZip2 Transformable (Code a) (Code b)) =>
-  Transformable' 'OtherStrategy a b
+  ( TransformableCodes a b,
+    DatatypesMatch a b
+  ) =>
+  Transformable' 'False a b
   where
-  transformer' :: Proxy 'OtherStrategy -> Transformer a b
+  transformer' :: Proxy 'False -> Transformer a b
   transformer' = const genericTransformer
 
 -- | A transformer that is derived from a 'Coercible' instance. This transformer
