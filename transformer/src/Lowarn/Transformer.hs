@@ -271,21 +271,17 @@ instance
   DatatypesMatch a b
 
 genericTransformer' ::
-  ( TransformableCodes a b,
-    DatatypesMatch a b
-  ) =>
+  (TransformableCodes a b, DatatypesMatch a b) =>
   Transformer a b
 genericTransformer' = genericTransformer
 
 instance
   {-# OVERLAPPABLE #-}
-  ( TransformableCodes a b,
-    DatatypesMatch a b
-  ) =>
+  (TransformableCodes a b, DatatypesMatch a b) =>
   Transformable' 'False a b
   where
   transformer' :: Proxy 'False -> Transformer a b
-  transformer' = const genericTransformer
+  transformer' = const genericTransformer'
 
 -- | A transformer that is derived from a 'Coercible' instance. This transformer
 -- does not fail.
