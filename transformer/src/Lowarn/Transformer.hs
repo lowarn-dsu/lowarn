@@ -3,13 +3,16 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE UndecidableSuperClasses #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 -- |
@@ -26,7 +29,7 @@ module Lowarn.Transformer
     -- * Transformers
     traversableTransformer,
     genericTransformer,
-    genericTransformer',
+    -- genericTransformerWithMetadata,
     genericUnwrapTransformer,
     genericWrapTransformer,
     coerceTransformer,
@@ -45,8 +48,7 @@ where
 import Control.Arrow
 import qualified Control.Category as Cat
 import Data.Coerce (Coercible, coerce)
-import GHC.Base (Symbol)
-import GHC.TypeLits (CmpSymbol)
+import GHC.TypeLits (CmpSymbol, Symbol)
 import Generics.SOP
 import Generics.SOP.Constraint
 import Generics.SOP.TH (deriveGeneric)
@@ -185,22 +187,11 @@ instance
   transformer' :: Proxy 'False -> Transformer (t a) (t b)
   transformer' = const traversableTransformer
 
-genericTransform ::
-  ( HTrans h1 h2,
-    HSequence h2,
-    SListIN h2 ys,
-    SListIN (Prod h2) ys,
-    AllZipN (Prod h1) Transformable xs ys
-  ) =>
-  h1 I xs ->
-  IO (Maybe (h2 I ys))
-genericTransform =
-  fmap hsequence
-    . hsequence'
-    . htrans (Proxy :: Proxy Transformable) (Comp . transform . unI)
-
 type TransformableCodes a b =
   (Generic a, Generic b, AllZip2 Transformable (Code a) (Code b))
+
+type TransformableCodes' as bs =
+  (SListIN (Prod SOP) bs, AllZip2 Transformable as bs)
 
 -- | A transformer that transforms each field of a term into the field of
 -- another term with the same structure. If one transformation fails, this
@@ -211,9 +202,19 @@ genericTransformer ::
   Transformer a b
 genericTransformer =
   Transformer $
-    fmap (fmap to)
-      . genericTransform
+    fmap (fmap to . hsequence)
+      . hsequence'
+      . htrans (Proxy :: Proxy Transformable) (Comp . transform . unI)
       . from
+
+genericTransform' ::
+  TransformableCodes' as bs =>
+  SOP I as ->
+  IO (Maybe (SOP I bs))
+genericTransform' =
+  fmap hsequence
+    . hsequence'
+    . htrans (Proxy :: Proxy Transformable) (Comp . transform . unI)
 
 genericUnwrapTransformer ::
   (IsWrappedType a b', Transformable b' b) => Transformer a b
@@ -239,6 +240,10 @@ type family ConstructorNameOf (a :: M.ConstructorInfo) :: Symbol where
   ConstructorNameOf ('M.Infix constructorName _ _) = constructorName
   ConstructorNameOf ('M.Record constructorName _) = constructorName
 
+type family ConstructorNamesOf (a :: [M.ConstructorInfo]) :: [Symbol] where
+  ConstructorNamesOf '[] = '[]
+  ConstructorNameOf (c ': cs) = ConstructorNameOf c ': ConstructorNamesOf cs
+
 type family
   FieldInfosOf (a :: M.ConstructorInfo) ::
     [M.FieldInfo]
@@ -250,8 +255,20 @@ type family
 type family FieldNameOf (a :: M.FieldInfo) :: Symbol where
   FieldNameOf ('M.FieldInfo fieldName) = fieldName
 
+type family FieldNamesOf (a :: [M.FieldInfo]) :: [Symbol] where
+  FieldNamesOf '[] = '[]
+  FieldNamesOf (f ': fs) = FieldNameOf f ': FieldNamesOf fs
+
 type family SymbolEquals (a :: Symbol) (b :: Symbol) :: Constraint where
   SymbolEquals a b = (a `CmpSymbol` b) ~ 'EQ
+
+type family OrderingIsEq (a :: Ordering) :: Bool where
+  OrderingIsEq 'EQ = 'True
+  OrderingIsEq 'LT = 'False
+  OrderingIsEq 'GT = 'False
+
+type family SymbolEqualsBool (a :: Symbol) (b :: Symbol) :: Bool where
+  SymbolEquals a b = OrderingIsEq (a `CmpSymbol` b)
 
 class DatatypeNameAlias (a :: Symbol) (b :: Symbol)
 
@@ -265,42 +282,407 @@ class FieldNameAlias (a :: Symbol) (b :: Symbol)
 
 instance {-# OVERLAPPABLE #-} SymbolEquals a b => FieldNameAlias a b
 
-class FieldsMatch a b
+type DatatypesMatchConstraint a b =
+  ( HasDatatypeInfo a,
+    HasDatatypeInfo b,
+    DatatypeNameAlias
+      (DatatypeNameOf (DatatypeInfoOf a))
+      (DatatypeNameOf (DatatypeInfoOf b)),
+    AllZip
+      ConstructorsMatch
+      (ConstructorInfosOf (DatatypeInfoOf a))
+      (ConstructorInfosOf (DatatypeInfoOf b))
+  )
 
-instance (FieldNameAlias (FieldNameOf a) (FieldNameOf b)) => FieldsMatch a b
+class DatatypesMatchConstraint a b => DatatypesMatch a b
 
-class ConstructorsMatch a b
+instance DatatypesMatchConstraint a b => DatatypesMatch a b
 
-instance
+type ConstructorsMatchConstraint a b =
   ( ConstructorNameAlias (ConstructorNameOf a) (ConstructorNameOf b),
     AllZip FieldsMatch (FieldInfosOf a) (FieldInfosOf b)
-  ) =>
-  ConstructorsMatch a b
+  )
 
-class DatatypesMatch a b
+class ConstructorsMatchConstraint a b => ConstructorsMatch a b
+
+instance ConstructorsMatchConstraint a b => ConstructorsMatch a b
+
+type FieldsMatchConstraint a b =
+  (FieldNameAlias (FieldNameOf a) (FieldNameOf b))
+
+class FieldsMatchConstraint a b => FieldsMatch a b
+
+instance FieldsMatchConstraint a b => FieldsMatch a b
+
+-- genericTransformer' ::
+--   (TransformableCodes a b, DatatypesMatch a b) =>
+--   Transformer a b
+-- genericTransformer' = genericTransformer
+
+genericTransformerWithMetadata ::
+  forall a b cs wcs.
+  ( TransformableCodes' cs (Code b),
+    DatatypesMatch' a b cs wcs
+  ) =>
+  Transformer a b
+genericTransformerWithMetadata =
+  Transformer $
+    fmap (fmap to)
+      . genericTransform'
+      . (reorderConstructors @a @b @cs @wcs)
+      . from
+
+instance-- (TransformableCodes a b, DatatypesMatch a b) =>
+
+  {-# OVERLAPPABLE #-}
+  ( TransformableCodes' cs (Code b),
+    DatatypesMatch' a b cs wcs
+  ) =>
+  Transformable' 'False a b
+  where
+  transformer' :: Proxy 'False -> Transformer a b
+  transformer' = const (genericTransformerWithMetadata @a @b)
+
+-- Reordering
+
+class
+  ( HasDatatypeInfo a,
+    HasDatatypeInfo b,
+    DatatypeNameAlias
+      (DatatypeNameOf (DatatypeInfoOf a))
+      (DatatypeNameOf (DatatypeInfoOf b)),
+    SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a))),
+    SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b))),
+    OrderWithSymbolsNS
+      (Code a)
+      (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+      (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
+      cs
+      wcs
+  ) =>
+  DatatypesMatch' a b cs wcs
+    | a b -> cs wcs
+  where
+  reorderConstructors :: SOP f (Code a) -> SOP f cs
 
 instance
   ( HasDatatypeInfo a,
     HasDatatypeInfo b,
-    da ~ DatatypeInfoOf a,
-    db ~ DatatypeInfoOf b,
-    DatatypeNameAlias (DatatypeNameOf da) (DatatypeNameOf db),
-    AllZip ConstructorsMatch (ConstructorInfosOf da) (ConstructorInfosOf db)
+    DatatypeNameAlias
+      (DatatypeNameOf (DatatypeInfoOf a))
+      (DatatypeNameOf (DatatypeInfoOf b)),
+    SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a))),
+    SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b))),
+    OrderWithSymbolsNS
+      (Code a)
+      (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+      (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
+      cs
+      wcs
   ) =>
-  DatatypesMatch a b
+  DatatypesMatch' a b cs wcs
+  where
+  reorderConstructors ::
+    forall f. SOP f (Code a) -> SOP f cs
+  reorderConstructors sop =
+    SOP $
+      fst $
+        orderNS
+          (unSOP sop)
+          ( sList ::
+              SList (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+          )
+          ( sList ::
+              SList (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
+          )
 
-genericTransformer' ::
-  (TransformableCodes a b, DatatypesMatch a b) =>
-  Transformer a b
-genericTransformer' = genericTransformer
+class
+  ( as ~ (Head as ': Tail as),
+    was ~ (Head was ': Tail was)
+  ) =>
+  TakeWithSymbols
+    (as :: [k])
+    (was :: [Symbol])
+    (s :: Symbol)
+    (b :: k)
+    (wb :: Symbol)
+    (cs :: [k])
+    (wcs :: [Symbol])
+    | as was s -> b wb cs wcs
+  where
+  takeWithSymbols ::
+    NP f as ->
+    SList was ->
+    Proxy s ->
+    (f b, Proxy wb, NP f cs, SList wcs)
+
+  takeFromSList ::
+    SList as ->
+    SList was ->
+    Proxy s ->
+    (Proxy b, Proxy wb, SList cs, SList wcs)
+
+class
+  ( as ~ (Head as ': Tail as),
+    was ~ (Head was ': Tail was)
+  ) =>
+  TakeWithSymbols'
+    (p :: Bool)
+    (as :: [k])
+    (was :: [Symbol])
+    (s :: Symbol)
+    (b :: k)
+    (wb :: Symbol)
+    (cs :: [k])
+    (wcs :: [Symbol])
+    | p as was s -> b wb cs wcs
+  where
+  takeWithSymbols' ::
+    Proxy p ->
+    NP f as ->
+    SList was ->
+    Proxy s ->
+    (f b, Proxy wb, NP f cs, SList wcs)
+
+  takeFromSList' ::
+    Proxy p ->
+    SList as ->
+    SList was ->
+    Proxy s ->
+    (Proxy b, Proxy wb, SList cs, SList wcs)
 
 instance
-  {-# OVERLAPPABLE #-}
-  (TransformableCodes a b, DatatypesMatch a b) =>
-  Transformable' 'False a b
+  ( p ~ wa `SymbolEqualsBool` s,
+    TakeWithSymbols' p (a ': as) (wa ': was) s b wb cs wcs
+  ) =>
+  TakeWithSymbols (a ': as) (wa ': was) s b wb cs wcs
   where
-  transformer' :: Proxy 'False -> Transformer a b
-  transformer' = const genericTransformer'
+  takeWithSymbols = takeWithSymbols' (Proxy :: Proxy p)
+  takeFromSList = takeFromSList' (Proxy :: Proxy p)
+
+instance TakeWithSymbols' 'True (a ': as) (wa ': was) s a wa as was where
+  takeWithSymbols' ::
+    Proxy 'True ->
+    NP f (a ': as) ->
+    SList (wa ': was) ->
+    Proxy s ->
+    (f a, Proxy wa, NP f as, SList was)
+  takeWithSymbols' Proxy (x :* xs) SCons Proxy =
+    (x, Proxy, xs, sList)
+
+  takeFromSList' ::
+    Proxy 'True ->
+    SList (a ': as) ->
+    SList (wa ': was) ->
+    Proxy s ->
+    (Proxy a, Proxy wa, SList as, SList was)
+  takeFromSList' Proxy SCons SCons Proxy =
+    (Proxy, Proxy, sList, sList)
+
+instance
+  ( TakeWithSymbols (a2 ': as) (wa2 ': was) s b wb cs wcs
+  ) =>
+  TakeWithSymbols'
+    'False
+    (a1 ': a2 ': as)
+    (wa1 ': wa2 ': was)
+    s
+    b
+    wb
+    (a1 ': cs)
+    (wa1 ': wcs)
+  where
+  takeWithSymbols' ::
+    forall f.
+    Proxy 'False ->
+    NP f (a1 ': a2 ': as) ->
+    SList (wa1 ': wa2 ': was) ->
+    Proxy s ->
+    (f b, Proxy wb, NP f (a1 ': cs), SList (wa1 ': wcs))
+  takeWithSymbols' Proxy (x1 :* x2 :* xs) SCons key =
+    ( y,
+      wy,
+      x1 :* zs,
+      case wzs of
+        SNil -> SCons
+        SCons -> SCons
+    )
+    where
+      y :: f b
+      wy :: Proxy wb
+      zs :: NP f cs
+      wzs :: SList wcs
+      (y, wy, zs, wzs) =
+        takeWithSymbols (x2 :* xs) (SCons :: SList (wa2 ': was)) key
+
+  takeFromSList' ::
+    Proxy 'False ->
+    SList (a1 ': a2 ': as) ->
+    SList (wa1 ': wa2 ': was) ->
+    Proxy s ->
+    (Proxy b, Proxy wb, SList (a1 ': cs), SList (wa1 ': wcs))
+  takeFromSList' Proxy SCons SCons key =
+    ( y,
+      wy,
+      case zs of
+        SNil -> SCons
+        SCons -> SCons,
+      case wzs of
+        SNil -> SCons
+        SCons -> SCons
+    )
+    where
+      y :: Proxy b
+      wy :: Proxy wb
+      zs :: SList cs
+      wzs :: SList wcs
+      (y, wy, zs, wzs) =
+        takeFromSList
+          (SCons :: SList (a2 ': as))
+          (SCons :: SList (wa2 ': was))
+          key
+
+class
+  OrderWithSymbols
+    (as :: [k])
+    (was :: [Symbol])
+    (ss :: [Symbol])
+    (bs :: [k])
+    (wbs :: [Symbol])
+    | as was ss -> bs wbs
+  where
+  orderNP ::
+    NP f as ->
+    SList was ->
+    SList ss ->
+    (NP f bs, SList wbs)
+
+  orderSList' ::
+    SList as ->
+    SList was ->
+    SList ss ->
+    (SList bs, SList wbs)
+
+instance OrderWithSymbols '[] '[] '[] '[] '[] where
+  orderNP ::
+    NP f '[] ->
+    SList '[] ->
+    SList '[] ->
+    (NP f '[], SList '[])
+  orderNP Nil SNil SNil = (Nil, SNil)
+
+  orderSList' ::
+    SList '[] ->
+    SList '[] ->
+    SList '[] ->
+    (SList '[], SList '[])
+  orderSList' SNil SNil SNil = (SNil, SNil)
+
+instance
+  ( TakeWithSymbols (a ': as) (wa ': was) s b wb ds wds,
+    OrderWithSymbols ds wds ss bs wbs
+  ) =>
+  OrderWithSymbols (a ': as) (wa ': was) (s ': ss) (b ': bs) (wb ': wbs)
+  where
+  orderNP ::
+    forall f.
+    NP f (a ': as) ->
+    SList (wa ': was) ->
+    SList (s ': ss) ->
+    (NP f (b ': bs), SList (wb ': wbs))
+  orderNP (x :* xs) SCons SCons =
+    ( y :* ys,
+      case wys of
+        SNil -> SCons
+        SCons -> SCons
+    )
+    where
+      y :: f b
+      ws :: NP f ds
+      wws :: SList wds
+      (y, _, ws, wws) =
+        takeWithSymbols
+          (x :* xs)
+          (SCons :: SList (wa ': was))
+          (Proxy :: Proxy s)
+
+      ys :: NP f bs
+      wys :: SList wbs
+      (ys, wys) =
+        orderNP ws wws (sList :: SList ss)
+
+  orderSList' ::
+    SList (a ': as) ->
+    SList (wa ': was) ->
+    SList (s ': ss) ->
+    (SList (b ': bs), SList (wb ': wbs))
+  orderSList' SCons SCons SCons =
+    ( case ys of
+        SNil -> SCons
+        SCons -> SCons,
+      case wys of
+        SNil -> SCons
+        SCons -> SCons
+    )
+    where
+      ws :: SList ds
+      wws :: SList wds
+      (_, _, ws, wws) =
+        takeFromSList
+          (SCons :: SList (a ': as))
+          (SCons :: SList (wa ': was))
+          (Proxy :: Proxy s)
+
+      ys :: SList bs
+      wys :: SList wbs
+      (ys, wys) =
+        orderSList' ws wws (sList :: SList ss)
+
+class
+  ( OrderWithSymbols as was ss bs wbs
+  ) =>
+  OrderWithSymbolsNS
+    (as :: [k])
+    (was :: [Symbol])
+    (ss :: [Symbol])
+    (bs :: [k])
+    (wbs :: [Symbol])
+    | as was ss bs -> wbs
+  where
+  orderNS ::
+    NS f as ->
+    SList was ->
+    SList ss ->
+    (NS f bs, SList wbs)
+
+instance
+  ( OrderWithSymbols (a ': as) (wa ': was) (s ': ss) (b ': bs) (wb ': wbs),
+    OrderWithSymbols (b ': bs) (wb ': wbs) (wa ': was) (a ': as) (wa ': was),
+    SListI (b ': bs),
+    SListI (a ': as)
+  ) =>
+  OrderWithSymbolsNS (a ': as) (wa ': was) (s ': ss) (b ': bs) (wb ': wbs)
+  where
+  orderNS ::
+    forall f.
+    NS f (a ': as) ->
+    SList (wa ': was) ->
+    SList (s ': ss) ->
+    (NS f (b ': bs), SList (wb ': wbs))
+  orderNS xs SCons SCons =
+    (hcollapse $ hap yInjections xs, wys)
+    where
+      wys :: SList (wb ': wbs)
+      (_, wys) =
+        orderSList'
+          (SCons :: SList (a ': as))
+          (SCons :: SList (wa ': was))
+          (SCons :: SList (s ': ss))
+
+      yInjections ::
+        NP (Injection f (b ': bs)) (a ': as)
+      (yInjections, _) =
+        orderNP injections wys (SCons :: SList (wa ': was))
 
 -- | A transformer that is derived from a 'Coercible' instance. This transformer
 -- does not fail.
