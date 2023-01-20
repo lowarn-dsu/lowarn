@@ -27,11 +27,18 @@ module Lowarn.Transformer
     Transformable (..),
 
     -- * Transformers
+
+    -- ** Default transformers
     traversableTransformer,
+    genericRenamingTransformer,
+
+    -- ** Additional generic transformers
     genericTransformer,
-    -- genericTransformerWithMetadata,
+    genericReorderingTransformer,
     genericUnwrapTransformer,
     genericWrapTransformer,
+
+    -- ** Coercion transformers
     coerceTransformer,
 
     -- * Aliases
@@ -151,15 +158,15 @@ class Transformable a b where
 -- overlapping at once, and we have two derived instances of
 -- @Transformable' a b@.
 
-type family Equals a b :: Bool where
-  Equals a a = 'True
-  Equals a b = 'False
-
 class Transformable' (isEqual :: Bool) a b where
   transformer' :: Proxy isEqual -> Transformer a b
 
 -- By having only one derived instance of @Transformable a b@, we can make it
 -- overlappable without any errors.
+
+type family Equals a b :: Bool where
+  Equals a a = 'True
+  Equals a b = 'False
 
 instance
   {-# OVERLAPPABLE #-}
@@ -200,12 +207,13 @@ type TransformableCodes' as bs =
 genericTransformer ::
   TransformableCodes a b =>
   Transformer a b
-genericTransformer =
-  Transformer $
-    fmap (fmap to . hsequence)
-      . hsequence'
-      . htrans (Proxy :: Proxy Transformable) (Comp . transform . unI)
-      . from
+genericTransformer = Transformer genericTransform
+
+genericTransform ::
+  TransformableCodes a b =>
+  a ->
+  IO (Maybe b)
+genericTransform = fmap (fmap to) . genericTransform' . from
 
 genericTransform' ::
   TransformableCodes' as bs =>
@@ -215,14 +223,6 @@ genericTransform' =
   fmap hsequence
     . hsequence'
     . htrans (Proxy :: Proxy Transformable) (Comp . transform . unI)
-
-genericUnwrapTransformer ::
-  (IsWrappedType a b', Transformable b' b) => Transformer a b
-genericUnwrapTransformer = transformer <<^ wrappedTypeFrom
-
-genericWrapTransformer ::
-  (IsWrappedType b a', Transformable a a') => Transformer a b
-genericWrapTransformer = wrappedTypeTo ^<< transformer
 
 type family DatatypeNameOf (a :: M.DatatypeInfo) :: Symbol where
   DatatypeNameOf ('M.ADT _ datatypeName _ _) = datatypeName
@@ -314,36 +314,35 @@ class FieldsMatchConstraint a b => FieldsMatch a b
 
 instance FieldsMatchConstraint a b => FieldsMatch a b
 
--- genericTransformer' ::
---   (TransformableCodes a b, DatatypesMatch a b) =>
---   Transformer a b
--- genericTransformer' = genericTransformer
+genericRenamingTransformer ::
+  (TransformableCodes a b, DatatypesMatch a b) =>
+  Transformer a b
+genericRenamingTransformer = genericTransformer
 
-genericTransformerWithMetadata ::
+instance
+  {-# OVERLAPPABLE #-}
+  ( TransformableCodes a b,
+    DatatypesMatch a b
+  ) =>
+  Transformable' 'False a b
+  where
+  transformer' :: Proxy 'False -> Transformer a b
+  transformer' = const genericRenamingTransformer
+
+-- Reordering
+
+genericReorderingTransformer ::
   forall a b cs wcs.
   ( TransformableCodes' cs (Code b),
     DatatypesMatch' a b cs wcs
   ) =>
   Transformer a b
-genericTransformerWithMetadata =
+genericReorderingTransformer =
   Transformer $
     fmap (fmap to)
       . genericTransform'
       . (reorderConstructors @a @b @cs @wcs)
       . from
-
-instance-- (TransformableCodes a b, DatatypesMatch a b) =>
-
-  {-# OVERLAPPABLE #-}
-  ( TransformableCodes' cs (Code b),
-    DatatypesMatch' a b cs wcs
-  ) =>
-  Transformable' 'False a b
-  where
-  transformer' :: Proxy 'False -> Transformer a b
-  transformer' = const (genericTransformerWithMetadata @a @b)
-
--- Reordering
 
 class
   ( HasDatatypeInfo a,
@@ -683,6 +682,18 @@ instance
         NP (Injection f (b ': bs)) (a ': as)
       (yInjections, _) =
         orderNP injections wys (SCons :: SList (wa ': was))
+
+-- Wrapping
+
+genericUnwrapTransformer ::
+  (IsWrappedType a b', Transformable b' b) => Transformer a b
+genericUnwrapTransformer = transformer <<^ wrappedTypeFrom
+
+genericWrapTransformer ::
+  (IsWrappedType b a', Transformable a a') => Transformer a b
+genericWrapTransformer = wrappedTypeTo ^<< transformer
+
+-- Coercion
 
 -- | A transformer that is derived from a 'Coercible' instance. This transformer
 -- does not fail.
