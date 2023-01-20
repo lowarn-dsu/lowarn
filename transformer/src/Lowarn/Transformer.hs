@@ -282,7 +282,7 @@ class FieldNameAlias (a :: Symbol) (b :: Symbol)
 
 instance {-# OVERLAPPABLE #-} SymbolEquals a b => FieldNameAlias a b
 
-type DatatypesMatchConstraint a b =
+type DatatypesMatchRenamingConstraint a b =
   ( HasDatatypeInfo a,
     HasDatatypeInfo b,
     DatatypeNameAlias
@@ -294,9 +294,9 @@ type DatatypesMatchConstraint a b =
       (ConstructorInfosOf (DatatypeInfoOf b))
   )
 
-class DatatypesMatchConstraint a b => DatatypesMatch a b
+class DatatypesMatchRenamingConstraint a b => DatatypesMatchRenaming a b
 
-instance DatatypesMatchConstraint a b => DatatypesMatch a b
+instance DatatypesMatchRenamingConstraint a b => DatatypesMatchRenaming a b
 
 type ConstructorsMatchConstraint a b =
   ( ConstructorNameAlias (ConstructorNameOf a) (ConstructorNameOf b),
@@ -315,14 +315,14 @@ class FieldsMatchConstraint a b => FieldsMatch a b
 instance FieldsMatchConstraint a b => FieldsMatch a b
 
 genericRenamingTransformer ::
-  (TransformableCodes a b, DatatypesMatch a b) =>
+  (TransformableCodes a b, DatatypesMatchRenaming a b) =>
   Transformer a b
 genericRenamingTransformer = genericTransformer
 
 instance
   {-# OVERLAPPABLE #-}
   ( TransformableCodes a b,
-    DatatypesMatch a b
+    DatatypesMatchRenaming a b
   ) =>
   Transformable' 'False a b
   where
@@ -334,7 +334,7 @@ instance
 genericReorderingTransformer ::
   forall a b cs wcs.
   ( TransformableCodes' cs (Code b),
-    DatatypesMatch' a b cs wcs
+    DatatypesMatchReordering a b cs wcs
   ) =>
   Transformer a b
 genericReorderingTransformer =
@@ -359,7 +359,7 @@ class
       cs
       wcs
   ) =>
-  DatatypesMatch' a b cs wcs
+  DatatypesMatchReordering a b cs wcs
     | a b -> cs wcs
   where
   reorderConstructors :: SOP f (Code a) -> SOP f cs
@@ -379,7 +379,7 @@ instance
       cs
       wcs
   ) =>
-  DatatypesMatch' a b cs wcs
+  DatatypesMatchReordering a b cs wcs
   where
   reorderConstructors ::
     forall f. SOP f (Code a) -> SOP f cs
