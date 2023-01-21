@@ -1,6 +1,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE EmptyCase #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -341,16 +342,16 @@ instance
 -- Reordering
 
 genericReorderingTransformer ::
-  forall a b was cs wcs.
-  ( TransformableCodes' cs (Code b),
-    DatatypesMatchReordering a b was cs wcs
+  forall a b was cs wcs scss ds.
+  ( TransformableCodes' ds (Code b),
+    DatatypesMatchReordering a b was cs wcs scss ds
   ) =>
   Transformer a b
 genericReorderingTransformer =
   Transformer $
     fmap (fmap to)
       . genericTransform'
-      . (reorderConstructors @a @b @was @cs @wcs)
+      . (reorderConstructors @a @b @was @cs @wcs @scss @ds)
       . from
 
 class
@@ -370,12 +371,18 @@ class
       was
       (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
       cs
-      wcs
+      wcs,
+    Seconds wcs scss,
+    OrderWithSymbolsNPs
+      cs
+      scss
+      (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf b)))
+      ds
   ) =>
-  DatatypesMatchReordering a b was cs wcs
-    | a b -> was cs wcs
+  DatatypesMatchReordering a b was cs wcs scss ds
+    | a b -> was wcs cs wcs scss ds
   where
-  reorderConstructors :: SOP f (Code a) -> SOP f cs
+  reorderConstructors :: SOP f (Code a) -> SOP f ds
 
 instance
   ( HasDatatypeInfo a,
@@ -384,8 +391,9 @@ instance
       (DatatypeNameOf (DatatypeInfoOf a))
       (DatatypeNameOf (DatatypeInfoOf b)),
     SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a))),
-    SListI (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf a))),
     SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b))),
+    SListI (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf a))),
+    SListI (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf b))),
     ZipSList
       (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
       (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf a)))
@@ -395,15 +403,31 @@ instance
       was
       (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
       cs
-      wcs
+      wcs,
+    Seconds wcs scss,
+    OrderWithSymbolsNPs
+      cs
+      scss
+      (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf b)))
+      ds
   ) =>
-  DatatypesMatchReordering a b was cs wcs
+  DatatypesMatchReordering a b was cs wcs scss ds
   where
   reorderConstructors ::
-    forall f. SOP f (Code a) -> SOP f cs
+    forall f. SOP f (Code a) -> SOP f ds
   reorderConstructors sop =
     SOP $
-      fst $
+      orderNPs
+        zs
+        (seconds wzs)
+        ( sList ::
+            SList
+              (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf b)))
+        )
+    where
+      zs :: NS (NP f) cs
+      wzs :: SList wcs
+      (zs, wzs) =
         orderNS
           (unSOP sop)
           ( zipSList
@@ -631,10 +655,10 @@ instance
 class
   OrderWithSymbols
     (as :: [k])
-    (was :: [(Symbol, wk)])
+    (was :: [(Symbol, [Symbol])])
     (ss :: [Symbol])
     (bs :: [k])
-    (wbs :: [(Symbol, wk)])
+    (wbs :: [(Symbol, [Symbol])])
     | as was ss -> bs wbs
   where
   orderNP ::
@@ -729,10 +753,10 @@ class
   ) =>
   OrderWithSymbolsNS
     (as :: [k])
-    (was :: [(Symbol, wk)])
+    (was :: [(Symbol, [Symbol])])
     (ss :: [Symbol])
     (bs :: [k])
-    (wbs :: [(Symbol, wk)])
+    (wbs :: [(Symbol, [Symbol])])
     | as was ss bs -> wbs
   where
   orderNS ::
@@ -775,6 +799,79 @@ instance
         NP (Injection f (b ': bs)) (a ': as)
       (yInjections, _) =
         orderNP injections wys (firsts (SCons :: SList (wa ': was)))
+
+class
+  (SListI2 ass, SListI2 sass, SListI2 sss) =>
+  OrderWithSymbolsNPs
+    (ass :: [[k]])
+    (sass :: [[Symbol]])
+    (sss :: [[Symbol]])
+    (bss :: [[k]])
+    | ass sass sss -> bss
+  where
+  orderNPs ::
+    NS (NP f) ass ->
+    SList sass ->
+    SList sss ->
+    NS (NP f) bss
+
+  orderNPsInjections ::
+    SList ass ->
+    SList sass ->
+    SList sss ->
+    NP (Injection (NP f) bss) ass
+
+instance OrderWithSymbolsNPs '[] '[] '[] '[] where
+  orderNPs ::
+    NS (NP f) '[] -> SList '[] -> SList '[] -> NS (NP f) '[]
+  orderNPs xss SNil SNil = case xss of {}
+
+  orderNPsInjections ::
+    SList '[] -> SList '[] -> SList '[] -> NP (Injection (NP f) '[]) '[]
+  orderNPsInjections SNil SNil SNil = Nil
+
+instance
+  ( ZipSListWithEmptyList sas was,
+    OrderWithSymbols as was ss bs wbs,
+    OrderWithSymbolsNPs ass sass sss bss,
+    SListI2 (as ': ass),
+    SListI2 (sas ': sass),
+    SListI2 (ss ': sss)
+  ) =>
+  OrderWithSymbolsNPs (as ': ass) (sas ': sass) (ss ': sss) (bs ': bss)
+  where
+  orderNPs ::
+    forall f.
+    NS (NP f) (as ': ass) ->
+    SList (sas ': sass) ->
+    SList (ss ': sss) ->
+    NS (NP f) (bs ': bss)
+  orderNPs xss sxs symbolss =
+    hcollapse $ hap (orderNPsInjections SCons sxs symbolss) xss
+
+  orderNPsInjections ::
+    SList (as : ass) ->
+    SList (sas : sass) ->
+    SList (ss : sss) ->
+    NP (Injection (NP f) (bs : bss)) (as : ass)
+  orderNPsInjections SCons SCons SCons =
+    fn
+      ( \xs ->
+          K $
+            Z $
+              fst $
+                orderNP
+                  xs
+                  (zipSListWithEmptyList (sList :: SList sas))
+                  (sList :: SList ss)
+      )
+      :* hmap
+        shiftInjection
+        ( orderNPsInjections
+            (sList :: SList ass)
+            (sList :: SList sass)
+            (sList :: SList sss)
+        )
 
 -- Wrapping
 
