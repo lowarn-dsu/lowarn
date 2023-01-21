@@ -332,16 +332,16 @@ instance
 -- Reordering
 
 genericReorderingTransformer ::
-  forall a b cs wcs.
+  forall a b was cs wcs.
   ( TransformableCodes' cs (Code b),
-    DatatypesMatchReordering a b cs wcs
+    DatatypesMatchReordering a b was cs wcs
   ) =>
   Transformer a b
 genericReorderingTransformer =
   Transformer $
     fmap (fmap to)
       . genericTransform'
-      . (reorderConstructors @a @b @cs @wcs)
+      . (reorderConstructors @a @b @was @cs @wcs)
       . from
 
 class
@@ -352,15 +352,18 @@ class
       (DatatypeNameOf (DatatypeInfoOf b)),
     SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a))),
     SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b))),
+    ZipSListWithUnit
+      (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+      was,
     OrderWithSymbolsNS
       (Code a)
-      (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+      was
       (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
       cs
       wcs
   ) =>
-  DatatypesMatchReordering a b cs wcs
-    | a b -> cs wcs
+  DatatypesMatchReordering a b was cs wcs
+    | a b -> was cs wcs
   where
   reorderConstructors :: SOP f (Code a) -> SOP f cs
 
@@ -372,14 +375,17 @@ instance
       (DatatypeNameOf (DatatypeInfoOf b)),
     SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a))),
     SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b))),
+    ZipSListWithUnit
+      (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+      was,
     OrderWithSymbolsNS
       (Code a)
-      (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+      was
       (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
       cs
       wcs
   ) =>
-  DatatypesMatchReordering a b cs wcs
+  DatatypesMatchReordering a b was cs wcs
   where
   reorderConstructors ::
     forall f. SOP f (Code a) -> SOP f cs
@@ -388,8 +394,12 @@ instance
       fst $
         orderNS
           (unSOP sop)
-          ( sList ::
-              SList (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+          ( zipSListWithUnit
+              ( sList ::
+                  SList
+                    ( ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a))
+                    )
+              )
           )
           ( sList ::
               SList (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
@@ -401,12 +411,12 @@ class
   ) =>
   TakeWithSymbols
     (as :: [k])
-    (was :: [Symbol])
+    (was :: [(Symbol, wk)])
     (s :: Symbol)
     (b :: k)
-    (wb :: Symbol)
+    (wb :: (Symbol, wk))
     (cs :: [k])
-    (wcs :: [Symbol])
+    (wcs :: [(Symbol, wk)])
     | as was s -> b wb cs wcs
   where
   takeWithSymbols ::
@@ -428,12 +438,12 @@ class
   TakeWithSymbols'
     (p :: Bool)
     (as :: [k])
-    (was :: [Symbol])
+    (was :: [(Symbol, wk)])
     (s :: Symbol)
     (b :: k)
-    (wb :: Symbol)
+    (wb :: (Symbol, wk))
     (cs :: [k])
-    (wcs :: [Symbol])
+    (wcs :: [(Symbol, wk)])
     | p as was s -> b wb cs wcs
   where
   takeWithSymbols' ::
@@ -450,11 +460,56 @@ class
     Proxy s ->
     (Proxy b, Proxy wb, SList cs, SList wcs)
 
+class Firsts (was :: [(k1, k2)]) (sas :: [k1]) | was -> sas where
+  firsts :: SList was -> SList sas
+
+instance Firsts '[] '[] where
+  firsts :: SList '[] -> SList '[]
+  firsts SNil = SNil
+
+instance Firsts was ss => Firsts ('(s, w) ': was) (s ': ss) where
+  firsts :: SList ('(a, b) ': was) -> SList (a ': ss)
+  firsts SCons =
+    case firsts (sList :: SList was) of
+      SNil -> SCons
+      SCons -> SCons
+
+class ZipSList (as :: [ak]) (bs :: [bk]) (zs :: [(ak, bk)]) | as bs -> zs where
+  zipSList :: SList as -> SList bs -> SList zs
+
+instance ZipSList '[] '[] '[] where
+  zipSList :: SList '[] -> SList '[] -> SList '[]
+  zipSList SNil SNil = SNil
+
+instance ZipSList as bs zs => ZipSList (a ': as) (b ': bs) ('(a, b) ': zs) where
+  zipSList :: SList (a ': as) -> SList (b ': bs) -> SList ('(a, b) ': zs)
+  zipSList SCons SCons =
+    case zipSList (sList :: SList as) (sList :: SList bs) of
+      SNil -> SCons
+      SCons -> SCons
+
+class ZipSListWithUnit (as :: [k]) (zas :: [(k, ())]) | as -> zas where
+  zipSListWithUnit :: SList as -> SList zas
+
+instance ZipSListWithUnit '[] '[] where
+  zipSListWithUnit :: SList '[] -> SList '[]
+  zipSListWithUnit SNil = SNil
+
 instance
-  ( p ~ wa `SymbolEqualsBool` s,
-    TakeWithSymbols' p (a ': as) (wa ': was) s b wb cs wcs
+  ZipSListWithUnit as zas =>
+  ZipSListWithUnit (a ': as) ('(a, '()) ': zas)
+  where
+  zipSListWithUnit :: SList (a ': as) -> SList ('(a, '()) ': zas)
+  zipSListWithUnit SCons =
+    case zipSListWithUnit (sList :: SList as) of
+      SNil -> SCons
+      SCons -> SCons
+
+instance
+  ( p ~ sa `SymbolEqualsBool` s,
+    TakeWithSymbols' p (a ': as) ('(sa, ra) ': was) s b wb cs wcs
   ) =>
-  TakeWithSymbols (a ': as) (wa ': was) s b wb cs wcs
+  TakeWithSymbols (a ': as) ('(sa, ra) ': was) s b wb cs wcs
   where
   takeWithSymbols = takeWithSymbols' (Proxy :: Proxy p)
   takeFromSList = takeFromSList' (Proxy :: Proxy p)
@@ -544,10 +599,10 @@ instance
 class
   OrderWithSymbols
     (as :: [k])
-    (was :: [Symbol])
+    (was :: [(Symbol, wk)])
     (ss :: [Symbol])
     (bs :: [k])
-    (wbs :: [Symbol])
+    (wbs :: [(Symbol, wk)])
     | as was ss -> bs wbs
   where
   orderNP ::
@@ -642,10 +697,10 @@ class
   ) =>
   OrderWithSymbolsNS
     (as :: [k])
-    (was :: [Symbol])
+    (was :: [(Symbol, wk)])
     (ss :: [Symbol])
     (bs :: [k])
-    (wbs :: [Symbol])
+    (wbs :: [(Symbol, wk)])
     | as was ss bs -> wbs
   where
   orderNS ::
@@ -656,7 +711,13 @@ class
 
 instance
   ( OrderWithSymbols (a ': as) (wa ': was) (s ': ss) (b ': bs) (wb ': wbs),
-    OrderWithSymbols (b ': bs) (wb ': wbs) (wa ': was) (a ': as) (wa ': was),
+    Firsts (wa ': was) sas,
+    OrderWithSymbols
+      (b ': bs)
+      (wb ': wbs)
+      sas
+      (a ': as)
+      (wa ': was),
     SListI (b ': bs),
     SListI (a ': as)
   ) =>
@@ -681,7 +742,7 @@ instance
       yInjections ::
         NP (Injection f (b ': bs)) (a ': as)
       (yInjections, _) =
-        orderNP injections wys (SCons :: SList (wa ': was))
+        orderNP injections wys (firsts (SCons :: SList (wa ': was)))
 
 -- Wrapping
 
