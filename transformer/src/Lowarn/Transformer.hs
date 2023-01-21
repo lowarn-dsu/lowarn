@@ -56,6 +56,7 @@ where
 import Control.Arrow
 import qualified Control.Category as Cat
 import Data.Coerce (Coercible, coerce)
+import Data.Kind (Type)
 import GHC.TypeLits (CmpSymbol, Symbol)
 import Generics.SOP
 import Generics.SOP.Constraint
@@ -385,6 +386,14 @@ class
   reorderConstructors :: SOP f (Code a) -> SOP f ds
 
 instance
+  forall
+    (a :: Type)
+    (b :: Type)
+    (was :: [(Symbol, [Symbol])])
+    (cs :: [[Type]])
+    (wcs :: [(Symbol, [Symbol])])
+    (scss :: [[Symbol]])
+    (ds :: [[Type]]).
   ( HasDatatypeInfo a,
     HasDatatypeInfo b,
     DatatypeNameAlias
@@ -418,16 +427,14 @@ instance
   reorderConstructors sop =
     SOP $
       orderNPs
+        @Type
+        @cs
+        @scss
+        @(FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf b)))
         zs
-        (seconds wzs)
-        ( sList ::
-            SList
-              (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf b)))
-        )
     where
       zs :: NS (NP f) cs
-      wzs :: SList wcs
-      (zs, wzs) =
+      (zs, _) =
         orderNS
           (unSOP sop)
           ( zipSList
@@ -461,17 +468,21 @@ instance Firsts ws ls => Firsts ('(l, r) ': ws) (l ': ls) where
       SNil -> SCons
       SCons -> SCons
 
-class Seconds (ws :: [(lk, rk)]) (rs :: [rk]) | ws -> rs where
-  seconds :: SList ws -> SList rs
+class (SListI ws) => Seconds (ws :: [(lk, rk)]) (rs :: [rk]) | ws -> rs where
+  seconds :: SList rs
 
 instance Seconds '[] '[] where
-  seconds :: SList '[] -> SList '[]
-  seconds SNil = SNil
+  seconds :: SList '[]
+  seconds = SNil
 
-instance Seconds ws rs => Seconds ('(l, r) ': ws) (r ': rs) where
-  seconds :: SList ('(l, r) ': ws) -> SList (r ': rs)
-  seconds SCons =
-    case seconds (sList :: SList ws) of
+instance
+  forall lk rk (l :: lk) (r :: rk) (ws :: [(lk, rk)]) (rs :: [rk]).
+  Seconds ws rs =>
+  Seconds ('(l, r) ': ws) (r ': rs)
+  where
+  seconds :: SList (r ': rs)
+  seconds =
+    case seconds @lk @rk @ws of
       SNil -> SCons
       SCons -> SCons
 
@@ -811,26 +822,32 @@ class
   where
   orderNPs ::
     NS (NP f) ass ->
-    SList sass ->
-    SList sss ->
     NS (NP f) bss
 
   orderNPsInjections ::
-    SList ass ->
-    SList sass ->
-    SList sss ->
     NP (Injection (NP f) bss) ass
 
 instance OrderWithSymbolsNPs '[] '[] '[] '[] where
   orderNPs ::
-    NS (NP f) '[] -> SList '[] -> SList '[] -> NS (NP f) '[]
-  orderNPs xss SNil SNil = case xss of {}
+    NS (NP f) '[] -> NS (NP f) '[]
+  orderNPs xss = case xss of {}
 
-  orderNPsInjections ::
-    SList '[] -> SList '[] -> SList '[] -> NP (Injection (NP f) '[]) '[]
-  orderNPsInjections SNil SNil SNil = Nil
+  orderNPsInjections :: NP (Injection (NP f) '[]) '[]
+  orderNPsInjections = Nil
 
 instance
+  forall
+    k
+    (as :: [k])
+    (ass :: [[k]])
+    (sas :: [Symbol])
+    (sass :: [[Symbol]])
+    (ss :: [Symbol])
+    (sss :: [[Symbol]])
+    (bs :: [k])
+    (bss :: [[k]])
+    (was :: [(Symbol, [Symbol])])
+    (wbs :: [(Symbol, [Symbol])]).
   ( ZipSListWithEmptyList sas was,
     OrderWithSymbols as was ss bs wbs,
     OrderWithSymbolsNPs ass sass sss bss,
@@ -841,20 +858,16 @@ instance
   OrderWithSymbolsNPs (as ': ass) (sas ': sass) (ss ': sss) (bs ': bss)
   where
   orderNPs ::
-    forall f.
+    forall (f :: k -> Type).
     NS (NP f) (as ': ass) ->
-    SList (sas ': sass) ->
-    SList (ss ': sss) ->
     NS (NP f) (bs ': bss)
-  orderNPs xss sxs symbolss =
-    hcollapse $ hap (orderNPsInjections SCons sxs symbolss) xss
+  orderNPs xss =
+    hcollapse $
+      hap (orderNPsInjections @k @(as ': ass) @(sas ': sass) @(ss ': sss)) xss
 
   orderNPsInjections ::
-    SList (as : ass) ->
-    SList (sas : sass) ->
-    SList (ss : sss) ->
     NP (Injection (NP f) (bs : bss)) (as : ass)
-  orderNPsInjections SCons SCons SCons =
+  orderNPsInjections =
     fn
       ( \xs ->
           K $
@@ -867,11 +880,7 @@ instance
       )
       :* hmap
         shiftInjection
-        ( orderNPsInjections
-            (sList :: SList ass)
-            (sList :: SList sass)
-            (sList :: SList sss)
-        )
+        (orderNPsInjections @k @ass @sass @sss)
 
 -- Wrapping
 
