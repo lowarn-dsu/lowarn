@@ -259,6 +259,15 @@ type family FieldNamesOf (a :: [M.FieldInfo]) :: [Symbol] where
   FieldNamesOf '[] = '[]
   FieldNamesOf (f ': fs) = FieldNameOf f ': FieldNamesOf fs
 
+type family
+  FieldNamesOfConstructors
+    (a :: [M.ConstructorInfo]) ::
+    [[Symbol]]
+  where
+  FieldNamesOfConstructors '[] = '[]
+  FieldNamesOfConstructors (c ': cs) =
+    FieldNamesOf (FieldInfosOf c) ': FieldNamesOfConstructors cs
+
 type family SymbolEquals (a :: Symbol) (b :: Symbol) :: Constraint where
   SymbolEquals a b = (a `CmpSymbol` b) ~ 'EQ
 
@@ -352,8 +361,9 @@ class
       (DatatypeNameOf (DatatypeInfoOf b)),
     SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a))),
     SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b))),
-    ZipSListWithUnit
+    ZipSList
       (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+      (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf a)))
       was,
     OrderWithSymbolsNS
       (Code a)
@@ -374,9 +384,11 @@ instance
       (DatatypeNameOf (DatatypeInfoOf a))
       (DatatypeNameOf (DatatypeInfoOf b)),
     SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a))),
+    SListI (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf a))),
     SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b))),
-    ZipSListWithUnit
+    ZipSList
       (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+      (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf a)))
       was,
     OrderWithSymbolsNS
       (Code a)
@@ -394,10 +406,16 @@ instance
       fst $
         orderNS
           (unSOP sop)
-          ( zipSListWithUnit
+          ( zipSList
               ( sList ::
                   SList
                     ( ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a))
+                    )
+              )
+              ( sList ::
+                  SList
+                    ( FieldNamesOfConstructors
+                        (ConstructorInfosOf (DatatypeInfoOf a))
                     )
               )
           )
