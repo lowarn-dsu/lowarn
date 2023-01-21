@@ -423,18 +423,77 @@ instance
               SList (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
           )
 
+class Firsts (ws :: [(lk, rk)]) (ls :: [lk]) | ws -> ls where
+  firsts :: SList ws -> SList ls
+
+instance Firsts '[] '[] where
+  firsts :: SList '[] -> SList '[]
+  firsts SNil = SNil
+
+instance Firsts ws ls => Firsts ('(l, r) ': ws) (l ': ls) where
+  firsts :: SList ('(l, r) ': ws) -> SList (l ': ls)
+  firsts SCons =
+    case firsts (sList :: SList ws) of
+      SNil -> SCons
+      SCons -> SCons
+
+class Seconds (ws :: [(lk, rk)]) (rs :: [rk]) | ws -> rs where
+  seconds :: SList ws -> SList rs
+
+instance Seconds '[] '[] where
+  seconds :: SList '[] -> SList '[]
+  seconds SNil = SNil
+
+instance Seconds ws rs => Seconds ('(l, r) ': ws) (r ': rs) where
+  seconds :: SList ('(l, r) ': ws) -> SList (r ': rs)
+  seconds SCons =
+    case seconds (sList :: SList ws) of
+      SNil -> SCons
+      SCons -> SCons
+
+class ZipSList (as :: [ak]) (bs :: [bk]) (zs :: [(ak, bk)]) | as bs -> zs where
+  zipSList :: SList as -> SList bs -> SList zs
+
+instance ZipSList '[] '[] '[] where
+  zipSList :: SList '[] -> SList '[] -> SList '[]
+  zipSList SNil SNil = SNil
+
+instance ZipSList as bs zs => ZipSList (a ': as) (b ': bs) ('(a, b) ': zs) where
+  zipSList :: SList (a ': as) -> SList (b ': bs) -> SList ('(a, b) ': zs)
+  zipSList SCons SCons =
+    case zipSList (sList :: SList as) (sList :: SList bs) of
+      SNil -> SCons
+      SCons -> SCons
+
+class ZipSListWithEmptyList (as :: [k]) (zas :: [(k, [Symbol])]) | as -> zas where
+  zipSListWithEmptyList :: SList as -> SList zas
+
+instance ZipSListWithEmptyList '[] '[] where
+  zipSListWithEmptyList :: SList '[] -> SList '[]
+  zipSListWithEmptyList SNil = SNil
+
+instance
+  ZipSListWithEmptyList as zas =>
+  ZipSListWithEmptyList (a ': as) ('(a, '[]) ': zas)
+  where
+  zipSListWithEmptyList :: SList (a ': as) -> SList ('(a, '[]) ': zas)
+  zipSListWithEmptyList SCons =
+    case zipSListWithEmptyList (sList :: SList as) of
+      SNil -> SCons
+      SCons -> SCons
+
 class
   ( as ~ (Head as ': Tail as),
     was ~ (Head was ': Tail was)
   ) =>
   TakeWithSymbols
     (as :: [k])
-    (was :: [(Symbol, wk)])
+    (was :: [(Symbol, [Symbol])])
     (s :: Symbol)
     (b :: k)
-    (wb :: (Symbol, wk))
+    (wb :: (Symbol, [Symbol]))
     (cs :: [k])
-    (wcs :: [(Symbol, wk)])
+    (wcs :: [(Symbol, [Symbol])])
     | as was s -> b wb cs wcs
   where
   takeWithSymbols ::
@@ -456,12 +515,12 @@ class
   TakeWithSymbols'
     (p :: Bool)
     (as :: [k])
-    (was :: [(Symbol, wk)])
+    (was :: [(Symbol, [Symbol])])
     (s :: Symbol)
     (b :: k)
-    (wb :: (Symbol, wk))
+    (wb :: (Symbol, [Symbol]))
     (cs :: [k])
-    (wcs :: [(Symbol, wk)])
+    (wcs :: [(Symbol, [Symbol])])
     | p as was s -> b wb cs wcs
   where
   takeWithSymbols' ::
@@ -477,51 +536,6 @@ class
     SList was ->
     Proxy s ->
     (Proxy b, Proxy wb, SList cs, SList wcs)
-
-class Firsts (was :: [(k1, k2)]) (sas :: [k1]) | was -> sas where
-  firsts :: SList was -> SList sas
-
-instance Firsts '[] '[] where
-  firsts :: SList '[] -> SList '[]
-  firsts SNil = SNil
-
-instance Firsts was ss => Firsts ('(s, w) ': was) (s ': ss) where
-  firsts :: SList ('(a, b) ': was) -> SList (a ': ss)
-  firsts SCons =
-    case firsts (sList :: SList was) of
-      SNil -> SCons
-      SCons -> SCons
-
-class ZipSList (as :: [ak]) (bs :: [bk]) (zs :: [(ak, bk)]) | as bs -> zs where
-  zipSList :: SList as -> SList bs -> SList zs
-
-instance ZipSList '[] '[] '[] where
-  zipSList :: SList '[] -> SList '[] -> SList '[]
-  zipSList SNil SNil = SNil
-
-instance ZipSList as bs zs => ZipSList (a ': as) (b ': bs) ('(a, b) ': zs) where
-  zipSList :: SList (a ': as) -> SList (b ': bs) -> SList ('(a, b) ': zs)
-  zipSList SCons SCons =
-    case zipSList (sList :: SList as) (sList :: SList bs) of
-      SNil -> SCons
-      SCons -> SCons
-
-class ZipSListWithUnit (as :: [k]) (zas :: [(k, ())]) | as -> zas where
-  zipSListWithUnit :: SList as -> SList zas
-
-instance ZipSListWithUnit '[] '[] where
-  zipSListWithUnit :: SList '[] -> SList '[]
-  zipSListWithUnit SNil = SNil
-
-instance
-  ZipSListWithUnit as zas =>
-  ZipSListWithUnit (a ': as) ('(a, '()) ': zas)
-  where
-  zipSListWithUnit :: SList (a ': as) -> SList ('(a, '()) ': zas)
-  zipSListWithUnit SCons =
-    case zipSListWithUnit (sList :: SList as) of
-      SNil -> SCons
-      SCons -> SCons
 
 instance
   ( p ~ sa `SymbolEqualsBool` s,
