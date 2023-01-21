@@ -519,11 +519,7 @@ class
     (wcs :: [(Symbol, [Symbol])])
     | as was s -> b wb cs wcs
   where
-  takeWithSymbols ::
-    NP f as ->
-    SList was ->
-    Proxy s ->
-    (f b, Proxy wb, NP f cs, SList wcs)
+  takeWithSymbols :: NP f as -> (f b, NP f cs)
 
   takeFromSList ::
     SList as ->
@@ -546,12 +542,7 @@ class
     (wcs :: [(Symbol, [Symbol])])
     | p as was s -> b wb cs wcs
   where
-  takeWithSymbols' ::
-    Proxy p ->
-    NP f as ->
-    SList was ->
-    Proxy s ->
-    (f b, Proxy wb, NP f cs, SList wcs)
+  takeWithSymbols' :: NP f as -> (f b, NP f cs)
 
   takeFromSList' ::
     Proxy p ->
@@ -561,23 +552,30 @@ class
     (Proxy b, Proxy wb, SList cs, SList wcs)
 
 instance
+  forall
+    k
+    (p :: Bool)
+    (a :: k)
+    (as :: [k])
+    (sa :: Symbol)
+    (ra :: [Symbol])
+    (was :: [(Symbol, [Symbol])])
+    (s :: Symbol)
+    (b :: k)
+    (wb :: (Symbol, [Symbol]))
+    (cs :: [k])
+    (wcs :: [(Symbol, [Symbol])]).
   ( p ~ sa `SymbolEqualsBool` s,
     TakeWithSymbols' p (a ': as) ('(sa, ra) ': was) s b wb cs wcs
   ) =>
   TakeWithSymbols (a ': as) ('(sa, ra) ': was) s b wb cs wcs
   where
-  takeWithSymbols = takeWithSymbols' (Proxy :: Proxy p)
+  takeWithSymbols = takeWithSymbols' @k @p @(a ': as) @('(sa, ra) ': was) @s
   takeFromSList = takeFromSList' (Proxy :: Proxy p)
 
 instance TakeWithSymbols' 'True (a ': as) (wa ': was) s a wa as was where
-  takeWithSymbols' ::
-    Proxy 'True ->
-    NP f (a ': as) ->
-    SList (wa ': was) ->
-    Proxy s ->
-    (f a, Proxy wa, NP f as, SList was)
-  takeWithSymbols' Proxy (x :* xs) SCons Proxy =
-    (x, Proxy, xs, sList)
+  takeWithSymbols' :: NP f (a ': as) -> (f a, NP f as)
+  takeWithSymbols' (x :* xs) = (x, xs)
 
   takeFromSList' ::
     Proxy 'True ->
@@ -589,6 +587,19 @@ instance TakeWithSymbols' 'True (a ': as) (wa ': was) s a wa as was where
     (Proxy, Proxy, sList, sList)
 
 instance
+  forall
+    k
+    (a1 :: k)
+    (a2 :: k)
+    (as :: [k])
+    (wa1 :: (Symbol, [Symbol]))
+    (wa2 :: (Symbol, [Symbol]))
+    (was :: [(Symbol, [Symbol])])
+    (s :: Symbol)
+    (b :: k)
+    (wb :: (Symbol, [Symbol]))
+    (cs :: [k])
+    (wcs :: [(Symbol, [Symbol])]).
   ( TakeWithSymbols (a2 ': as) (wa2 ': was) s b wb cs wcs
   ) =>
   TakeWithSymbols'
@@ -602,27 +613,17 @@ instance
     (wa1 ': wcs)
   where
   takeWithSymbols' ::
-    forall f.
-    Proxy 'False ->
+    forall (f :: k -> Type).
     NP f (a1 ': a2 ': as) ->
-    SList (wa1 ': wa2 ': was) ->
-    Proxy s ->
-    (f b, Proxy wb, NP f (a1 ': cs), SList (wa1 ': wcs))
-  takeWithSymbols' Proxy (x1 :* x2 :* xs) SCons key =
+    (f b, NP f (a1 ': cs))
+  takeWithSymbols' (x1 :* x2 :* xs) =
     ( y,
-      wy,
-      x1 :* zs,
-      case wzs of
-        SNil -> SCons
-        SCons -> SCons
+      x1 :* zs
     )
     where
       y :: f b
-      wy :: Proxy wb
       zs :: NP f cs
-      wzs :: SList wcs
-      (y, wy, zs, wzs) =
-        takeWithSymbols (x2 :* xs) (SCons :: SList (wa2 ': was)) key
+      (y, zs) = takeWithSymbols @k @(a2 ': as) @(wa2 ': was) @s (x2 :* xs)
 
   takeFromSList' ::
     Proxy 'False ->
@@ -706,12 +707,13 @@ instance
     where
       y :: f b
       ws :: NP f ds
-      wws :: SList wds
-      (y, _, ws, wws) =
+      (y, ws) =
         takeWithSymbols
+          @k
+          @(a ': as)
+          @(wa ': was)
+          @s
           (x :* xs)
-          (SCons :: SList (wa ': was))
-          (Proxy :: Proxy s)
 
       ys :: NP f bs
       ys = orderNP @k @ds @wds @ss ws
@@ -798,15 +800,7 @@ instance
   orderNS xs =
     hcollapse $ hap yInjections xs
     where
-      wys :: SList (wb ': wbs)
-      (_, wys) =
-        orderSList'
-          (SCons :: SList (a ': as))
-          (SCons :: SList (wa ': was))
-          (SCons :: SList (s ': ss))
-
-      yInjections ::
-        NP (Injection f (b ': bs)) (a ': as)
+      yInjections :: NP (Injection f (b ': bs)) (a ': as)
       yInjections = orderNP @k @(b ': bs) @(wb ': wbs) @sas injections
 
 class
