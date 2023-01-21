@@ -434,25 +434,13 @@ instance
         zs
     where
       zs :: NS (NP f) cs
-      (zs, _) =
+      zs =
         orderNS
+          @[Type]
+          @(Code a)
+          @was
+          @(ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
           (unSOP sop)
-          ( zipSList
-              ( sList ::
-                  SList
-                    ( ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a))
-                    )
-              )
-              ( sList ::
-                  SList
-                    ( FieldNamesOfConstructors
-                        (ConstructorInfosOf (DatatypeInfoOf a))
-                    )
-              )
-          )
-          ( sList ::
-              SList (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
-          )
 
 class Firsts (ws :: [(lk, rk)]) (ls :: [lk]) | ws -> ls where
   firsts :: SList ws -> SList ls
@@ -664,6 +652,7 @@ instance
           key
 
 class
+  (SListI was) =>
   OrderWithSymbols
     (as :: [k])
     (was :: [(Symbol, [Symbol])])
@@ -672,25 +661,13 @@ class
     (wbs :: [(Symbol, [Symbol])])
     | as was ss -> bs wbs
   where
-  orderNP ::
-    NP f as ->
-    SList was ->
-    SList ss ->
-    (NP f bs, SList wbs)
+  orderNP :: NP f as -> NP f bs
 
-  orderSList' ::
-    SList as ->
-    SList was ->
-    SList ss ->
-    (SList bs, SList wbs)
+  orderSList' :: SList as -> SList was -> SList ss -> (SList bs, SList wbs)
 
 instance OrderWithSymbols '[] '[] '[] '[] '[] where
-  orderNP ::
-    NP f '[] ->
-    SList '[] ->
-    SList '[] ->
-    (NP f '[], SList '[])
-  orderNP Nil SNil SNil = (Nil, SNil)
+  orderNP :: NP f '[] -> NP f '[]
+  orderNP Nil = Nil
 
   orderSList' ::
     SList '[] ->
@@ -700,23 +677,32 @@ instance OrderWithSymbols '[] '[] '[] '[] '[] where
   orderSList' SNil SNil SNil = (SNil, SNil)
 
 instance
+  forall
+    k
+    (a :: k)
+    (as :: [k])
+    (wa :: (Symbol, [Symbol]))
+    (was :: [(Symbol, [Symbol])])
+    (s :: Symbol)
+    (ss :: [Symbol])
+    (b :: k)
+    (bs :: [k])
+    (wb :: (Symbol, [Symbol]))
+    (wbs :: [(Symbol, [Symbol])])
+    (ds :: [k])
+    (wds :: [(Symbol, [Symbol])]).
   ( TakeWithSymbols (a ': as) (wa ': was) s b wb ds wds,
-    OrderWithSymbols ds wds ss bs wbs
+    OrderWithSymbols ds wds ss bs wbs,
+    SListI was
   ) =>
   OrderWithSymbols (a ': as) (wa ': was) (s ': ss) (b ': bs) (wb ': wbs)
   where
   orderNP ::
     forall f.
     NP f (a ': as) ->
-    SList (wa ': was) ->
-    SList (s ': ss) ->
-    (NP f (b ': bs), SList (wb ': wbs))
-  orderNP (x :* xs) SCons SCons =
-    ( y :* ys,
-      case wys of
-        SNil -> SCons
-        SCons -> SCons
-    )
+    NP f (b ': bs)
+  orderNP (x :* xs) =
+    y :* ys
     where
       y :: f b
       ws :: NP f ds
@@ -728,9 +714,7 @@ instance
           (Proxy :: Proxy s)
 
       ys :: NP f bs
-      wys :: SList wbs
-      (ys, wys) =
-        orderNP ws wws (sList :: SList ss)
+      ys = orderNP @k @ds @wds @ss ws
 
   orderSList' ::
     SList (a ': as) ->
@@ -760,7 +744,11 @@ instance
         orderSList' ws wws (sList :: SList ss)
 
 class
-  ( OrderWithSymbols as was ss bs wbs
+  ( OrderWithSymbols as was ss bs wbs,
+    SListI as,
+    SListI was,
+    SListI ss,
+    SListI bs
   ) =>
   OrderWithSymbolsNS
     (as :: [k])
@@ -768,15 +756,26 @@ class
     (ss :: [Symbol])
     (bs :: [k])
     (wbs :: [(Symbol, [Symbol])])
-    | as was ss bs -> wbs
+    | as was ss -> bs wbs
   where
   orderNS ::
     NS f as ->
-    SList was ->
-    SList ss ->
-    (NS f bs, SList wbs)
+    NS f bs
 
 instance
+  forall
+    k
+    (a :: k)
+    (as :: [k])
+    (wa :: (Symbol, [Symbol]))
+    (was :: [(Symbol, [Symbol])])
+    (s :: Symbol)
+    (ss :: [Symbol])
+    (b :: k)
+    (bs :: [k])
+    (wb :: (Symbol, [Symbol]))
+    (wbs :: [(Symbol, [Symbol])])
+    (sas :: [Symbol]).
   ( OrderWithSymbols (a ': as) (wa ': was) (s ': ss) (b ': bs) (wb ': wbs),
     Firsts (wa ': was) sas,
     OrderWithSymbols
@@ -785,19 +784,19 @@ instance
       sas
       (a ': as)
       (wa ': was),
-    SListI (b ': bs),
-    SListI (a ': as)
+    SListI (a ': as),
+    SListI (wa ': was),
+    SListI (s ': ss),
+    SListI (b ': bs)
   ) =>
   OrderWithSymbolsNS (a ': as) (wa ': was) (s ': ss) (b ': bs) (wb ': wbs)
   where
   orderNS ::
     forall f.
     NS f (a ': as) ->
-    SList (wa ': was) ->
-    SList (s ': ss) ->
-    (NS f (b ': bs), SList (wb ': wbs))
-  orderNS xs SCons SCons =
-    (hcollapse $ hap yInjections xs, wys)
+    NS f (b ': bs)
+  orderNS xs =
+    hcollapse $ hap yInjections xs
     where
       wys :: SList (wb ': wbs)
       (_, wys) =
@@ -808,8 +807,7 @@ instance
 
       yInjections ::
         NP (Injection f (b ': bs)) (a ': as)
-      (yInjections, _) =
-        orderNP injections wys (firsts (SCons :: SList (wa ': was)))
+      yInjections = orderNP @k @(b ': bs) @(wb ': wbs) @sas injections
 
 class
   (SListI2 ass, SListI2 sass, SListI2 sss) =>
@@ -828,8 +826,7 @@ class
     NP (Injection (NP f) bss) ass
 
 instance OrderWithSymbolsNPs '[] '[] '[] '[] where
-  orderNPs ::
-    NS (NP f) '[] -> NS (NP f) '[]
+  orderNPs :: NS (NP f) '[] -> NS (NP f) '[]
   orderNPs xss = case xss of {}
 
   orderNPsInjections :: NP (Injection (NP f) '[]) '[]
@@ -866,18 +863,10 @@ instance
       hap (orderNPsInjections @k @(as ': ass) @(sas ': sass) @(ss ': sss)) xss
 
   orderNPsInjections ::
+    forall (f :: k -> Type).
     NP (Injection (NP f) (bs : bss)) (as : ass)
   orderNPsInjections =
-    fn
-      ( \xs ->
-          K $
-            Z $
-              fst $
-                orderNP
-                  xs
-                  (zipSListWithEmptyList (sList :: SList sas))
-                  (sList :: SList ss)
-      )
+    fn (K . Z . orderNP @k @as @was @ss)
       :* hmap
         shiftInjection
         (orderNPsInjections @k @ass @sass @sss)
