@@ -442,68 +442,31 @@ instance
           @(ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
           (unSOP sop)
 
-class Firsts (ws :: [(lk, rk)]) (ls :: [lk]) | ws -> ls where
-  firsts :: SList ws -> SList ls
+class Firsts (ws :: [(lk, rk)]) (ls :: [lk]) | ws -> ls
 
-instance Firsts '[] '[] where
-  firsts :: SList '[] -> SList '[]
-  firsts SNil = SNil
+instance Firsts '[] '[]
 
-instance Firsts ws ls => Firsts ('(l, r) ': ws) (l ': ls) where
-  firsts :: SList ('(l, r) ': ws) -> SList (l ': ls)
-  firsts SCons =
-    case firsts (sList :: SList ws) of
-      SNil -> SCons
-      SCons -> SCons
+instance Firsts ws ls => Firsts ('(l, r) ': ws) (l ': ls)
 
-class (SListI ws) => Seconds (ws :: [(lk, rk)]) (rs :: [rk]) | ws -> rs where
-  seconds :: SList rs
+class (SListI ws) => Seconds (ws :: [(lk, rk)]) (rs :: [rk]) | ws -> rs
 
-instance Seconds '[] '[] where
-  seconds :: SList '[]
-  seconds = SNil
+instance Seconds '[] '[]
 
-instance
-  forall lk rk (l :: lk) (r :: rk) (ws :: [(lk, rk)]) (rs :: [rk]).
-  Seconds ws rs =>
-  Seconds ('(l, r) ': ws) (r ': rs)
-  where
-  seconds :: SList (r ': rs)
-  seconds =
-    case seconds @lk @rk @ws of
-      SNil -> SCons
-      SCons -> SCons
+instance Seconds ws rs => Seconds ('(l, r) ': ws) (r ': rs)
 
-class ZipSList (as :: [ak]) (bs :: [bk]) (zs :: [(ak, bk)]) | as bs -> zs where
-  zipSList :: SList as -> SList bs -> SList zs
+class ZipSList (as :: [ak]) (bs :: [bk]) (zs :: [(ak, bk)]) | as bs -> zs
 
-instance ZipSList '[] '[] '[] where
-  zipSList :: SList '[] -> SList '[] -> SList '[]
-  zipSList SNil SNil = SNil
+instance ZipSList '[] '[] '[]
 
-instance ZipSList as bs zs => ZipSList (a ': as) (b ': bs) ('(a, b) ': zs) where
-  zipSList :: SList (a ': as) -> SList (b ': bs) -> SList ('(a, b) ': zs)
-  zipSList SCons SCons =
-    case zipSList (sList :: SList as) (sList :: SList bs) of
-      SNil -> SCons
-      SCons -> SCons
+instance ZipSList as bs zs => ZipSList (a ': as) (b ': bs) ('(a, b) ': zs)
 
-class ZipSListWithEmptyList (as :: [k]) (zas :: [(k, [Symbol])]) | as -> zas where
-  zipSListWithEmptyList :: SList as -> SList zas
+class ZipSListWithEmptyList (as :: [k]) (zas :: [(k, [Symbol])]) | as -> zas
 
-instance ZipSListWithEmptyList '[] '[] where
-  zipSListWithEmptyList :: SList '[] -> SList '[]
-  zipSListWithEmptyList SNil = SNil
+instance ZipSListWithEmptyList '[] '[]
 
 instance
   ZipSListWithEmptyList as zas =>
   ZipSListWithEmptyList (a ': as) ('(a, '[]) ': zas)
-  where
-  zipSListWithEmptyList :: SList (a ': as) -> SList ('(a, '[]) ': zas)
-  zipSListWithEmptyList SCons =
-    case zipSListWithEmptyList (sList :: SList as) of
-      SNil -> SCons
-      SCons -> SCons
 
 class
   ( as ~ (Head as ': Tail as),
@@ -521,12 +484,6 @@ class
   where
   takeWithSymbols :: NP f as -> (f b, NP f cs)
 
-  takeFromSList ::
-    SList as ->
-    SList was ->
-    Proxy s ->
-    (Proxy b, Proxy wb, SList cs, SList wcs)
-
 class
   ( as ~ (Head as ': Tail as),
     was ~ (Head was ': Tail was)
@@ -543,13 +500,6 @@ class
     | p as was s -> b wb cs wcs
   where
   takeWithSymbols' :: NP f as -> (f b, NP f cs)
-
-  takeFromSList' ::
-    Proxy p ->
-    SList as ->
-    SList was ->
-    Proxy s ->
-    (Proxy b, Proxy wb, SList cs, SList wcs)
 
 instance
   forall
@@ -571,20 +521,10 @@ instance
   TakeWithSymbols (a ': as) ('(sa, ra) ': was) s b wb cs wcs
   where
   takeWithSymbols = takeWithSymbols' @k @p @(a ': as) @('(sa, ra) ': was) @s
-  takeFromSList = takeFromSList' (Proxy :: Proxy p)
 
 instance TakeWithSymbols' 'True (a ': as) (wa ': was) s a wa as was where
   takeWithSymbols' :: NP f (a ': as) -> (f a, NP f as)
   takeWithSymbols' (x :* xs) = (x, xs)
-
-  takeFromSList' ::
-    Proxy 'True ->
-    SList (a ': as) ->
-    SList (wa ': was) ->
-    Proxy s ->
-    (Proxy a, Proxy wa, SList as, SList was)
-  takeFromSList' Proxy SCons SCons Proxy =
-    (Proxy, Proxy, sList, sList)
 
 instance
   forall
@@ -625,33 +565,6 @@ instance
       zs :: NP f cs
       (y, zs) = takeWithSymbols @k @(a2 ': as) @(wa2 ': was) @s (x2 :* xs)
 
-  takeFromSList' ::
-    Proxy 'False ->
-    SList (a1 ': a2 ': as) ->
-    SList (wa1 ': wa2 ': was) ->
-    Proxy s ->
-    (Proxy b, Proxy wb, SList (a1 ': cs), SList (wa1 ': wcs))
-  takeFromSList' Proxy SCons SCons key =
-    ( y,
-      wy,
-      case zs of
-        SNil -> SCons
-        SCons -> SCons,
-      case wzs of
-        SNil -> SCons
-        SCons -> SCons
-    )
-    where
-      y :: Proxy b
-      wy :: Proxy wb
-      zs :: SList cs
-      wzs :: SList wcs
-      (y, wy, zs, wzs) =
-        takeFromSList
-          (SCons :: SList (a2 ': as))
-          (SCons :: SList (wa2 ': was))
-          key
-
 class
   (SListI was) =>
   OrderWithSymbols
@@ -664,18 +577,9 @@ class
   where
   orderNP :: NP f as -> NP f bs
 
-  orderSList' :: SList as -> SList was -> SList ss -> (SList bs, SList wbs)
-
 instance OrderWithSymbols '[] '[] '[] '[] '[] where
   orderNP :: NP f '[] -> NP f '[]
   orderNP Nil = Nil
-
-  orderSList' ::
-    SList '[] ->
-    SList '[] ->
-    SList '[] ->
-    (SList '[], SList '[])
-  orderSList' SNil SNil SNil = (SNil, SNil)
 
 instance
   forall
@@ -717,33 +621,6 @@ instance
 
       ys :: NP f bs
       ys = orderNP @k @ds @wds @ss ws
-
-  orderSList' ::
-    SList (a ': as) ->
-    SList (wa ': was) ->
-    SList (s ': ss) ->
-    (SList (b ': bs), SList (wb ': wbs))
-  orderSList' SCons SCons SCons =
-    ( case ys of
-        SNil -> SCons
-        SCons -> SCons,
-      case wys of
-        SNil -> SCons
-        SCons -> SCons
-    )
-    where
-      ws :: SList ds
-      wws :: SList wds
-      (_, _, ws, wws) =
-        takeFromSList
-          (SCons :: SList (a ': as))
-          (SCons :: SList (wa ': was))
-          (Proxy :: Proxy s)
-
-      ys :: SList bs
-      wys :: SList wbs
-      (ys, wys) =
-        orderSList' ws wws (sList :: SList ss)
 
 class
   ( OrderWithSymbols as was ss bs wbs,
