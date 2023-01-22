@@ -14,6 +14,13 @@ packages:
 - examples/following/versions/1.0.0
 - examples/following/versions/2.0.0
 - examples/following/versions/3.0.0
+- examples/manual-following/demo
+- examples/manual-following/transformers/0-1.0.0
+- examples/manual-following/transformers/1.0.0-2.0.0
+- examples/manual-following/transformers/2.0.0-3.0.0
+- examples/manual-following/versions/1.0.0
+- examples/manual-following/versions/2.0.0
+- examples/manual-following/versions/3.0.0
 - plugin
 - runtime
 - test

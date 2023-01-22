@@ -18,8 +18,10 @@ license:        MIT
 build-type:     Simple
 extra-source-files:
     README.md
-    test/golden/Spec.ManualDsu.duplicatedUpdateSignal.golden
-    test/golden/Spec.ManualDsu.successfulChain.golden
+    test/golden/Spec.ManualDsu.duplicatedUpdateSignal.following.golden
+    test/golden/Spec.ManualDsu.duplicatedUpdateSignal.manualFollowing.golden
+    test/golden/Spec.ManualDsu.successfulChain.following.golden
+    test/golden/Spec.ManualDsu.successfulChain.manualFollowing.golden
     test/golden/Spec.Story.info.golden
     test/golden/Spec.Story.inputTimeout.golden
     test/golden/Spec.Story.outputTimeout.golden
@@ -79,9 +81,16 @@ test-suite lowarn-test
     , lowarn-transformer-following-v0-v1v0v0
     , lowarn-transformer-following-v1v0v0-v2v0v0
     , lowarn-transformer-following-v2v0v0-v3v0v0
+    , lowarn-transformer-manual-following-v0-v1v0v0
+    , lowarn-transformer-manual-following-v1v0v0-v2v0v0
+    , lowarn-transformer-manual-following-v2v0v0-v3v0v0
     , lowarn-version-following-v1v0v0
     , lowarn-version-following-v2v0v0
     , lowarn-version-following-v3v0v0
+    , lowarn-version-manual-following-v1v0v0
+    , lowarn-version-manual-following-v2v0v0
+    , lowarn-version-manual-following-v3v0v0
+    , manual-following
     , process
     , tasty
     , tasty-golden

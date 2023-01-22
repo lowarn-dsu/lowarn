@@ -56,7 +56,14 @@ tests:
     - lowarn-transformer-following-v0-v1v0v0
     - lowarn-transformer-following-v1v0v0-v2v0v0
     - lowarn-transformer-following-v2v0v0-v3v0v0
+    - lowarn-transformer-manual-following-v0-v1v0v0
+    - lowarn-transformer-manual-following-v1v0v0-v2v0v0
+    - lowarn-transformer-manual-following-v2v0v0-v3v0v0
     - lowarn-version-following-v1v0v0
     - lowarn-version-following-v2v0v0
     - lowarn-version-following-v3v0v0
+    - lowarn-version-manual-following-v1v0v0
+    - lowarn-version-manual-following-v2v0v0
+    - lowarn-version-manual-following-v3v0v0
+    - manual-following
     - tasty-quickcheck

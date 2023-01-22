@@ -3,8 +3,12 @@
 module Spec.Story (storyTests) where
 
 import Control.Monad (void)
-import Lowarn.ExampleProgram.Following.TransformerId (followingTransformerId_0_1)
-import Lowarn.ExampleProgram.Following.VersionId (followingVersionId_1)
+import Lowarn.ExampleProgram.ManualFollowing.TransformerId
+  ( manualFollowingTransformerId_0_1,
+  )
+import Lowarn.ExampleProgram.ManualFollowing.VersionId
+  ( manualFollowingVersionId_1,
+  )
 import Lowarn.Runtime (Runtime, loadTransformer, loadVersion)
 import System.IO (Handle)
 import Test.Lowarn.Story
@@ -19,8 +23,8 @@ import Test.Tasty (TestTree, testGroup)
 getExampleRuntime :: (Handle, Handle) -> Runtime ()
 getExampleRuntime handles =
   void $
-    loadTransformer followingTransformerId_0_1 handles
-      >>= loadVersion followingVersionId_1
+    loadTransformer manualFollowingTransformerId_0_1 handles
+      >>= loadVersion manualFollowingVersionId_1
 
 timeout :: Int
 timeout = 40000000

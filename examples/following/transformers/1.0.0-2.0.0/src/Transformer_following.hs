@@ -1,4 +1,8 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PackageImports #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Transformer_following
   ( transformer,
@@ -6,28 +10,28 @@ module Transformer_following
 where
 
 import Control.Arrow (first)
+import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 import Foreign (StablePtr, newStablePtr)
-import Lowarn (Transformer (Transformer))
+import Lowarn (Transformer)
+import Lowarn.Transformer (Transformable (transform, transformer))
 import System.Random (mkStdGen, randomR)
 import System.Random.Stateful (applyIOGen, newIOGenM)
 import qualified "lowarn-version-following-v1v0v0" Lowarn.ExampleProgram.Following as PreviousVersion
 import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Following as NextVersion
 
-transformer :: Transformer PreviousVersion.State NextVersion.State
-transformer = Transformer $
-  \(PreviousVersion.State users inHandle outHandle) -> do
+instance Transformable [PreviousVersion.User] (Seq NextVersion.User) where
+  transform :: [PreviousVersion.User] -> IO (Maybe (Seq NextVersion.User))
+  transform users = do
     ioGen <- newIOGenM (mkStdGen 0)
-    users' <-
-      Seq.fromList
-        <$> mapM
-          ( \(PreviousVersion.User nickname) ->
-              applyIOGen
-                (first (NextVersion.User nickname) . randomR (1, 9999))
-                ioGen
-          )
-          users
-    return $ Just $ NextVersion.State users' inHandle outHandle
+    Just . Seq.fromList
+      <$> mapM
+        ( \(PreviousVersion.User nickname) ->
+            applyIOGen
+              (first (NextVersion.User nickname) . randomR (1, 9999))
+              ioGen
+        )
+        users
 
 foreign export ccall "hs_transformer_v1v0v0_v2v0v0"
   hsTransformer ::

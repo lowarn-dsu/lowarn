@@ -33,5 +33,6 @@ library
     , containers
     , lowarn
     , lowarn-plugin
+    , lowarn-transformer
     , regex-tdfa >=1.3.2 && <1.4
   default-language: Haskell2010
