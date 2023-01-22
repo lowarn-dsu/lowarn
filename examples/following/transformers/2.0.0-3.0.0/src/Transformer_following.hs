@@ -13,9 +13,9 @@ import Control.Arrow
 import Data.Foldable (toList)
 import Foreign (StablePtr, newStablePtr)
 import Lowarn (Transformer)
+import Lowarn.Transformer (Transformable (transformer))
 import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Following as PreviousVersion
 import qualified "lowarn-version-following-v3v0v0" Lowarn.ExampleProgram.Following as NextVersion
-import Lowarn.Transformer (Transformable (transformer))
 
 instance
   (Traversable t) =>
