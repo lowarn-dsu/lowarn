@@ -5,7 +5,7 @@
 -- Module                  : Lowarn
 -- SPDX-License-Identifier : MIT
 -- Stability               : experimental
--- Portability             : portable
+-- Portability             : non-portable (GHC)
 --
 -- Module for interacting with Lowarn.
 module Lowarn

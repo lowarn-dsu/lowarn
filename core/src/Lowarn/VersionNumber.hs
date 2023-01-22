@@ -1,5 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-
 -- |
 -- Module                  : Lowarn.VersionNumber
 -- SPDX-License-Identifier : MIT
@@ -116,9 +114,10 @@ showTransformerExport previousVersionNumber nextVersionNUmber =
     <> showWithLetters nextVersionNUmber
 
 parseWithSeparator :: Char -> ReadP VersionNumber
-parseWithSeparator separator =
-  sepBy1 (read <$> munch1 isDigit) (char separator) >>= \case
-    (x : xs) -> return $ VersionNumber (x :| xs)
+parseWithSeparator separator = do
+  xs <- sepBy1 (read <$> munch1 isDigit) (char separator)
+  case xs of
+    (y : ys) -> return $ VersionNumber (y :| ys)
     [] -> pfail
 
 -- | A parser for version numbers given as strings of dot-separated non-negative
