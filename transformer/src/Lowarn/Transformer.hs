@@ -342,113 +342,6 @@ instance
 
 -- Reordering
 
-genericReorderingTransformer ::
-  forall (a :: Type) (b :: Type) (ds :: [[Type]]).
-  ( TransformableCodes' ds (Code b),
-    DatatypesMatchReordering a b ds
-  ) =>
-  Transformer a b
-genericReorderingTransformer =
-  Transformer $
-    fmap (fmap to)
-      . genericTransform'
-      . (reorderConstructors @a @b @ds)
-      . from
-
-class
-  ( cs ~ DatatypesMatchReorderingCs a b,
-    HasDatatypeInfo a,
-    HasDatatypeInfo b
-  ) =>
-  DatatypesMatchReordering
-    (a :: Type)
-    (b :: Type)
-    (cs :: [[Type]])
-  where
-  type DatatypesMatchReorderingCs a b :: [[Type]]
-
-  reorderConstructors :: SOP f (Code a) -> SOP f cs
-
-instance
-  forall
-    (a :: Type)
-    (b :: Type)
-    (cs :: [[Type]])
-    (ds :: [[Type]])
-    (wds :: [SymbolWithSymbols]).
-  ( HasDatatypeInfo a,
-    HasDatatypeInfo b,
-    DatatypeNameAlias
-      (DatatypeNameOf (DatatypeInfoOf a))
-      (DatatypeNameOf (DatatypeInfoOf b)),
-    OrderWithSymbolsNS
-      (Code a)
-      ( ZipSymbolsWithSymbols
-          (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
-          (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf a)))
-      )
-      (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
-      ds
-      wds,
-    OrderWithSymbolsNPs
-      ds
-      (WithSymbols wds)
-      (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf b)))
-      cs
-  ) =>
-  DatatypesMatchReordering a b cs
-  where
-  type
-    DatatypesMatchReorderingCs a b =
-      OrderWithSymbolsNPsBss
-        ( OrderWithSymbolsNSBs
-            (Code a)
-            ( ZipSymbolsWithSymbols
-                (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
-                ( FieldNamesOfConstructors
-                    (ConstructorInfosOf (DatatypeInfoOf a))
-                )
-            )
-            (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
-        )
-        ( WithSymbols
-            ( OrderWithSymbolsNSWbs
-                (Code a)
-                ( ZipSymbolsWithSymbols
-                    (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
-                    ( FieldNamesOfConstructors
-                        (ConstructorInfosOf (DatatypeInfoOf a))
-                    )
-                )
-                (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
-            )
-        )
-        (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf b)))
-
-  reorderConstructors :: forall (f :: Type -> Type). SOP f (Code a) -> SOP f cs
-  reorderConstructors sop =
-    SOP $
-      orderNPs
-        @Type
-        @ds
-        @(WithSymbols wds)
-        @(FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf b)))
-        ws
-    where
-      ws :: NS (NP f) ds
-      ws =
-        orderNS
-          @[Type]
-          @(Code a)
-          @( ZipSymbolsWithSymbols
-               (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
-               ( FieldNamesOfConstructors
-                   (ConstructorInfosOf (DatatypeInfoOf a))
-               )
-           )
-          @(ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
-          (unSOP sop)
-
 data SymbolWithSymbols = SymbolWithSymbols
   { _symbol :: Symbol,
     _withSymbols :: [Symbol]
@@ -586,6 +479,7 @@ instance
         ('SymbolWithSymbols sa sa' ': was)
         s
 
+  takeWithSymbols :: NP f (a ': as) -> (f b, NP f cs)
   takeWithSymbols =
     takeWithSymbols' @k @p @(a ': as) @('SymbolWithSymbols sa sa' ': was) @s
 
@@ -850,6 +744,110 @@ instance
       :* hmap
         shiftInjection
         (orderNPsInjections @k @ass @sass @sss)
+
+class
+  ( cs ~ DatatypesMatchReorderingCs a b,
+    HasDatatypeInfo a,
+    HasDatatypeInfo b
+  ) =>
+  DatatypesMatchReordering
+    (a :: Type)
+    (b :: Type)
+    (cs :: [[Type]])
+  where
+  type DatatypesMatchReorderingCs a b :: [[Type]]
+
+  reorderConstructors :: SOP f (Code a) -> SOP f cs
+
+instance
+  forall
+    (a :: Type)
+    (b :: Type)
+    (cs :: [[Type]])
+    (ds :: [[Type]])
+    (wds :: [SymbolWithSymbols]).
+  ( HasDatatypeInfo a,
+    HasDatatypeInfo b,
+    OrderWithSymbolsNS
+      (Code a)
+      ( ZipSymbolsWithSymbols
+          (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+          (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf a)))
+      )
+      (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
+      ds
+      wds,
+    OrderWithSymbolsNPs
+      ds
+      (WithSymbols wds)
+      (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf b)))
+      cs
+  ) =>
+  DatatypesMatchReordering a b cs
+  where
+  type
+    DatatypesMatchReorderingCs a b =
+      OrderWithSymbolsNPsBss
+        ( OrderWithSymbolsNSBs
+            (Code a)
+            ( ZipSymbolsWithSymbols
+                (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+                ( FieldNamesOfConstructors
+                    (ConstructorInfosOf (DatatypeInfoOf a))
+                )
+            )
+            (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
+        )
+        ( WithSymbols
+            ( OrderWithSymbolsNSWbs
+                (Code a)
+                ( ZipSymbolsWithSymbols
+                    (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+                    ( FieldNamesOfConstructors
+                        (ConstructorInfosOf (DatatypeInfoOf a))
+                    )
+                )
+                (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
+            )
+        )
+        (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf b)))
+
+  reorderConstructors :: forall (f :: Type -> Type). SOP f (Code a) -> SOP f cs
+  reorderConstructors sop =
+    SOP $
+      orderNPs
+        @Type
+        @ds
+        @(WithSymbols wds)
+        @(FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf b)))
+        ws
+    where
+      ws :: NS (NP f) ds
+      ws =
+        orderNS
+          @[Type]
+          @(Code a)
+          @( ZipSymbolsWithSymbols
+               (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+               ( FieldNamesOfConstructors
+                   (ConstructorInfosOf (DatatypeInfoOf a))
+               )
+           )
+          @(ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
+          (unSOP sop)
+
+genericReorderingTransformer ::
+  forall (a :: Type) (b :: Type) (ds :: [[Type]]).
+  ( TransformableCodes' ds (Code b),
+    DatatypesMatchReordering a b ds
+  ) =>
+  Transformer a b
+genericReorderingTransformer =
+  Transformer $
+    fmap (fmap to)
+      . genericTransform'
+      . (reorderConstructors @a @b @ds)
+      . from
 
 -- Wrapping
 
