@@ -43,6 +43,9 @@ module Lowarn.Transformer
     coerceTransformer,
 
     -- * Aliases
+
+    -- | These classes are used to detect renaming for
+    -- 'genericReorderingTransformer'.
     DatatypeNameAlias,
     ConstructorNameAlias,
     FieldNameAlias,
@@ -73,69 +76,77 @@ import Lowarn (Transformer (..))
 -- changed. This is achieved by a number of recursively-defined derived
 -- instances on similar types. These instances can be overridden if necessary.
 --
--- For every type @a@, there is an instance of @'Transformable' a a@.
+-- * 'Control.Category.id': For every type @a@, there is an instance of
+-- @'Transformable' a a@.
 --
--- For every pair of different types @t a@ and @t b@, where we have
--- @'Traversable' t@ and @'Transformable' a b@, there is an instance of
--- @'Transformable' (t a) (t b)@.
+-- * 'traversableTransformer': For every pair of /different/ types @t a@ and
+-- @t b@, where we have @'Traversable' t@ and @'Transformable' a b@, there is an
+-- instance of @'Transformable' (t a) (t b)@.
 --
--- Finally, for every pair of different types @a@ and @b@ that are not of the
--- form @t c@ and @t d@ with @'Traversable' c d@, we may have an instance of
--- @'Transformable' a b@ using generic programming with @generics-sop@. We must
--- have both @'Generics.SOP.Generic' a@ and @'Generics.SOP.Generic' b@, as well
--- as @'Generics.SOP.AllZip2' 'Transformable' ('Generics.SOP.Code' a)
+-- * 'genericRenamingTransformer': Finally, for every pair of /different/ types
+-- @a@ and @b@ that are not of the form @t c@ and @t d@ with
+-- @'Traversable' c d@, we may have an instance of @'Transformable' a b@ using
+-- generic programming with @generics-sop@. We must have both
+-- @'Generics.SOP.Generic' a@ and @'Generics.SOP.Generic' b@, as well as
+-- @'Generics.SOP.AllZip2' 'Transformable' ('Generics.SOP.Code' a)
 -- ('Generics.SOP.Code' b)@. This means that @a@ and @b@ must have the same
 -- shape and that we require @'Transformable' c d@ for each field @c@ in @a@ and
--- corresponding field @d@ in @b@.
+-- corresponding field @d@ in @b@. In addition, we require aliases between
+-- corresponding datatype names, constructor names, and field names. This is
+-- automatically the case for names that are the same. For names that are not
+-- the same, we require instances of 'DatatypeNameAlias',
+-- 'ConstructorNameAlias', or 'FieldNameAlias'.
 --
 -- An example of using each of these instances, along with a manual instance, is
 -- given below:
 --
--- > {-# LANGUAGE DataKinds #-}
--- > {-# LANGUAGE InstanceSigs #-}
--- > {-# LANGUAGE MultiParamTypeClasses #-}
--- > {-# LANGUAGE TemplateHaskell #-}
--- > {-# LANGUAGE TypeFamilies #-}
--- >
--- > import Control.Arrow
--- > import Control.Monad
--- > import Data.Sequence (Seq)
--- > import Lowarn
--- > import Lowarn.Transformer
--- > import System.Environment (lookupEnv)
--- >
--- > newtype Variable = Variable
--- >   { name :: String
--- >   }
--- >
--- > data VariableWithValue = VariableWithValue
--- >   { key :: String,
--- >     value :: String
--- >   }
--- >
--- > data PreviousState a
--- >   = AccumulatedVariables Int a
--- >   | Variables (Seq Variable)
--- >
--- > data NextState a
--- >   = AccumulatedValues Int a
--- >   | VariablesWithValues (Seq VariableWithValue)
--- >
--- > deriveGeneric ''PreviousState
--- > deriveGeneric ''NextState
--- >
--- > instance Transformable Variable VariableWithValue where
--- >   transformer :: Transformer Variable VariableWithValue
--- >   transformer = arr VariableWithValue `ap` Transformer lookupEnv <<^ name
--- >
--- > instance DatatypeNameAlias "PreviousState" "NextState"
--- >
--- > instance ConstructorNameAlias "AccumulatedVariables" "AccumulatedValues"
--- >
--- > instance ConstructorNameAlias "Variables" "VariablesWithValues"
--- >
--- > customTransformer :: Transformer (PreviousState a) (NextState a)
--- > customTransformer = transformer
+-- @
+-- {-# LANGUAGE DataKinds #-}
+-- {-# LANGUAGE InstanceSigs #-}
+-- {-# LANGUAGE MultiParamTypeClasses #-}
+-- {-# LANGUAGE TemplateHaskell #-}
+-- {-# LANGUAGE TypeFamilies #-}
+--
+-- import Control.Arrow
+-- import Control.Monad
+-- import Data.Sequence (Seq)
+-- import Lowarn
+-- import Lowarn.Transformer
+-- import System.Environment (lookupEnv)
+--
+-- newtype Variable = Variable
+--   { name :: String
+--   }
+--
+-- data VariableWithValue = VariableWithValue
+--   { key :: String,
+--     value :: String
+--   }
+--
+-- data PreviousState a
+--   = AccumulatedVariables Int a
+--   | Variables (Seq Variable)
+--
+-- data NextState a
+--   = AccumulatedValues Int a
+--   | VariablesWithValues (Seq VariableWithValue)
+--
+-- 'deriveGeneric' ''PreviousState
+-- 'deriveGeneric' ''NextState
+--
+-- instance 'Transformable' Variable VariableWithValue where
+--   'transformer' :: Transformer Variable VariableWithValue
+--   'transformer' = arr VariableWithValue `ap` Transformer lookupEnv <<^ name
+--
+-- instance 'DatatypeNameAlias' \"PreviousState" \"NextState"
+--
+-- instance 'ConstructorNameAlias' \"AccumulatedVariables" \"AccumulatedValues"
+--
+-- instance 'ConstructorNameAlias' \"Variables" \"VariablesWithValues"
+--
+-- customTransformer :: 'Transformer' (PreviousState a) (NextState a)
+-- customTransformer = 'transformer'
+-- @
 --
 -- This typeclass is like 'Coercible', as it is used for converting between
 -- types. However, this typeclass can be instantiated by the user. Another
@@ -202,8 +213,8 @@ type TransformableCodes a b =
 type TransformableCodes' as bs =
   (SListIN (Prod SOP) bs, AllZip2 Transformable as bs)
 
--- | A transformer that transforms each field of a term into the field of
--- another term with the same structure. If one transformation fails, this
+-- | A transformer that transforms each field of a type into the field of
+-- another type with the same structure. If one transformation fails, this
 -- transformer fails. However, this is not short-circuiting, so every 'IO'
 -- action will be run.
 genericTransformer ::
@@ -325,6 +336,16 @@ class FieldsMatchConstraint a b => FieldsMatch a b
 
 instance FieldsMatchConstraint a b => FieldsMatch a b
 
+-- | 'genericTransformer' with the following constraints:
+--
+-- * The names of datatypes @a@ and @b@ must be either the same or have an
+-- alias defined with 'DatatypeNameAlias'.
+--
+-- * The names of each constructor in @a@ and @b@ must be either the same or
+-- have an alias defined with 'ConstructorNameAlias'.
+--
+-- The names of each field in each constructor of @a@ and @b@ must either be the
+-- same or have an alias defined with 'FieldNameAlias'.
 genericRenamingTransformer ::
   (TransformableCodes a b, DatatypesMatchRenaming a b) =>
   Transformer a b
@@ -836,6 +857,11 @@ instance
           @(ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
           (unSOP sop)
 
+-- | 'genericTransformer' with constructor and field reordering. This transforms
+-- each constructor of a type to a constructor in another type with the same
+-- name, with each field in the constructor being transformed to a field in the
+-- other constructor with the same name. Due to the open-world assumption, this
+-- technique cannot use aliases, so names must be the same.
 genericReorderingTransformer ::
   forall (a :: Type) (b :: Type) (ds :: [[Type]]).
   ( TransformableCodes' ds (Code b),
@@ -851,10 +877,14 @@ genericReorderingTransformer =
 
 -- Wrapping
 
+-- | A transformer that unwraps a single-field datatype/newtype and transforms
+-- it to another type.
 genericUnwrapTransformer ::
   (IsWrappedType a b', Transformable b' b) => Transformer a b
 genericUnwrapTransformer = transformer <<^ wrappedTypeFrom
 
+-- | A transformer that transforms a type and wraps it with a single-field
+-- datatype/newtype.
 genericWrapTransformer ::
   (IsWrappedType b a', Transformable a a') => Transformer a b
 genericWrapTransformer = wrappedTypeTo ^<< transformer
