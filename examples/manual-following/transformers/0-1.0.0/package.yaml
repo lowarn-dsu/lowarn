@@ -1,4 +1,4 @@
-name:                lowarn-transformer-following-v0-v1v0v0
+name:                lowarn-transformer-manual-following-v0-v1v0v0
 version:             1.0.0
 github:              "jonathanjameswatson/lowarn"
 license:             MIT
@@ -12,8 +12,7 @@ dependencies:
 - base >= 4.7 && < 5
 - lowarn
 - lowarn-plugin
-- lowarn-transformer
-- lowarn-version-following-v1v0v0
+- lowarn-version-manual-following-v1v0v0
 
 ghc-options:
 - -Wall

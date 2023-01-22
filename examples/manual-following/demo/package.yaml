@@ -1,4 +1,4 @@
-name:                lowarn-transformer-following-v0-v1v0v0
+name:                manual-following
 version:             1.0.0
 github:              "jonathanjameswatson/lowarn"
 license:             MIT
@@ -6,14 +6,12 @@ author:              "Jonathan Watson"
 maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
 copyright:           "2022 Jonathan Watson"
 
-description:         Lowarn demo program transformer from version 0 to 1.0.0
+description:         Lowarn demo program
 
 dependencies:
 - base >= 4.7 && < 5
 - lowarn
-- lowarn-plugin
-- lowarn-transformer
-- lowarn-version-following-v1v0v0
+- lowarn-runtime
 
 ghc-options:
 - -Wall
@@ -28,3 +26,14 @@ ghc-options:
 
 library:
   source-dirs: src
+
+executables:
+  manual-following-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - manual-following

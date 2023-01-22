@@ -5,10 +5,15 @@ module Spec.ManualDsu (manualDsuTests) where
 import Control.Monad (void)
 import Lowarn.ExampleProgram.Following.TransformerId
 import Lowarn.ExampleProgram.Following.VersionId
+import Lowarn.ExampleProgram.ManualFollowing.TransformerId
+import Lowarn.ExampleProgram.ManualFollowing.VersionId
 import Lowarn.Runtime (Runtime, loadTransformer, loadVersion)
+import Lowarn.TransformerId (TransformerId)
+import Lowarn.VersionId (VersionId)
 import System.IO (Handle)
 import Test.Lowarn.Story
-  ( inputLine,
+  ( Story,
+    inputLine,
     outputLine,
     outputLines,
     storyGoldenTest,
@@ -17,24 +22,83 @@ import Test.Lowarn.Story
 import Test.Lowarn.Tasty (BinarySemaphore)
 import Test.Tasty (TestTree, testGroup)
 
-getExampleRuntime :: (Handle, Handle) -> Runtime ()
-getExampleRuntime handles =
-  void $
-    loadTransformer followingTransformerId_0_1 handles
-      >>= loadVersion followingVersionId_1
-      >>= loadTransformer followingTransformerId_1_2
-      >>= loadVersion followingVersionId_2
-      >>= loadTransformer followingTransformerId_2_3
-      >>= loadVersion followingVersionId_3
+getExampleRuntime ::
+  TransformerId ->
+  VersionId ->
+  TransformerId ->
+  VersionId ->
+  TransformerId ->
+  VersionId ->
+  (Handle, Handle) ->
+  Runtime ()
+getExampleRuntime
+  transformerId_0_1
+  versionId_1
+  transformerId_1_2
+  versionId_2
+  transformerId_2_3
+  versionId_3
+  handles =
+    void $
+      loadTransformer transformerId_0_1 handles
+        >>= loadVersion versionId_1
+        >>= loadTransformer transformerId_1_2
+        >>= loadVersion versionId_2
+        >>= loadTransformer transformerId_2_3
+        >>= loadVersion versionId_3
+
+getExampleManualFollowingRuntime :: (Handle, Handle) -> Runtime ()
+getExampleManualFollowingRuntime =
+  getExampleRuntime
+    manualFollowingTransformerId_0_1
+    manualFollowingVersionId_1
+    manualFollowingTransformerId_1_2
+    manualFollowingVersionId_2
+    manualFollowingTransformerId_2_3
+    manualFollowingVersionId_3
+
+getExampleFollowingRuntime :: (Handle, Handle) -> Runtime ()
+getExampleFollowingRuntime =
+  getExampleRuntime
+    followingTransformerId_0_1
+    followingVersionId_1
+    followingTransformerId_1_2
+    followingVersionId_2
+    followingTransformerId_2_3
+    followingVersionId_3
+
+getExampleRuntimes :: [(String, (Handle, Handle) -> Runtime ())]
+getExampleRuntimes =
+  [ ("manualFollowing", getExampleManualFollowingRuntime),
+    ("following", getExampleFollowingRuntime)
+  ]
+
+storyGoldenTests ::
+  String ->
+  Story () ->
+  Int ->
+  IO BinarySemaphore ->
+  TestTree
+storyGoldenTests testName story timeout' binarySemaphoreAction =
+  testGroup testName $
+    map
+      ( \(exampleRuntimeName, getExampleRuntime') ->
+          storyGoldenTest
+            (testName <> ('.' : exampleRuntimeName))
+            getExampleRuntime'
+            story
+            timeout'
+            binarySemaphoreAction
+      )
+      getExampleRuntimes
 
 timeout :: Int
-timeout = 40000000
+timeout = 60000000
 
 successfulChain :: IO BinarySemaphore -> TestTree
 successfulChain =
-  storyGoldenTest
+  storyGoldenTests
     (show 'successfulChain)
-    getExampleRuntime
     dsuTest
     timeout
   where
@@ -63,9 +127,8 @@ successfulChain =
 
 duplicatedUpdateSignal :: IO BinarySemaphore -> TestTree
 duplicatedUpdateSignal =
-  storyGoldenTest
+  storyGoldenTests
     (show 'duplicatedUpdateSignal)
-    getExampleRuntime
     dsuTest
     timeout
   where
@@ -88,7 +151,7 @@ duplicatedUpdateSignal =
 manualDsuTests :: IO BinarySemaphore -> TestTree
 manualDsuTests binarySemaphoreAction =
   testGroup
-    "Manual DSU"
+    "Manual DSU runtime"
     $ [ successfulChain,
         duplicatedUpdateSignal
       ]
