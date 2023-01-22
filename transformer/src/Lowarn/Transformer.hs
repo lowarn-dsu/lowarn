@@ -343,7 +343,7 @@ instance
 -- Reordering
 
 genericReorderingTransformer ::
-  forall a b ds.
+  forall (a :: Type) (b :: Type) (ds :: [[Type]]).
   ( TransformableCodes' ds (Code b),
     DatatypesMatchReordering a b ds
   ) =>
