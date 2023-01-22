@@ -361,17 +361,17 @@ class
     DatatypeNameAlias
       (DatatypeNameOf (DatatypeInfoOf a))
       (DatatypeNameOf (DatatypeInfoOf b)),
-    ZipSList
-      (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
-      (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf a)))
-      was,
+    was
+      ~ ZipSymbolsWithSymbols
+          (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+          (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf a))),
     OrderWithSymbolsNS
       (Code a)
       was
       (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
       cs
       wcs,
-    Seconds wcs scss,
+    scss ~ WithSymbols wcs,
     OrderWithSymbolsNPs
       cs
       scss
@@ -387,9 +387,9 @@ instance
   forall
     (a :: Type)
     (b :: Type)
-    (was :: [(Symbol, [Symbol])])
+    (was :: [SymbolWithSymbols])
     (cs :: [[Type]])
-    (wcs :: [(Symbol, [Symbol])])
+    (wcs :: [SymbolWithSymbols])
     (scss :: [[Symbol]])
     (ds :: [[Type]]).
   ( HasDatatypeInfo a,
@@ -397,17 +397,17 @@ instance
     DatatypeNameAlias
       (DatatypeNameOf (DatatypeInfoOf a))
       (DatatypeNameOf (DatatypeInfoOf b)),
-    ZipSList
-      (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
-      (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf a)))
-      was,
+    was
+      ~ ZipSymbolsWithSymbols
+          (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
+          (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf a))),
     OrderWithSymbolsNS
       (Code a)
       was
       (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
       cs
       wcs,
-    Seconds wcs scss,
+    scss ~ WithSymbols wcs,
     OrderWithSymbolsNPs
       cs
       scss
@@ -435,42 +435,45 @@ instance
           @(ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b)))
           (unSOP sop)
 
-class Firsts (ws :: [(lk, rk)]) (ls :: [lk]) | ws -> ls
+data SymbolWithSymbols = SymbolWithSymbols
+  { _symbol :: Symbol,
+    _withSymbols :: [Symbol]
+  }
 
-instance Firsts '[] '[]
+type family Symbols (a :: [SymbolWithSymbols]) :: [Symbol] where
+  Symbols '[] = '[]
+  Symbols ('SymbolWithSymbols symbol withSymbols ': as) =
+    symbol ': Symbols as
 
-instance Firsts ws ls => Firsts ('(l, r) ': ws) (l ': ls)
+type family WithSymbols (a :: [SymbolWithSymbols]) :: [[Symbol]] where
+  WithSymbols '[] = '[]
+  WithSymbols ('SymbolWithSymbols symbol withSymbols ': as) =
+    withSymbols ': WithSymbols as
 
-class (SListI ws) => Seconds (ws :: [(lk, rk)]) (rs :: [rk]) | ws -> rs
+type family
+  ZipSymbolsWithSymbols (a :: [Symbol]) (b :: [[Symbol]]) ::
+    [SymbolWithSymbols]
+  where
+  ZipSymbolsWithSymbols '[] '[] = '[]
+  ZipSymbolsWithSymbols (symbol ': symbols) (withSymbols ': withSymbolss) =
+    'SymbolWithSymbols symbol withSymbols
+      ': ZipSymbolsWithSymbols symbols withSymbolss
 
-instance Seconds '[] '[]
-
-instance Seconds ws rs => Seconds ('(l, r) ': ws) (r ': rs)
-
-class ZipSList (as :: [ak]) (bs :: [bk]) (zs :: [(ak, bk)]) | as bs -> zs
-
-instance ZipSList '[] '[] '[]
-
-instance ZipSList as bs zs => ZipSList (a ': as) (b ': bs) ('(a, b) ': zs)
-
-class ZipSListWithEmptyList (as :: [k]) (zas :: [(k, [Symbol])]) | as -> zas
-
-instance ZipSListWithEmptyList '[] '[]
-
-instance
-  ZipSListWithEmptyList as zas =>
-  ZipSListWithEmptyList (a ': as) ('(a, '[]) ': zas)
+type family ZipSymbolsWithNoSymbols (a :: [Symbol]) :: [SymbolWithSymbols] where
+  ZipSymbolsWithNoSymbols '[] = '[]
+  ZipSymbolsWithNoSymbols (symbol ': symbols) =
+    'SymbolWithSymbols symbol '[] ': ZipSymbolsWithNoSymbols symbols
 
 class
   (as ~ (Head as ': Tail as), was ~ (Head was ': Tail was)) =>
   TakeWithSymbols
     (as :: [k])
-    (was :: [(Symbol, [Symbol])])
+    (was :: [SymbolWithSymbols])
     (s :: Symbol)
     (b :: k)
-    (wb :: (Symbol, [Symbol]))
+    (wb :: SymbolWithSymbols)
     (cs :: [k])
-    (wcs :: [(Symbol, [Symbol])])
+    (wcs :: [SymbolWithSymbols])
     | as was s -> b wb cs wcs
   where
   takeWithSymbols :: NP f as -> (f b, NP f cs)
@@ -480,12 +483,12 @@ class
   TakeWithSymbols'
     (p :: Bool)
     (as :: [k])
-    (was :: [(Symbol, [Symbol])])
+    (was :: [SymbolWithSymbols])
     (s :: Symbol)
     (b :: k)
-    (wb :: (Symbol, [Symbol]))
+    (wb :: SymbolWithSymbols)
     (cs :: [k])
-    (wcs :: [(Symbol, [Symbol])])
+    (wcs :: [SymbolWithSymbols])
     | p as was s -> b wb cs wcs
   where
   takeWithSymbols' :: NP f as -> (f b, NP f cs)
@@ -497,19 +500,28 @@ instance
     (a :: k)
     (as :: [k])
     (sa :: Symbol)
-    (ra :: [Symbol])
-    (was :: [(Symbol, [Symbol])])
+    (sa' :: [Symbol])
+    (was :: [SymbolWithSymbols])
     (s :: Symbol)
     (b :: k)
-    (wb :: (Symbol, [Symbol]))
+    (wb :: SymbolWithSymbols)
     (cs :: [k])
-    (wcs :: [(Symbol, [Symbol])]).
+    (wcs :: [SymbolWithSymbols]).
   ( p ~ sa `SymbolEqualsBool` s,
-    TakeWithSymbols' p (a ': as) ('(sa, ra) ': was) s b wb cs wcs
+    TakeWithSymbols'
+      p
+      (a ': as)
+      ('SymbolWithSymbols sa sa' ': was)
+      s
+      b
+      wb
+      cs
+      wcs
   ) =>
-  TakeWithSymbols (a ': as) ('(sa, ra) ': was) s b wb cs wcs
+  TakeWithSymbols (a ': as) ('SymbolWithSymbols sa sa' ': was) s b wb cs wcs
   where
-  takeWithSymbols = takeWithSymbols' @k @p @(a ': as) @('(sa, ra) ': was) @s
+  takeWithSymbols =
+    takeWithSymbols' @k @p @(a ': as) @('SymbolWithSymbols sa sa' ': was) @s
 
 instance TakeWithSymbols' 'True (a ': as) (wa ': was) s a wa as was where
   takeWithSymbols' :: NP f (a ': as) -> (f a, NP f as)
@@ -521,14 +533,14 @@ instance
     (a1 :: k)
     (a2 :: k)
     (as :: [k])
-    (wa1 :: (Symbol, [Symbol]))
-    (wa2 :: (Symbol, [Symbol]))
-    (was :: [(Symbol, [Symbol])])
+    (wa1 :: SymbolWithSymbols)
+    (wa2 :: SymbolWithSymbols)
+    (was :: [SymbolWithSymbols])
     (s :: Symbol)
     (b :: k)
-    (wb :: (Symbol, [Symbol]))
+    (wb :: SymbolWithSymbols)
     (cs :: [k])
-    (wcs :: [(Symbol, [Symbol])]).
+    (wcs :: [SymbolWithSymbols]).
   ( TakeWithSymbols (a2 ': as) (wa2 ': was) s b wb cs wcs
   ) =>
   TakeWithSymbols'
@@ -545,10 +557,7 @@ instance
     forall (f :: k -> Type).
     NP f (a1 ': a2 ': as) ->
     (f b, NP f (a1 ': cs))
-  takeWithSymbols' (x1 :* x2 :* xs) =
-    ( y,
-      x1 :* zs
-    )
+  takeWithSymbols' (x1 :* x2 :* xs) = (y, x1 :* zs)
     where
       y :: f b
       zs :: NP f cs
@@ -557,10 +566,10 @@ instance
 class
   OrderWithSymbols
     (as :: [k])
-    (was :: [(Symbol, [Symbol])])
+    (was :: [SymbolWithSymbols])
     (ss :: [Symbol])
     (bs :: [k])
-    (wbs :: [(Symbol, [Symbol])])
+    (wbs :: [SymbolWithSymbols])
     | as was ss -> bs wbs
   where
   orderNP :: NP f as -> NP f bs
@@ -574,16 +583,16 @@ instance
     k
     (a :: k)
     (as :: [k])
-    (wa :: (Symbol, [Symbol]))
-    (was :: [(Symbol, [Symbol])])
+    (wa :: SymbolWithSymbols)
+    (was :: [SymbolWithSymbols])
     (s :: Symbol)
     (ss :: [Symbol])
     (b :: k)
     (bs :: [k])
-    (wb :: (Symbol, [Symbol]))
-    (wbs :: [(Symbol, [Symbol])])
+    (wb :: SymbolWithSymbols)
+    (wbs :: [SymbolWithSymbols])
     (ds :: [k])
-    (wds :: [(Symbol, [Symbol])]).
+    (wds :: [SymbolWithSymbols]).
   ( TakeWithSymbols (a ': as) (wa ': was) s b wb ds wds,
     OrderWithSymbols ds wds ss bs wbs
   ) =>
@@ -604,10 +613,10 @@ class
   (OrderWithSymbols as was ss bs wbs, SListI as, SListI bs) =>
   OrderWithSymbolsNS
     (as :: [k])
-    (was :: [(Symbol, [Symbol])])
+    (was :: [SymbolWithSymbols])
     (ss :: [Symbol])
     (bs :: [k])
-    (wbs :: [(Symbol, [Symbol])])
+    (wbs :: [SymbolWithSymbols])
     | as was ss -> bs wbs
   where
   orderNS :: NS f as -> NS f bs
@@ -617,17 +626,17 @@ instance
     k
     (a :: k)
     (as :: [k])
-    (wa :: (Symbol, [Symbol]))
-    (was :: [(Symbol, [Symbol])])
+    (wa :: SymbolWithSymbols)
+    (was :: [SymbolWithSymbols])
     (s :: Symbol)
     (ss :: [Symbol])
     (b :: k)
     (bs :: [k])
-    (wb :: (Symbol, [Symbol]))
-    (wbs :: [(Symbol, [Symbol])])
+    (wb :: SymbolWithSymbols)
+    (wbs :: [SymbolWithSymbols])
     (sas :: [Symbol]).
   ( OrderWithSymbols (a ': as) (wa ': was) (s ': ss) (b ': bs) (wb ': wbs),
-    Firsts (wa ': was) sas,
+    sas ~ Symbols (wa ': was),
     OrderWithSymbols
       (b ': bs)
       (wb ': wbs)
@@ -677,9 +686,9 @@ instance
     (sss :: [[Symbol]])
     (bs :: [k])
     (bss :: [[k]])
-    (was :: [(Symbol, [Symbol])])
-    (wbs :: [(Symbol, [Symbol])]).
-  ( ZipSListWithEmptyList sas was,
+    (was :: [SymbolWithSymbols])
+    (wbs :: [SymbolWithSymbols]).
+  ( was ~ ZipSymbolsWithNoSymbols sas,
     OrderWithSymbols as was ss bs wbs,
     OrderWithSymbolsNPs ass sass sss bss,
     SListI2 (as ': ass),
