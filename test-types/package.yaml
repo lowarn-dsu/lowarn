@@ -1,0 +1,33 @@
+name:                lowarn-test-types
+version:             0.1.0.0
+github:              "jonathanjameswatson/lowarn"
+license:             MIT
+author:              "Jonathan Watson"
+maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
+copyright:           "2022 Jonathan Watson"
+
+extra-source-files:
+- README.md
+
+synopsis:            Types for lowarn-test
+category:            System
+
+description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/test-types#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- lowarn-transformer
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+
+library:
+  source-dirs: src

@@ -6,7 +6,7 @@
 
 {-# HLINT ignore "Use newtype instead of data" #-}
 
-module Spec.Transformers.TypesB
+module Test.Lowarn.Types.TypesB
   ( Variant1 (..),
     VariantTuple1 (..),
     Record1 (..),

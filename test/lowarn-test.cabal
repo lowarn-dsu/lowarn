@@ -6,7 +6,7 @@ cabal-version: 1.12
 
 name:           lowarn-test
 version:        0.1.0.0
-synopsis:       Testing utilities and test suite for lowarn
+synopsis:       Testing utilities and test suite for Lowarn
 description:    Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/test#readme>
 category:       System
 homepage:       https://github.com/jonathanjameswatson/lowarn#readme
@@ -49,7 +49,6 @@ library
     , lowarn
     , lowarn-runtime
     , process
-    , raw-strings-qq
     , tasty
     , tasty-golden
     , transformers
@@ -65,10 +64,6 @@ test-suite lowarn-test
       Spec.Story
       Spec.Transformer
       Spec.TransformerId
-      Spec.Transformers.TypesA
-      Spec.Transformers.TypesB
-      Spec.Transformers.TypesC
-      Spec.Transformers.TypesD
       Spec.VersionId
       Spec.VersionNumber
       Paths_lowarn_test
@@ -84,6 +79,7 @@ test-suite lowarn-test
     , lowarn-arbitrary
     , lowarn-runtime
     , lowarn-test
+    , lowarn-test-types
     , lowarn-transformer
     , lowarn-transformer-following-v0-v1v0v0
     , lowarn-transformer-following-v1v0v0-v2v0v0
