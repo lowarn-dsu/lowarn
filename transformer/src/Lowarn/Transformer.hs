@@ -637,17 +637,25 @@ instance
       (y, zs) = takeWithSymbols @k @(a2 ': as) @(wa2 ': was) @s (x2 :* xs)
 
 class
+  ( bs ~ OrderWithSymbolsBs as was ss,
+    wbs ~ OrderWithSymbolsWbs as was ss
+  ) =>
   OrderWithSymbols
     (as :: [k])
     (was :: [SymbolWithSymbols])
     (ss :: [Symbol])
     (bs :: [k])
     (wbs :: [SymbolWithSymbols])
-    | as was ss -> bs wbs
   where
+  type OrderWithSymbolsBs as was ss :: [k]
+  type OrderWithSymbolsWbs as was ss :: [SymbolWithSymbols]
+
   orderNP :: NP f as -> NP f bs
 
 instance OrderWithSymbols '[] '[] '[] '[] '[] where
+  type OrderWithSymbolsBs '[] '[] '[] = '[]
+  type OrderWithSymbolsWbs '[] '[] '[] = '[]
+
   orderNP :: NP f '[] -> NP f '[]
   orderNP Nil = Nil
 
@@ -671,6 +679,21 @@ instance
   ) =>
   OrderWithSymbols (a ': as) (wa ': was) (s ': ss) (b ': bs) (wb ': wbs)
   where
+  type
+    OrderWithSymbolsBs (a ': as) (wa ': was) (s ': ss) =
+      TakeFromSymbolsB (a ': as) (wa ': was) s
+        ': OrderWithSymbolsBs
+             (TakeFromSymbolsCs (a ': as) (wa ': was) s)
+             (TakeFromSymbolsWcs (a ': as) (wa ': was) s)
+             ss
+  type
+    OrderWithSymbolsWbs (a ': as) (wa ': was) (s ': ss) =
+      TakeFromSymbolsWb (a ': as) (wa ': was) s
+        ': OrderWithSymbolsWbs
+             (TakeFromSymbolsCs (a ': as) (wa ': was) s)
+             (TakeFromSymbolsWcs (a ': as) (wa ': was) s)
+             ss
+
   orderNP ::
     forall (f :: k -> Type).
     NP f (a ': as) ->
