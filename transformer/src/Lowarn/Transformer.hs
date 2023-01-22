@@ -171,8 +171,8 @@ class Transformable a b where
 -- overlapping at once, and we have two derived instances of
 -- @Transformable' a b@.
 
-class Transformable' (isEqual :: Bool) a b where
-  transformer' :: Proxy isEqual -> Transformer a b
+class Transformable' (p :: Bool) a b where
+  transformer' :: Transformer a b
 
 -- By having only one derived instance of @Transformable a b@, we can make it
 -- overlappable without any errors.
@@ -183,15 +183,15 @@ type family Equals a b :: Bool where
 
 instance
   {-# OVERLAPPABLE #-}
-  (isEqual ~ a `Equals` b, Transformable' isEqual a b) =>
+  (p ~ a `Equals` b, Transformable' p a b) =>
   Transformable a b
   where
   transformer :: Transformer a b
-  transformer = transformer' (Proxy :: Proxy isEqual)
+  transformer = transformer' @p
 
 instance Transformable' 'True a a where
-  transformer' :: Proxy 'True -> Transformer a a
-  transformer' = const Cat.id
+  transformer' :: Transformer a a
+  transformer' = Cat.id
 
 -- | A transformer that transforms each element of a traversable data structure.
 -- If one transformation fails, this transformer fails. However, this is not
@@ -204,8 +204,8 @@ instance
   (Traversable t, Transformable a b) =>
   Transformable' 'False (t a) (t b)
   where
-  transformer' :: Proxy 'False -> Transformer (t a) (t b)
-  transformer' = const traversableTransformer
+  transformer' :: Transformer (t a) (t b)
+  transformer' = traversableTransformer
 
 type TransformableCodes a b =
   (Generic a, Generic b, AllZip2 Transformable (Code a) (Code b))
@@ -358,8 +358,8 @@ instance
   ) =>
   Transformable' 'False a b
   where
-  transformer' :: Proxy 'False -> Transformer a b
-  transformer' = const genericRenamingTransformer
+  transformer' :: Transformer a b
+  transformer' = genericRenamingTransformer
 
 -- Reordering
 
