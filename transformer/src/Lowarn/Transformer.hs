@@ -361,8 +361,6 @@ class
     DatatypeNameAlias
       (DatatypeNameOf (DatatypeInfoOf a))
       (DatatypeNameOf (DatatypeInfoOf b)),
-    SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a))),
-    SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b))),
     ZipSList
       (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
       (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf a)))
@@ -399,10 +397,6 @@ instance
     DatatypeNameAlias
       (DatatypeNameOf (DatatypeInfoOf a))
       (DatatypeNameOf (DatatypeInfoOf b)),
-    SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a))),
-    SListI (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf b))),
-    SListI (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf a))),
-    SListI (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf b))),
     ZipSList
       (ConstructorNamesOf (ConstructorInfosOf (DatatypeInfoOf a)))
       (FieldNamesOfConstructors (ConstructorInfosOf (DatatypeInfoOf a)))
@@ -422,8 +416,7 @@ instance
   ) =>
   DatatypesMatchReordering a b was cs wcs scss ds
   where
-  reorderConstructors ::
-    forall f. SOP f (Code a) -> SOP f ds
+  reorderConstructors :: forall (f :: Type -> Type). SOP f (Code a) -> SOP f ds
   reorderConstructors sop =
     SOP $
       orderNPs
@@ -469,9 +462,7 @@ instance
   ZipSListWithEmptyList (a ': as) ('(a, '[]) ': zas)
 
 class
-  ( as ~ (Head as ': Tail as),
-    was ~ (Head was ': Tail was)
-  ) =>
+  (as ~ (Head as ': Tail as), was ~ (Head was ': Tail was)) =>
   TakeWithSymbols
     (as :: [k])
     (was :: [(Symbol, [Symbol])])
@@ -485,9 +476,7 @@ class
   takeWithSymbols :: NP f as -> (f b, NP f cs)
 
 class
-  ( as ~ (Head as ': Tail as),
-    was ~ (Head was ': Tail was)
-  ) =>
+  (as ~ (Head as ': Tail as), was ~ (Head was ': Tail was)) =>
   TakeWithSymbols'
     (p :: Bool)
     (as :: [k])
@@ -566,7 +555,6 @@ instance
       (y, zs) = takeWithSymbols @k @(a2 ': as) @(wa2 ': was) @s (x2 :* xs)
 
 class
-  (SListI was) =>
   OrderWithSymbols
     (as :: [k])
     (was :: [(Symbol, [Symbol])])
@@ -597,38 +585,23 @@ instance
     (ds :: [k])
     (wds :: [(Symbol, [Symbol])]).
   ( TakeWithSymbols (a ': as) (wa ': was) s b wb ds wds,
-    OrderWithSymbols ds wds ss bs wbs,
-    SListI was
+    OrderWithSymbols ds wds ss bs wbs
   ) =>
   OrderWithSymbols (a ': as) (wa ': was) (s ': ss) (b ': bs) (wb ': wbs)
   where
   orderNP ::
-    forall f.
+    forall (f :: k -> Type).
     NP f (a ': as) ->
     NP f (b ': bs)
   orderNP (x :* xs) =
-    y :* ys
+    y :* orderNP @k @ds @wds @ss ws
     where
       y :: f b
       ws :: NP f ds
-      (y, ws) =
-        takeWithSymbols
-          @k
-          @(a ': as)
-          @(wa ': was)
-          @s
-          (x :* xs)
-
-      ys :: NP f bs
-      ys = orderNP @k @ds @wds @ss ws
+      (y, ws) = takeWithSymbols @k @(a ': as) @(wa ': was) @s (x :* xs)
 
 class
-  ( OrderWithSymbols as was ss bs wbs,
-    SListI as,
-    SListI was,
-    SListI ss,
-    SListI bs
-  ) =>
+  (OrderWithSymbols as was ss bs wbs, SListI as, SListI bs) =>
   OrderWithSymbolsNS
     (as :: [k])
     (was :: [(Symbol, [Symbol])])
@@ -637,9 +610,7 @@ class
     (wbs :: [(Symbol, [Symbol])])
     | as was ss -> bs wbs
   where
-  orderNS ::
-    NS f as ->
-    NS f bs
+  orderNS :: NS f as -> NS f bs
 
 instance
   forall
@@ -664,16 +635,11 @@ instance
       (a ': as)
       (wa ': was),
     SListI (a ': as),
-    SListI (wa ': was),
-    SListI (s ': ss),
     SListI (b ': bs)
   ) =>
   OrderWithSymbolsNS (a ': as) (wa ': was) (s ': ss) (b ': bs) (wb ': wbs)
   where
-  orderNS ::
-    forall f.
-    NS f (a ': as) ->
-    NS f (b ': bs)
+  orderNS :: forall (f :: k -> Type). NS f (a ': as) -> NS f (b ': bs)
   orderNS xs =
     hcollapse $ hap yInjections xs
     where
@@ -689,12 +655,9 @@ class
     (bss :: [[k]])
     | ass sass sss -> bss
   where
-  orderNPs ::
-    NS (NP f) ass ->
-    NS (NP f) bss
+  orderNPs :: NS (NP f) ass -> NS (NP f) bss
 
-  orderNPsInjections ::
-    NP (Injection (NP f) bss) ass
+  orderNPsInjections :: NP (Injection (NP f) bss) ass
 
 instance OrderWithSymbolsNPs '[] '[] '[] '[] where
   orderNPs :: NS (NP f) '[] -> NS (NP f) '[]
