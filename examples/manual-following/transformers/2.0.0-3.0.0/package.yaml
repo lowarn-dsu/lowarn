@@ -11,7 +11,6 @@ description:         Lowarn demo program transformer from version 2.0.0 to 3.0.0
 dependencies:
 - base >= 4.7 && < 5
 - lowarn
-- lowarn-plugin
 - lowarn-version-manual-following-v2v0v0
 - lowarn-version-manual-following-v3v0v0
 

@@ -26,10 +26,11 @@ library
       Paths_lowarn_transformer_following_v0_v1v0v0
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -fplugin Lowarn.Plugin
   build-depends:
       base >=4.7 && <5
     , lowarn
     , lowarn-plugin
+    , lowarn-transformer
     , lowarn-version-following-v1v0v0
   default-language: Haskell2010

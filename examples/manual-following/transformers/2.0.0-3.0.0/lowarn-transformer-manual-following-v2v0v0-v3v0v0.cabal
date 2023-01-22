@@ -30,7 +30,6 @@ library
   build-depends:
       base >=4.7 && <5
     , lowarn
-    , lowarn-plugin
     , lowarn-version-manual-following-v2v0v0
     , lowarn-version-manual-following-v3v0v0
   default-language: Haskell2010
