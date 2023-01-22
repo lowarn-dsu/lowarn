@@ -465,12 +465,12 @@ type family ZipSymbolsWithNoSymbols (a :: [Symbol]) :: [SymbolWithSymbols] where
     'SymbolWithSymbols symbol '[] ': ZipSymbolsWithNoSymbols symbols
 
 class
-  ( as ~ (Head as ': Tail as),
-    was ~ (Head was ': Tail was),
-    b ~ TakeFromSymbolsB as was s,
+  ( b ~ TakeFromSymbolsB as was s,
     wb ~ TakeFromSymbolsWb as was s,
     cs ~ TakeFromSymbolsCs as was s,
-    wcs ~ TakeFromSymbolsWcs as was s
+    wcs ~ TakeFromSymbolsWcs as was s,
+    as ~ (Head as ': Tail as),
+    was ~ (Head was ': Tail was)
   ) =>
   TakeWithSymbols
     (as :: [k])
@@ -489,12 +489,12 @@ class
   takeWithSymbols :: NP f as -> (f b, NP f cs)
 
 class
-  ( as ~ (Head as ': Tail as),
-    was ~ (Head was ': Tail was),
-    b ~ TakeFromSymbols'B p as was s,
+  ( b ~ TakeFromSymbols'B p as was s,
     wb ~ TakeFromSymbols'Wb p as was s,
     cs ~ TakeFromSymbols'Cs p as was s,
-    wcs ~ TakeFromSymbols'Wcs p as was s
+    wcs ~ TakeFromSymbols'Wcs p as was s,
+    as ~ (Head as ': Tail as),
+    was ~ (Head was ': Tail was)
   ) =>
   TakeWithSymbols'
     (p :: Bool)
