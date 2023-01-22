@@ -22,6 +22,7 @@ dependencies:
 - lowarn-runtime
 - process
 - QuickCheck
+- raw-strings-qq
 - tasty
 - tasty-golden
 - transformers
@@ -53,6 +54,7 @@ tests:
     - following
     - lowarn-arbitrary
     - lowarn-test
+    - lowarn-transformer
     - lowarn-transformer-following-v0-v1v0v0
     - lowarn-transformer-following-v1v0v0-v2v0v0
     - lowarn-transformer-following-v2v0v0-v3v0v0

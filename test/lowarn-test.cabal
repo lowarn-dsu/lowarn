@@ -49,6 +49,7 @@ library
     , lowarn
     , lowarn-runtime
     , process
+    , raw-strings-qq
     , tasty
     , tasty-golden
     , transformers
@@ -62,7 +63,12 @@ test-suite lowarn-test
       Spec.ManualDsu
       Spec.ProgramName
       Spec.Story
+      Spec.Transformer
       Spec.TransformerId
+      Spec.Transformers.TypesA
+      Spec.Transformers.TypesB
+      Spec.Transformers.TypesC
+      Spec.Transformers.TypesD
       Spec.VersionId
       Spec.VersionNumber
       Paths_lowarn_test
@@ -78,6 +84,7 @@ test-suite lowarn-test
     , lowarn-arbitrary
     , lowarn-runtime
     , lowarn-test
+    , lowarn-transformer
     , lowarn-transformer-following-v0-v1v0v0
     , lowarn-transformer-following-v1v0v0-v2v0v0
     , lowarn-transformer-following-v2v0v0-v3v0v0
@@ -92,6 +99,7 @@ test-suite lowarn-test
     , lowarn-version-manual-following-v3v0v0
     , manual-following
     , process
+    , raw-strings-qq
     , tasty
     , tasty-golden
     , tasty-quickcheck
