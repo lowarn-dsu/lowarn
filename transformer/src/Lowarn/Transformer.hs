@@ -706,15 +706,22 @@ instance
       (y, ws) = takeWithSymbols @k @(a ': as) @(wa ': was) @s (x :* xs)
 
 class
-  (OrderWithSymbols as was ss bs wbs, SListI as, SListI bs) =>
+  ( bs ~ OrderWithSymbolsNSBs as was ss,
+    wbs ~ OrderWithSymbolsNSWbs as was ss,
+    OrderWithSymbols as was ss bs wbs,
+    SListI as,
+    SListI bs
+  ) =>
   OrderWithSymbolsNS
     (as :: [k])
     (was :: [SymbolWithSymbols])
     (ss :: [Symbol])
     (bs :: [k])
     (wbs :: [SymbolWithSymbols])
-    | as was ss -> bs wbs
   where
+  type OrderWithSymbolsNSBs as was ss :: [k]
+  type OrderWithSymbolsNSWbs as was ss :: [SymbolWithSymbols]
+
   orderNS :: NS f as -> NS f bs
 
 instance
@@ -744,6 +751,14 @@ instance
   ) =>
   OrderWithSymbolsNS (a ': as) (wa ': was) (s ': ss) (b ': bs) (wb ': wbs)
   where
+  type
+    OrderWithSymbolsNSBs (a ': as) (wa ': was) (s ': ss) =
+      OrderWithSymbolsBs (a ': as) (wa ': was) (s ': ss)
+
+  type
+    OrderWithSymbolsNSWbs (a ': as) (wa ': was) (s ': ss) =
+      OrderWithSymbolsWbs (a ': as) (wa ': was) (s ': ss)
+
   orderNS :: forall (f :: k -> Type). NS f (a ': as) -> NS f (b ': bs)
   orderNS xs =
     hcollapse $ hap yInjections xs
@@ -752,19 +767,26 @@ instance
       yInjections = orderNP @k @(b ': bs) @(wb ': wbs) @sas injections
 
 class
-  (SListI2 ass, SListI2 sass, SListI2 sss) =>
+  ( bss ~ OrderWithSymbolsNPsBss ass sass sss,
+    SListI2 ass,
+    SListI2 sass,
+    SListI2 sss
+  ) =>
   OrderWithSymbolsNPs
     (ass :: [[k]])
     (sass :: [[Symbol]])
     (sss :: [[Symbol]])
     (bss :: [[k]])
-    | ass sass sss -> bss
   where
+  type OrderWithSymbolsNPsBss ass sass sss :: [[k]]
+
   orderNPs :: NS (NP f) ass -> NS (NP f) bss
 
   orderNPsInjections :: NP (Injection (NP f) bss) ass
 
 instance OrderWithSymbolsNPs '[] '[] '[] '[] where
+  type OrderWithSymbolsNPsBss '[] '[] '[] = '[]
+
   orderNPs :: NS (NP f) '[] -> NS (NP f) '[]
   orderNPs xss = case xss of {}
 
@@ -793,6 +815,11 @@ instance
   ) =>
   OrderWithSymbolsNPs (as ': ass) (sas ': sass) (ss ': sss) (bs ': bss)
   where
+  type
+    OrderWithSymbolsNPsBss (as ': ass) (sas ': sass) (ss ': sss) =
+      OrderWithSymbolsBs as (ZipSymbolsWithNoSymbols sas) ss
+        ': OrderWithSymbolsNPsBss ass sass sss
+
   orderNPs ::
     forall (f :: k -> Type).
     NS (NP f) (as ': ass) ->
