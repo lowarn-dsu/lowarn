@@ -393,10 +393,10 @@ type family ZipSymbolsWithNoSymbols (a :: [Symbol]) :: [SymbolWithSymbols] where
     'SymbolWithSymbols symbol '[] ': ZipSymbolsWithNoSymbols symbols
 
 class
-  ( b ~ TakeFromSymbolsB as was s,
-    wb ~ TakeFromSymbolsWb as was s,
-    cs ~ TakeFromSymbolsCs as was s,
-    wcs ~ TakeFromSymbolsWcs as was s,
+  ( b ~ TakeWithSymbolsB as was s,
+    wb ~ TakeWithSymbolsWb as was s,
+    cs ~ TakeWithSymbolsCs as was s,
+    wcs ~ TakeWithSymbolsWcs as was s,
     as ~ (Head as ': Tail as),
     was ~ (Head was ': Tail was)
   ) =>
@@ -409,18 +409,18 @@ class
     (cs :: [k])
     (wcs :: [SymbolWithSymbols])
   where
-  type TakeFromSymbolsB as was s :: k
-  type TakeFromSymbolsWb as was s :: SymbolWithSymbols
-  type TakeFromSymbolsCs as was s :: [k]
-  type TakeFromSymbolsWcs as was s :: [SymbolWithSymbols]
+  type TakeWithSymbolsB as was s :: k
+  type TakeWithSymbolsWb as was s :: SymbolWithSymbols
+  type TakeWithSymbolsCs as was s :: [k]
+  type TakeWithSymbolsWcs as was s :: [SymbolWithSymbols]
 
   takeWithSymbols :: NP f as -> (f b, NP f cs)
 
 class
-  ( b ~ TakeFromSymbols'B p as was s,
-    wb ~ TakeFromSymbols'Wb p as was s,
-    cs ~ TakeFromSymbols'Cs p as was s,
-    wcs ~ TakeFromSymbols'Wcs p as was s,
+  ( b ~ TakeWithSymbols'B p as was s,
+    wb ~ TakeWithSymbols'Wb p as was s,
+    cs ~ TakeWithSymbols'Cs p as was s,
+    wcs ~ TakeWithSymbols'Wcs p as was s,
     as ~ (Head as ': Tail as),
     was ~ (Head was ': Tail was)
   ) =>
@@ -434,10 +434,10 @@ class
     (cs :: [k])
     (wcs :: [SymbolWithSymbols])
   where
-  type TakeFromSymbols'B p as was s :: k
-  type TakeFromSymbols'Wb p as was s :: SymbolWithSymbols
-  type TakeFromSymbols'Cs p as was s :: [k]
-  type TakeFromSymbols'Wcs p as was s :: [SymbolWithSymbols]
+  type TakeWithSymbols'B p as was s :: k
+  type TakeWithSymbols'Wb p as was s :: SymbolWithSymbols
+  type TakeWithSymbols'Cs p as was s :: [k]
+  type TakeWithSymbols'Wcs p as was s :: [SymbolWithSymbols]
 
   takeWithSymbols' :: NP f as -> (f b, NP f cs)
 
@@ -469,32 +469,32 @@ instance
   TakeWithSymbols (a ': as) ('SymbolWithSymbols sa sa' ': was) s b wb cs wcs
   where
   type
-    TakeFromSymbolsB (a ': as) ('SymbolWithSymbols sa sa' ': was) s =
-      TakeFromSymbols'B
+    TakeWithSymbolsB (a ': as) ('SymbolWithSymbols sa sa' ': was) s =
+      TakeWithSymbols'B
         (sa `SymbolEqualsBool` s)
         (a ': as)
         ('SymbolWithSymbols sa sa' ': was)
         s
 
   type
-    TakeFromSymbolsWb (a ': as) ('SymbolWithSymbols sa sa' ': was) s =
-      TakeFromSymbols'Wb
+    TakeWithSymbolsWb (a ': as) ('SymbolWithSymbols sa sa' ': was) s =
+      TakeWithSymbols'Wb
         (sa `SymbolEqualsBool` s)
         (a ': as)
         ('SymbolWithSymbols sa sa' ': was)
         s
 
   type
-    TakeFromSymbolsCs (a ': as) ('SymbolWithSymbols sa sa' ': was) s =
-      TakeFromSymbols'Cs
+    TakeWithSymbolsCs (a ': as) ('SymbolWithSymbols sa sa' ': was) s =
+      TakeWithSymbols'Cs
         (sa `SymbolEqualsBool` s)
         (a ': as)
         ('SymbolWithSymbols sa sa' ': was)
         s
 
   type
-    TakeFromSymbolsWcs (a ': as) ('SymbolWithSymbols sa sa' ': was) s =
-      TakeFromSymbols'Wcs
+    TakeWithSymbolsWcs (a ': as) ('SymbolWithSymbols sa sa' ': was) s =
+      TakeWithSymbols'Wcs
         (sa `SymbolEqualsBool` s)
         (a ': as)
         ('SymbolWithSymbols sa sa' ': was)
@@ -505,10 +505,10 @@ instance
     takeWithSymbols' @k @p @(a ': as) @('SymbolWithSymbols sa sa' ': was) @s
 
 instance TakeWithSymbols' 'True (a ': as) (wa ': was) s a wa as was where
-  type TakeFromSymbols'B 'True (a ': as) (wa ': was) s = a
-  type TakeFromSymbols'Wb 'True (a ': as) (wa ': was) s = wa
-  type TakeFromSymbols'Cs 'True (a ': as) (wa ': was) s = as
-  type TakeFromSymbols'Wcs 'True (a ': as) (wa ': was) s = was
+  type TakeWithSymbols'B 'True (a ': as) (wa ': was) s = a
+  type TakeWithSymbols'Wb 'True (a ': as) (wa ': was) s = wa
+  type TakeWithSymbols'Cs 'True (a ': as) (wa ': was) s = as
+  type TakeWithSymbols'Wcs 'True (a ': as) (wa ': was) s = was
 
   takeWithSymbols' :: NP f (a ': as) -> (f a, NP f as)
   takeWithSymbols' (x :* xs) = (x, xs)
@@ -540,20 +540,20 @@ instance
     (wa1 ': wcs)
   where
   type
-    TakeFromSymbols'B 'False (a1 ': a2 ': as) (wa1 ': wa2 ': was) s =
-      TakeFromSymbolsB (a2 ': as) (wa2 ': was) s
+    TakeWithSymbols'B 'False (a1 ': a2 ': as) (wa1 ': wa2 ': was) s =
+      TakeWithSymbolsB (a2 ': as) (wa2 ': was) s
 
   type
-    TakeFromSymbols'Wb 'False (a1 ': a2 ': as) (wa1 ': wa2 ': was) s =
-      TakeFromSymbolsWb (a2 ': as) (wa2 ': was) s
+    TakeWithSymbols'Wb 'False (a1 ': a2 ': as) (wa1 ': wa2 ': was) s =
+      TakeWithSymbolsWb (a2 ': as) (wa2 ': was) s
 
   type
-    TakeFromSymbols'Cs 'False (a1 ': a2 ': as) (wa1 ': wa2 ': was) s =
-      (a1 ': TakeFromSymbolsCs (a2 ': as) (wa2 ': was) s)
+    TakeWithSymbols'Cs 'False (a1 ': a2 ': as) (wa1 ': wa2 ': was) s =
+      (a1 ': TakeWithSymbolsCs (a2 ': as) (wa2 ': was) s)
 
   type
-    TakeFromSymbols'Wcs 'False (a1 ': a2 ': as) (wa1 ': wa2 ': was) s =
-      (wa1 ': TakeFromSymbolsWcs (a2 ': as) (wa2 ': was) s)
+    TakeWithSymbols'Wcs 'False (a1 ': a2 ': as) (wa1 ': wa2 ': was) s =
+      (wa1 ': TakeWithSymbolsWcs (a2 ': as) (wa2 ': was) s)
 
   takeWithSymbols' ::
     forall (f :: k -> Type).
@@ -610,17 +610,17 @@ instance
   where
   type
     OrderWithSymbolsBs (a ': as) (wa ': was) (s ': ss) =
-      TakeFromSymbolsB (a ': as) (wa ': was) s
+      TakeWithSymbolsB (a ': as) (wa ': was) s
         ': OrderWithSymbolsBs
-             (TakeFromSymbolsCs (a ': as) (wa ': was) s)
-             (TakeFromSymbolsWcs (a ': as) (wa ': was) s)
+             (TakeWithSymbolsCs (a ': as) (wa ': was) s)
+             (TakeWithSymbolsWcs (a ': as) (wa ': was) s)
              ss
   type
     OrderWithSymbolsWbs (a ': as) (wa ': was) (s ': ss) =
-      TakeFromSymbolsWb (a ': as) (wa ': was) s
+      TakeWithSymbolsWb (a ': as) (wa ': was) s
         ': OrderWithSymbolsWbs
-             (TakeFromSymbolsCs (a ': as) (wa ': was) s)
-             (TakeFromSymbolsWcs (a ': as) (wa ': was) s)
+             (TakeWithSymbolsCs (a ': as) (wa ': was) s)
+             (TakeWithSymbolsWcs (a ': as) (wa ': was) s)
              ss
 
   orderNP ::
