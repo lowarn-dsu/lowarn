@@ -115,6 +115,18 @@ unTransformer
   (A.Record3 1 "a" True)
 |]
 
+reorderingVariantRecord3Swap :: TestTree
+reorderingVariantRecord3Swap =
+  transformerGoldenTest
+    (show 'reorderingVariantRecord3Swap)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.VariantRecord3 B.VariantRecord3)
+  (A.VariantRecord3B True 1 "a")
+|]
+
 transformerTests :: TestTree
 transformerTests =
   testGroup
@@ -127,5 +139,6 @@ transformerTests =
       reorderingRecord2Identity,
       reorderingRecord2Swap,
       reorderingVariant3Swap,
-      reorderingRecord3Swap
+      reorderingRecord3Swap,
+      reorderingVariantRecord3Swap
     ]
