@@ -17,7 +17,10 @@ where
 import Data.Functor
 import Data.List (isPrefixOf)
 import Language.Haskell.Interpreter
-  ( eval,
+  ( GhcError,
+    InterpreterError (..),
+    errMsg,
+    eval,
     runInterpreter,
     runStmt,
     setImportsQ,
@@ -35,6 +38,9 @@ newtype Expression = Expression
   { unExpression :: String
   }
 
+ghcErrorsToString :: [GhcError] -> String
+ghcErrorsToString = unlines . map errMsg
+
 testHaskell :: [Statement] -> Expression -> IO String
 testHaskell statements ioExpression =
   runInterpreter
@@ -50,7 +56,12 @@ testHaskell statements ioExpression =
           ]
         mapM_ (runStmt . unStatement) statements
         typeChecksWithDetails (unExpression ioExpression) >>= \case
-          Left e -> return $ printf "Type checking error: %s" (show e)
+          Left ghcErrors ->
+            return
+              $ printf
+                "Type checking errors:\n%s"
+              $ ghcErrorsToString
+                ghcErrors
           Right ioExpressionType
             | isPrefixOf "IO " ioExpressionType -> do
                 runStmt $ printf "___x <- %s" (unExpression ioExpression)
@@ -62,7 +73,14 @@ testHaskell statements ioExpression =
                     ioExpressionType
     )
     <&> \case
-      Left e -> printf "Error: %s" (show e)
+      Left (UnknownError unknownError) ->
+        printf "Unknown error:\n%s" unknownError
+      Left (WontCompile ghcErrors) ->
+        printf "Wont compile:\n%s" $ ghcErrorsToString ghcErrors
+      Left (NotAllowed notAllowed) ->
+        printf "Not allowed:\n%s" notAllowed
+      Left (GhcException ghcException) ->
+        printf "GHC exception:\n%s" ghcException
       Right s -> s
 
 transformerGoldenTest ::

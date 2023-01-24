@@ -29,6 +29,7 @@ extra-source-files:
     test/golden/Spec.Story.pipeOrderingWithOutputFirst.golden
     test/golden/Spec.Transformer.reorderingRecord1.golden
     test/golden/Spec.Transformer.reorderingVariant1.golden
+    test/golden/Spec.Transformer.reorderingVariantTuple1.golden
 
 source-repository head
   type: git
