@@ -16,18 +16,19 @@ where
 
 import Lowarn.Transformer (deriveGeneric)
 
-data Variant1 = Variant1'
+data Variant1 = Variant1A | Variant1B
   deriving (Show)
 
-data Variant1' = Variant1
+data Variant1' = Variant1'A
   deriving (Show)
 
-data Record1 = Record1
-  { _record1' :: Int
+data Record1 = Record1A
+  { _record1A :: Int,
+    _record1B :: String
   }
   deriving (Show)
 
-data Record2 = Record2
+data Record2 = Record2A
   { _record2B :: Int,
     _record2A :: String
   }

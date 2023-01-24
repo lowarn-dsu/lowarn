@@ -1,1 +1,1 @@
-Just (Record2 {_record2A = 1, _record2B = "a"})
+Just (Record2A {_record2A = 1, _record2B = "a"})

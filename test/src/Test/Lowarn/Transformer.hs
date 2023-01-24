@@ -42,6 +42,9 @@ newtype Expression = Expression
 ghcErrorsToString :: [GhcError] -> String
 ghcErrorsToString = unlines . map errMsg
 
+addNewline :: String -> String
+addNewline s = if last s == '\n' then s else s <> "\n"
+
 testHaskell :: [Statement] -> Expression -> IO String
 testHaskell statements ioExpression =
   runInterpreter
@@ -94,4 +97,4 @@ transformerGoldenTest testName statements ioExpression =
   goldenTest
     testName
     $ \logFile ->
-      writeFile logFile . (<> "\n") =<< testHaskell statements ioExpression
+      writeFile logFile . addNewline =<< testHaskell statements ioExpression

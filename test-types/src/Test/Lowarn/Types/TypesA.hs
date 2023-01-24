@@ -26,18 +26,18 @@ where
 
 import Lowarn.Transformer (deriveGeneric)
 
-data Variant1 = Variant1
+data Variant1 = Variant1A
   deriving (Show)
 
-data VariantTuple1 = VariantTuple1 Int
+data VariantTuple1 = VariantTuple1A Int
   deriving (Show)
 
-data Record1 = Record1
+data Record1 = Record1A
   { _record1A :: Int
   }
   deriving (Show)
 
-newtype Record1' = Record1'
+newtype Record1' = Record1'A
   { _record1A' :: Int
   }
   deriving (Show)
@@ -45,13 +45,13 @@ newtype Record1' = Record1'
 data Variant2 = Variant2A | Variant2B
   deriving (Show)
 
-data Record2 = Record2
+data Record2 = Record2A
   { _record2A :: Int,
     _record2B :: String
   }
   deriving (Show)
 
-data Record2' = Record2'
+data Record2' = Record2'A
   { _record2'A :: Variant1,
     _record2'B :: String
   }
@@ -60,7 +60,7 @@ data Record2' = Record2'
 data Variant3 = Variant3A | Variant3B | Variant3C
   deriving (Show)
 
-data Record3 = Record3
+data Record3 = Record3A
   { _record3A :: Int,
     _record3B :: String,
     _record3C :: Bool

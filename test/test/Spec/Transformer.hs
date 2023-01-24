@@ -16,7 +16,31 @@ reorderingVariant1Identity =
       [r|
 unTransformer
   (genericReorderingTransformer :: Transformer A.Variant1 B.Variant1)
-  A.Variant1
+  A.Variant1A
+|]
+
+reorderingVariant1RenameConstructor :: TestTree
+reorderingVariant1RenameConstructor =
+  transformerGoldenTest
+    (show 'reorderingVariant1RenameConstructor)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.Variant1 C.Variant1)
+  A.Variant1A
+|]
+
+reorderingVariant1AddedConstructor :: TestTree
+reorderingVariant1AddedConstructor =
+  transformerGoldenTest
+    (show 'reorderingVariant1AddedConstructor)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.Variant1 D.Variant1)
+  A.Variant1A
 |]
 
 reorderingVariantTuple1Identity :: TestTree
@@ -28,7 +52,7 @@ reorderingVariantTuple1Identity =
       [r|
 unTransformer
   (genericReorderingTransformer :: Transformer A.VariantTuple1 B.VariantTuple1)
-  (A.VariantTuple1 1)
+  (A.VariantTuple1A 1)
 |]
 
 reorderingRecord1Identity :: TestTree
@@ -40,7 +64,43 @@ reorderingRecord1Identity =
       [r|
 unTransformer
   (genericReorderingTransformer :: Transformer A.Record1 B.Record1)
-  (A.Record1 1)
+  (A.Record1A 1)
+|]
+
+reorderingRecord1NewtypeToData :: TestTree
+reorderingRecord1NewtypeToData =
+  transformerGoldenTest
+    (show 'reorderingRecord1NewtypeToData)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.Record1' B.Record1')
+  (A.Record1'A 1)
+|]
+
+reorderingRecord1RenameField :: TestTree
+reorderingRecord1RenameField =
+  transformerGoldenTest
+    (show 'reorderingRecord1RenameField)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.Record1 C.Record1)
+  (A.Record1A 1)
+|]
+
+reorderingRecord1AddedField :: TestTree
+reorderingRecord1AddedField =
+  transformerGoldenTest
+    (show 'reorderingRecord1AddedField)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.Record1 D.Record1)
+  (A.Record1A 1)
 |]
 
 reorderingVariant2Identity :: TestTree
@@ -76,7 +136,7 @@ reorderingRecord2Identity =
       [r|
 unTransformer
   (genericReorderingTransformer :: Transformer A.Record2 B.Record2)
-  (A.Record2 1 "a")
+  (A.Record2A 1 "a")
 |]
 
 reorderingRecord2Swap :: TestTree
@@ -88,7 +148,7 @@ reorderingRecord2Swap =
       [r|
 unTransformer
   (genericReorderingTransformer :: Transformer A.Record2 C.Record2)
-  (A.Record2 1 "a")
+  (A.Record2A 1 "a")
 |]
 
 reorderingVariant3Swap :: TestTree
@@ -112,7 +172,7 @@ reorderingRecord3Swap =
       [r|
 unTransformer
   (genericReorderingTransformer :: Transformer A.Record3 B.Record3)
-  (A.Record3 1 "a" True)
+  (A.Record3A 1 "a" True)
 |]
 
 reorderingVariantRecord3Swap :: TestTree
@@ -132,8 +192,13 @@ transformerTests =
   testGroup
     "Transformers"
     [ reorderingVariant1Identity,
+      reorderingVariant1RenameConstructor,
+      reorderingVariant1AddedConstructor,
       reorderingVariantTuple1Identity,
       reorderingRecord1Identity,
+      reorderingRecord1NewtypeToData,
+      reorderingRecord1RenameField,
+      reorderingRecord1AddedField,
       reorderingVariant2Identity,
       reorderingVariant2Swap,
       reorderingRecord2Identity,
