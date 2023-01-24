@@ -52,7 +52,7 @@ data Record2 = Record2A
   deriving (Show)
 
 data Record2' = Record2'A
-  { _record2'A :: Variant1,
+  { _record2'A :: Int,
     _record2'B :: String
   }
   deriving (Show)

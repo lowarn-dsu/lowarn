@@ -8,7 +8,6 @@
 
 module Test.Lowarn.Types.TypesD
   ( Variant1 (..),
-    Variant1' (..),
     Record1 (..),
     Record2 (..),
   )
@@ -17,9 +16,6 @@ where
 import Lowarn.Transformer (deriveGeneric)
 
 data Variant1 = Variant1A | Variant1B
-  deriving (Show)
-
-data Variant1' = Variant1'A
   deriving (Show)
 
 data Record1 = Record1A
@@ -35,6 +31,5 @@ data Record2 = Record2A
   deriving (Show)
 
 deriveGeneric ''Variant1
-deriveGeneric ''Variant1'
 deriveGeneric ''Record1
 deriveGeneric ''Record2

@@ -50,15 +50,15 @@ testHaskell statements ioExpression =
   runInterpreter
     ( do
         unsafeSetGhcOption "-fconstraint-solver-iterations=12"
-        setImportsQ
+        setImportsQ $
           [ ("Prelude", Nothing),
             ("Lowarn", Nothing),
-            ("Lowarn.Transformer", Nothing),
-            ("Test.Lowarn.Types.TypesA", Just "A"),
-            ("Test.Lowarn.Types.TypesB", Just "B"),
-            ("Test.Lowarn.Types.TypesC", Just "C"),
-            ("Test.Lowarn.Types.TypesD", Just "D")
+            ("Lowarn.Transformer", Nothing)
           ]
+          <> ( map
+                 (\x -> ("Test.Lowarn.Types.Types" <> x, Just x))
+                 ["A", "B", "C", "D", "E"]
+             )
         mapM_ (runStmt . unStatement) statements
         typeChecksWithDetails (unExpression ioExpression) >>= \case
           Left ghcErrors ->

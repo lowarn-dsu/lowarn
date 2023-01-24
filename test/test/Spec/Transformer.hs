@@ -31,15 +31,27 @@ unTransformer
   A.Variant1A
 |]
 
-reorderingVariant1AddedConstructor :: TestTree
-reorderingVariant1AddedConstructor =
+reorderingVariant1AddConstructor :: TestTree
+reorderingVariant1AddConstructor =
   transformerGoldenTest
-    (show 'reorderingVariant1AddedConstructor)
+    (show 'reorderingVariant1AddConstructor)
     []
     $ Expression
       [r|
 unTransformer
   (genericReorderingTransformer :: Transformer A.Variant1 D.Variant1)
+  A.Variant1A
+|]
+
+reorderingVariant1RenameType :: TestTree
+reorderingVariant1RenameType =
+  transformerGoldenTest
+    (show 'reorderingVariant1RenameType)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.Variant1 E.Variant1')
   A.Variant1A
 |]
 
@@ -67,18 +79,6 @@ unTransformer
   (A.Record1A 1)
 |]
 
-reorderingRecord1NewtypeToData :: TestTree
-reorderingRecord1NewtypeToData =
-  transformerGoldenTest
-    (show 'reorderingRecord1NewtypeToData)
-    []
-    $ Expression
-      [r|
-unTransformer
-  (genericReorderingTransformer :: Transformer A.Record1' B.Record1')
-  (A.Record1'A 1)
-|]
-
 reorderingRecord1RenameField :: TestTree
 reorderingRecord1RenameField =
   transformerGoldenTest
@@ -91,16 +91,28 @@ unTransformer
   (A.Record1A 1)
 |]
 
-reorderingRecord1AddedField :: TestTree
-reorderingRecord1AddedField =
+reorderingRecord1AddField :: TestTree
+reorderingRecord1AddField =
   transformerGoldenTest
-    (show 'reorderingRecord1AddedField)
+    (show 'reorderingRecord1AddField)
     []
     $ Expression
       [r|
 unTransformer
   (genericReorderingTransformer :: Transformer A.Record1 D.Record1)
   (A.Record1A 1)
+|]
+
+reorderingRecord1Newtype :: TestTree
+reorderingRecord1Newtype =
+  transformerGoldenTest
+    (show 'reorderingRecord1Newtype)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.Record1' B.Record1')
+  (A.Record1'A 1)
 |]
 
 reorderingVariant2Identity :: TestTree
@@ -151,6 +163,18 @@ unTransformer
   (A.Record2A 1 "a")
 |]
 
+reorderingRecord2Rename :: TestTree
+reorderingRecord2Rename =
+  transformerGoldenTest
+    (show 'reorderingRecord2Rename)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.Record2 D.Record2)
+  (A.Record2A 1 "a")
+|]
+
 reorderingVariant3Swap :: TestTree
 reorderingVariant3Swap =
   transformerGoldenTest
@@ -193,16 +217,18 @@ transformerTests =
     "Transformers"
     [ reorderingVariant1Identity,
       reorderingVariant1RenameConstructor,
-      reorderingVariant1AddedConstructor,
+      reorderingVariant1AddConstructor,
+      reorderingVariant1RenameType,
       reorderingVariantTuple1Identity,
       reorderingRecord1Identity,
-      reorderingRecord1NewtypeToData,
       reorderingRecord1RenameField,
-      reorderingRecord1AddedField,
+      reorderingRecord1AddField,
+      reorderingRecord1Newtype,
       reorderingVariant2Identity,
       reorderingVariant2Swap,
       reorderingRecord2Identity,
       reorderingRecord2Swap,
+      reorderingRecord2Rename,
       reorderingVariant3Swap,
       reorderingRecord3Swap,
       reorderingVariantRecord3Swap

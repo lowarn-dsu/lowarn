@@ -13,7 +13,6 @@ module Test.Lowarn.Types.TypesB
     Record1' (..),
     Variant2 (..),
     Record2 (..),
-    Record2' (..),
     Variant3 (..),
     Record3 (..),
     VariantRecord3 (..),
@@ -44,12 +43,6 @@ data Variant2 = Variant2A | Variant2B
 data Record2 = Record2A
   { _record2A :: Int,
     _record2B :: String
-  }
-  deriving (Show)
-
-data Record2' = Record2'A
-  { _record2'A :: Variant1,
-    _record2'B :: String
   }
   deriving (Show)
 
@@ -87,7 +80,6 @@ deriveGeneric ''Record1
 deriveGeneric ''Record1'
 deriveGeneric ''Variant2
 deriveGeneric ''Record2
-deriveGeneric ''Record2'
 deriveGeneric ''Variant3
 deriveGeneric ''Record3
 deriveGeneric ''VariantRecord3

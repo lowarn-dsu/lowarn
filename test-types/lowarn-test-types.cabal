@@ -29,6 +29,7 @@ library
       Test.Lowarn.Types.TypesB
       Test.Lowarn.Types.TypesC
       Test.Lowarn.Types.TypesD
+      Test.Lowarn.Types.TypesE
   other-modules:
       Paths_lowarn_test_types
   hs-source-dirs:
