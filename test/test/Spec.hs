@@ -1,6 +1,7 @@
 import Spec.ManualDsu (manualDsuTests)
 import Spec.ProgramName (programNameTests)
 import Spec.Story (storyTests)
+import Spec.Transformer (transformerTests)
 import Spec.TransformerId (transformerIdTests)
 import Spec.VersionId (versionIdTests)
 import Spec.VersionNumber (versionNumberTests)
@@ -12,15 +13,20 @@ main =
   defaultMain
     $ testGroup
       "Lowarn"
-    $ withBinarySemaphore
-      ( \binarySemaphoreAction ->
-          testGroup
-            "Runtime"
-            $ [ manualDsuTests,
-                storyTests
-              ]
-              <*> [binarySemaphoreAction]
-      )
+    $ transformerTests
+      : after
+        AllFinish
+        "$1 == \"Transformers\""
+        ( withBinarySemaphore
+            ( \binarySemaphoreAction ->
+                testGroup
+                  "Runtime"
+                  $ [ manualDsuTests,
+                      storyTests
+                    ]
+                    <*> [binarySemaphoreAction]
+            )
+        )
       : ( after AllFinish "$1 == \"Runtime\""
             <$> [ versionNumberTests,
                   programNameTests,

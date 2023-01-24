@@ -34,7 +34,6 @@ import Control.Monad.Trans.Reader (ReaderT, asks, runReaderT)
 import Data.IORef (newIORef, readIORef, writeIORef)
 import Lowarn.Runtime (Runtime, runRuntime)
 import System.Exit (ExitCode (ExitFailure, ExitSuccess))
-import System.FilePath ((<.>), (</>))
 import System.IO
   ( BufferMode (LineBuffering),
     Handle,
@@ -57,9 +56,9 @@ import System.Posix
   )
 import System.Process (createPipe)
 import qualified System.Timeout as Timeout (timeout)
+import Test.Lowarn.Golden (goldenTest)
 import Test.Lowarn.Tasty (BinarySemaphore)
 import Test.Tasty (TestTree)
-import Test.Tasty.Golden (goldenVsFileDiff)
 import Text.Printf (printf)
 
 data StoryData = StoryData
@@ -222,15 +221,10 @@ storyGoldenTest ::
   IO BinarySemaphore ->
   TestTree
 storyGoldenTest testName getRuntime story timeout binarySemaphoreAction =
-  goldenVsFileDiff
+  goldenTest
     testName
-    (\a b -> ["diff", "-u", a, b])
-    (testPath <.> "golden")
-    (testPath <.> "log")
-    $ do
+    $ \logFile -> do
       binarySemaphore <- binarySemaphoreAction
       withMVar binarySemaphore $
         const $
-          runStory story getRuntime (testPath <.> "log") timeout
-  where
-    testPath = "test" </> "golden" </> testName
+          runStory story getRuntime logFile timeout

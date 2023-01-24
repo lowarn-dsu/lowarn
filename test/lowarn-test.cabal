@@ -27,6 +27,8 @@ extra-source-files:
     test/golden/Spec.Story.outputTimeout.golden
     test/golden/Spec.Story.pipeOrderingWithInputFirst.golden
     test/golden/Spec.Story.pipeOrderingWithOutputFirst.golden
+    test/golden/Spec.Transformer.reorderingRecord1.golden
+    test/golden/Spec.Transformer.reorderingVariant1.golden
 
 source-repository head
   type: git
@@ -34,9 +36,11 @@ source-repository head
 
 library
   exposed-modules:
+      Test.Lowarn.Golden
       Test.Lowarn.Property
       Test.Lowarn.Story
       Test.Lowarn.Tasty
+      Test.Lowarn.Transformer
   other-modules:
       Paths_lowarn_test
   hs-source-dirs:
@@ -46,6 +50,7 @@ library
       QuickCheck
     , base >=4.7 && <5
     , filepath
+    , hint >=0.9.0.6 && <0.9.1
     , lowarn
     , lowarn-runtime
     , process
@@ -75,6 +80,7 @@ test-suite lowarn-test
     , base >=4.7 && <5
     , filepath
     , following
+    , hint >=0.9.0.6 && <0.9.1
     , lowarn
     , lowarn-arbitrary
     , lowarn-runtime
