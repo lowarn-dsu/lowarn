@@ -7,10 +7,10 @@ import Test.Lowarn.Transformer (Expression (Expression), transformerGoldenTest)
 import Test.Tasty (TestTree, testGroup)
 import Text.RawString.QQ
 
-reorderingVariant1 :: TestTree
-reorderingVariant1 =
+reorderingVariant1Identity :: TestTree
+reorderingVariant1Identity =
   transformerGoldenTest
-    (show 'reorderingVariant1)
+    (show 'reorderingVariant1Identity)
     []
     $ Expression
       [r|
@@ -19,10 +19,10 @@ unTransformer
   A.Variant1
 |]
 
-reorderingVariantTuple1 :: TestTree
-reorderingVariantTuple1 =
+reorderingVariantTuple1Identity :: TestTree
+reorderingVariantTuple1Identity =
   transformerGoldenTest
-    (show 'reorderingVariantTuple1)
+    (show 'reorderingVariantTuple1Identity)
     []
     $ Expression
       [r|
@@ -31,10 +31,10 @@ unTransformer
   (A.VariantTuple1 1)
 |]
 
-reorderingRecord1 :: TestTree
-reorderingRecord1 =
+reorderingRecord1Identity :: TestTree
+reorderingRecord1Identity =
   transformerGoldenTest
-    (show 'reorderingRecord1)
+    (show 'reorderingRecord1Identity)
     []
     $ Expression
       [r|
@@ -91,15 +91,41 @@ unTransformer
   (A.Record2 1 "a")
 |]
 
+reorderingVariant3Swap :: TestTree
+reorderingVariant3Swap =
+  transformerGoldenTest
+    (show 'reorderingVariant3Swap)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.Variant3 B.Variant3)
+  A.Variant3A
+|]
+
+reorderingRecord3Swap :: TestTree
+reorderingRecord3Swap =
+  transformerGoldenTest
+    (show 'reorderingRecord3Swap)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.Record3 B.Record3)
+  (A.Record3 1 "a" True)
+|]
+
 transformerTests :: TestTree
 transformerTests =
   testGroup
     "Transformers"
-    [ reorderingVariant1,
-      reorderingVariantTuple1,
-      reorderingRecord1,
+    [ reorderingVariant1Identity,
+      reorderingVariantTuple1Identity,
+      reorderingRecord1Identity,
       reorderingVariant2Identity,
       reorderingVariant2Swap,
       reorderingRecord2Identity,
-      reorderingRecord2Swap
+      reorderingRecord2Swap,
+      reorderingVariant3Swap,
+      reorderingRecord3Swap
     ]

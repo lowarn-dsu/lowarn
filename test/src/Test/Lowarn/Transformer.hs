@@ -26,6 +26,7 @@ import Language.Haskell.Interpreter
     setImportsQ,
     typeChecksWithDetails,
   )
+import Language.Haskell.Interpreter.Unsafe (unsafeSetGhcOption)
 import Test.Lowarn.Golden (goldenTest)
 import Test.Tasty (TestTree)
 import Text.Printf (printf)
@@ -45,6 +46,7 @@ testHaskell :: [Statement] -> Expression -> IO String
 testHaskell statements ioExpression =
   runInterpreter
     ( do
+        unsafeSetGhcOption "-fconstraint-solver-iterations=12"
         setImportsQ
           [ ("Prelude", Nothing),
             ("Lowarn", Nothing),

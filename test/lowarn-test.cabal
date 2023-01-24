@@ -27,11 +27,15 @@ extra-source-files:
     test/golden/Spec.Story.outputTimeout.golden
     test/golden/Spec.Story.pipeOrderingWithInputFirst.golden
     test/golden/Spec.Story.pipeOrderingWithOutputFirst.golden
-    test/golden/Spec.Transformer.reorderingRecord1.golden
-    test/golden/Spec.Transformer.reorderingVariant1.golden
+    test/golden/Spec.Transformer.reorderingRecord1Identity.golden
+    test/golden/Spec.Transformer.reorderingRecord2Identity.golden
+    test/golden/Spec.Transformer.reorderingRecord2Swap.golden
+    test/golden/Spec.Transformer.reorderingRecord3Swap.golden
+    test/golden/Spec.Transformer.reorderingVariant1Identity.golden
     test/golden/Spec.Transformer.reorderingVariant2Identity.golden
     test/golden/Spec.Transformer.reorderingVariant2Swap.golden
-    test/golden/Spec.Transformer.reorderingVariantTuple1.golden
+    test/golden/Spec.Transformer.reorderingVariant3Swap.golden
+    test/golden/Spec.Transformer.reorderingVariantTuple1Identity.golden
 
 source-repository head
   type: git
