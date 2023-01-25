@@ -33,7 +33,7 @@ data Variant1 = Variant1A
 data VariantTuple1 = VariantTuple1A Int
   deriving (Show)
 
-data VariantTuple1' = VariantTuple1A' Int
+data VariantTuple1' = VariantTuple1'A Int
   deriving (Show)
 
 data Record1 = Record1A
@@ -90,17 +90,17 @@ data VariantRecord3
   deriving (Show)
 
 data VariantRecord3'
-  = VariantRecord3A'
+  = VariantRecord3'A
       { _variantRecord3'A :: Int,
         _variantRecord3'B :: String,
         _variantRecord3'C :: Bool
       }
-  | VariantRecord3B'
+  | VariantRecord3'B
       { _variantRecord3'C :: Bool,
         _variantRecord3'A :: Int,
         _variantRecord3'B :: String
       }
-  | VariantRecord3C'
+  | VariantRecord3'C
       { _variantRecord3'B :: String,
         _variantRecord3'C :: Bool,
         _variantRecord3'A :: Int

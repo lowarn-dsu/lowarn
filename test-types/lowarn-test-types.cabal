@@ -25,7 +25,10 @@ source-repository head
 
 library
   exposed-modules:
+      Test.Lowarn.Type.Instance.ConstructorNameAlias
+      Test.Lowarn.Type.Instance.DatatypeNameAlias
       Test.Lowarn.Type.Instance.Fail
+      Test.Lowarn.Type.Instance.FieldNameAlias
       Test.Lowarn.Type.TypesA
       Test.Lowarn.Type.TypesB
       Test.Lowarn.Type.TypesC

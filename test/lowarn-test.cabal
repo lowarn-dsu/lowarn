@@ -33,6 +33,13 @@ extra-source-files:
     test/golden/Spec.Transformer.genericVariantSwap.golden
     test/golden/Spec.Transformer.genericVariantTuple.golden
     test/golden/Spec.Transformer.identity.golden
+    test/golden/Spec.Transformer.renamingRecordSwap.golden
+    test/golden/Spec.Transformer.renamingRenameVariantRecord.golden
+    test/golden/Spec.Transformer.renamingRenameVariantTuple.golden
+    test/golden/Spec.Transformer.renamingVariantSwap.golden
+    test/golden/Spec.Transformer.renamingWithoutConstructorNameAliases.golden
+    test/golden/Spec.Transformer.renamingWithoutDatatypeNameAliases.golden
+    test/golden/Spec.Transformer.renamingWithoutFieldNameAliases.golden
     test/golden/Spec.Transformer.reorderingRecord1AddField.golden
     test/golden/Spec.Transformer.reorderingRecord1Identity.golden
     test/golden/Spec.Transformer.reorderingRecord1Newtype.golden

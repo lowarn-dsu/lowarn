@@ -11,6 +11,27 @@ import Test.Lowarn.Transformer
 import Test.Tasty (TestTree, testGroup)
 import Text.RawString.QQ
 
+failImports :: [Import]
+failImports = [Import "Test.Lowarn.Type.Instance.Fail"]
+
+datatypeNameAliasImport,
+  constructorNameAliasImport,
+  fieldNameAliasImport ::
+    Import
+datatypeNameAliasImport =
+  Import "Test.Lowarn.Type.Instance.DatatypeNameAlias"
+constructorNameAliasImport =
+  Import "Test.Lowarn.Type.Instance.ConstructorNameAlias"
+fieldNameAliasImport =
+  Import "Test.Lowarn.Type.Instance.FieldNameAlias"
+
+aliasImports :: [Import]
+aliasImports =
+  [ datatypeNameAliasImport,
+    constructorNameAliasImport,
+    fieldNameAliasImport
+  ]
+
 identity :: TestTree
 identity =
   transformerGoldenTest
@@ -39,7 +60,7 @@ traversableFail :: TestTree
 traversableFail =
   transformerGoldenTest
     (show 'traversableFail)
-    [Import "Test.Lowarn.Type.Instance.Fail"]
+    failImports
     $ Expression
       [r|
 unTransformer
@@ -107,15 +128,89 @@ unTransformer
   (A.Record2A 1 "a")
 |]
 
--- renamingVariantRecord
+renamingRenameVariantRecord :: TestTree
+renamingRenameVariantRecord =
+  transformerGoldenTest
+    (show 'renamingRenameVariantRecord)
+    aliasImports
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.VariantRecord3 A.VariantRecord3')
+  (A.VariantRecord3A 1 "a" True)
+|]
 
--- renamingVariantTuple
+renamingRenameVariantTuple :: TestTree
+renamingRenameVariantTuple =
+  transformerGoldenTest
+    (show 'renamingRenameVariantTuple)
+    aliasImports
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.VariantTuple1 A.VariantTuple1')
+  (A.VariantTuple1A 1)
+|]
 
--- renamingWithoutAliases
+renamingWithoutDatatypeNameAliases :: TestTree
+renamingWithoutDatatypeNameAliases =
+  transformerGoldenTest
+    (show 'renamingWithoutDatatypeNameAliases)
+    [constructorNameAliasImport, fieldNameAliasImport]
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.VariantRecord3 A.VariantRecord3')
+  (A.VariantRecord3A 1 "a" True)
+|]
 
--- renamingVariantSwap
+renamingWithoutConstructorNameAliases :: TestTree
+renamingWithoutConstructorNameAliases =
+  transformerGoldenTest
+    (show 'renamingWithoutConstructorNameAliases)
+    [datatypeNameAliasImport, fieldNameAliasImport]
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.VariantRecord3 A.VariantRecord3')
+  (A.VariantRecord3A 1 "a" True)
+|]
 
--- renamingRecordSwap
+renamingWithoutFieldNameAliases :: TestTree
+renamingWithoutFieldNameAliases =
+  transformerGoldenTest
+    (show 'renamingWithoutFieldNameAliases)
+    [datatypeNameAliasImport, constructorNameAliasImport]
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.VariantRecord3 A.VariantRecord3')
+  (A.VariantRecord3A 1 "a" True)
+|]
+
+renamingVariantSwap :: TestTree
+renamingVariantSwap =
+  transformerGoldenTest
+    (show 'renamingVariantSwap)
+    aliasImports
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.Variant2 C.Variant2)
+  A.Variant2A
+|]
+
+renamingRecordSwap :: TestTree
+renamingRecordSwap =
+  transformerGoldenTest
+    (show 'renamingRecordSwap)
+    aliasImports
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.Record2 C.Record2)
+  (A.Record2A 1 "a")
+|]
 
 reorderingVariant1Identity :: TestTree
 reorderingVariant1Identity =
@@ -393,6 +488,13 @@ transformerTests =
       genericFail,
       genericVariantSwap,
       genericRecordSwap,
+      renamingRenameVariantRecord,
+      renamingRenameVariantTuple,
+      renamingWithoutDatatypeNameAliases,
+      renamingWithoutConstructorNameAliases,
+      renamingWithoutFieldNameAliases,
+      renamingVariantSwap,
+      renamingRecordSwap,
       reorderingVariant1Identity,
       reorderingVariant1RenameConstructor,
       reorderingVariant1AddConstructor,
