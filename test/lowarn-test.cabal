@@ -44,6 +44,11 @@ extra-source-files:
     test/golden/Spec.Transformer.reorderingVariant3Swap.golden
     test/golden/Spec.Transformer.reorderingVariantRecord3Swap.golden
     test/golden/Spec.Transformer.reorderingVariantTuple1Identity.golden
+    test/golden/Spec.Transformer.unwrapData.golden
+    test/golden/Spec.Transformer.unwrapMultiple.golden
+    test/golden/Spec.Transformer.unwrapNewtype.golden
+    test/golden/Spec.Transformer.wrapData.golden
+    test/golden/Spec.Transformer.wrapNewtype.golden
 
 source-repository head
   type: git

@@ -211,6 +211,66 @@ unTransformer
   (A.VariantRecord3B True 1 "a")
 |]
 
+unwrapData :: TestTree
+unwrapData =
+  transformerGoldenTest
+    (show 'unwrapData)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericUnwrapTransformer :: Transformer A.Variant1Wrapper A.Variant1)
+  (A.Variant1Wrapper A.Variant1A)
+|]
+
+unwrapNewtype :: TestTree
+unwrapNewtype =
+  transformerGoldenTest
+    (show 'unwrapNewtype)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericUnwrapTransformer :: Transformer A.Variant1Wrapper' A.Variant1)
+  (A.Variant1Wrapper' A.Variant1A)
+|]
+
+unwrapMultiple :: TestTree
+unwrapMultiple =
+  transformerGoldenTest
+    (show 'unwrapMultiple)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericUnwrapTransformer :: Transformer A.Variant1Wrapper'' A.Variant1)
+  (A.Variant1Wrapper'' A.Variant1A A.Variant1A)
+|]
+
+wrapData :: TestTree
+wrapData =
+  transformerGoldenTest
+    (show 'wrapData)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericWrapTransformer :: Transformer A.Variant1 A.Variant1Wrapper)
+  A.Variant1A
+|]
+
+wrapNewtype :: TestTree
+wrapNewtype =
+  transformerGoldenTest
+    (show 'wrapNewtype)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericWrapTransformer :: Transformer A.Variant1 A.Variant1Wrapper')
+  A.Variant1A
+|]
+
 transformerTests :: TestTree
 transformerTests =
   testGroup
@@ -231,5 +291,10 @@ transformerTests =
       reorderingRecord2Rename,
       reorderingVariant3Swap,
       reorderingRecord3Swap,
-      reorderingVariantRecord3Swap
+      reorderingVariantRecord3Swap,
+      unwrapData,
+      unwrapNewtype,
+      unwrapMultiple,
+      wrapData,
+      wrapNewtype
     ]
