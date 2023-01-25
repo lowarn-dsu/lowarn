@@ -1,0 +1,35 @@
+Type checking errors:
+<interactive>:3:4: error:
+    • No instance for (Lowarn.Transformer.TakeWithSymbols'
+                         'False
+                         '[ '[]]
+                         '[ 'Lowarn.Transformer.SymbolWithSymbols "Variant1A" '[]]
+                         "Variant1'A"
+                         (Lowarn.Transformer.TakeWithSymbols'B
+                            'False
+                            '[ '[]]
+                            '[ 'Lowarn.Transformer.SymbolWithSymbols "Variant1A" '[]]
+                            "Variant1'A")
+                         (Lowarn.Transformer.TakeWithSymbols'Wb
+                            'False
+                            '[ '[]]
+                            '[ 'Lowarn.Transformer.SymbolWithSymbols "Variant1A" '[]]
+                            "Variant1'A")
+                         (Lowarn.Transformer.TakeWithSymbols'Cs
+                            'False
+                            '[ '[]]
+                            '[ 'Lowarn.Transformer.SymbolWithSymbols "Variant1A" '[]]
+                            "Variant1'A")
+                         (Lowarn.Transformer.TakeWithSymbols'Wcs
+                            'False
+                            '[ '[]]
+                            '[ 'Lowarn.Transformer.SymbolWithSymbols "Variant1A" '[]]
+                            "Variant1'A"))
+        arising from a use of ‘genericReorderingTransformer’
+    • In the first argument of ‘unTransformer’, namely
+        ‘(genericReorderingTransformer ::
+            Transformer A.Variant1 C.Variant1)’
+      In the expression:
+        unTransformer
+          (genericReorderingTransformer :: Transformer A.Variant1 C.Variant1)
+          A.Variant1A

@@ -1,0 +1,23 @@
+Type checking errors:
+<interactive>:3:4: error:
+    • No instance for (Lowarn.Transformer.Transformable'
+                         (Lowarn.Transformer.Equals
+                            (Lowarn.Transformer.TakeWithSymbols'B
+                               'False
+                               '[Int]
+                               '[ 'Lowarn.Transformer.SymbolWithSymbols "_record1A" '[]]
+                               "_record1'")
+                            Int)
+                         (Lowarn.Transformer.TakeWithSymbols'B
+                            'False
+                            '[Int]
+                            '[ 'Lowarn.Transformer.SymbolWithSymbols "_record1A" '[]]
+                            "_record1'")
+                         Int)
+        arising from a use of ‘genericReorderingTransformer’
+    • In the first argument of ‘unTransformer’, namely
+        ‘(genericReorderingTransformer :: Transformer A.Record1 C.Record1)’
+      In the expression:
+        unTransformer
+          (genericReorderingTransformer :: Transformer A.Record1 C.Record1)
+          (A.Record1A 1)

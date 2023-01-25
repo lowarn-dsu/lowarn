@@ -1,0 +1,46 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.1.
+--
+-- see: https://github.com/sol/hpack
+
+name:           lowarn-test-types
+version:        0.1.0.0
+synopsis:       Types for lowarn-test
+description:    Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/test-types#readme>
+category:       System
+homepage:       https://github.com/jonathanjameswatson/lowarn#readme
+bug-reports:    https://github.com/jonathanjameswatson/lowarn/issues
+author:         Jonathan Watson
+maintainer:     23344719+jonathanjameswatson@users.noreply.github.com
+copyright:      2022 Jonathan Watson
+license:        MIT
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/jonathanjameswatson/lowarn
+
+library
+  exposed-modules:
+      Test.Lowarn.Type.Instance.ConstructorNameAlias
+      Test.Lowarn.Type.Instance.DatatypeNameAlias
+      Test.Lowarn.Type.Instance.Fail
+      Test.Lowarn.Type.Instance.FieldNameAlias
+      Test.Lowarn.Type.TypesA
+      Test.Lowarn.Type.TypesB
+      Test.Lowarn.Type.TypesC
+      Test.Lowarn.Type.TypesD
+      Test.Lowarn.Type.TypesE
+  other-modules:
+      Paths_lowarn_test_types
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      base >=4.7 && <5
+    , lowarn
+    , lowarn-transformer
+  default-language: Haskell2010

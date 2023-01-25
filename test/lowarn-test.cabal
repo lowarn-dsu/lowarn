@@ -6,7 +6,7 @@ cabal-version: 1.12
 
 name:           lowarn-test
 version:        0.1.0.0
-synopsis:       Testing utilities and test suite for lowarn
+synopsis:       Testing utilities and test suite for Lowarn
 description:    Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/test#readme>
 category:       System
 homepage:       https://github.com/jonathanjameswatson/lowarn#readme
@@ -27,6 +27,46 @@ extra-source-files:
     test/golden/Spec.Story.outputTimeout.golden
     test/golden/Spec.Story.pipeOrderingWithInputFirst.golden
     test/golden/Spec.Story.pipeOrderingWithOutputFirst.golden
+    test/golden/Spec.Transformer.coerceData.golden
+    test/golden/Spec.Transformer.coerceNewtype.golden
+    test/golden/Spec.Transformer.genericFail.golden
+    test/golden/Spec.Transformer.genericRecordSwap.golden
+    test/golden/Spec.Transformer.genericVariantRecord.golden
+    test/golden/Spec.Transformer.genericVariantSwap.golden
+    test/golden/Spec.Transformer.genericVariantTuple.golden
+    test/golden/Spec.Transformer.identity.golden
+    test/golden/Spec.Transformer.renamingIdentity.golden
+    test/golden/Spec.Transformer.renamingRecordSwap.golden
+    test/golden/Spec.Transformer.renamingRenameVariantRecord.golden
+    test/golden/Spec.Transformer.renamingRenameVariantTuple.golden
+    test/golden/Spec.Transformer.renamingVariantSwap.golden
+    test/golden/Spec.Transformer.renamingWithoutConstructorNameAliases.golden
+    test/golden/Spec.Transformer.renamingWithoutDatatypeNameAliases.golden
+    test/golden/Spec.Transformer.renamingWithoutFieldNameAliases.golden
+    test/golden/Spec.Transformer.reorderingRecord1AddField.golden
+    test/golden/Spec.Transformer.reorderingRecord1Identity.golden
+    test/golden/Spec.Transformer.reorderingRecord1Newtype.golden
+    test/golden/Spec.Transformer.reorderingRecord1RenameField.golden
+    test/golden/Spec.Transformer.reorderingRecord2Identity.golden
+    test/golden/Spec.Transformer.reorderingRecord2Rename.golden
+    test/golden/Spec.Transformer.reorderingRecord2Swap.golden
+    test/golden/Spec.Transformer.reorderingRecord3Swap.golden
+    test/golden/Spec.Transformer.reorderingVariant1AddConstructor.golden
+    test/golden/Spec.Transformer.reorderingVariant1Identity.golden
+    test/golden/Spec.Transformer.reorderingVariant1RenameConstructor.golden
+    test/golden/Spec.Transformer.reorderingVariant1RenameType.golden
+    test/golden/Spec.Transformer.reorderingVariant2Identity.golden
+    test/golden/Spec.Transformer.reorderingVariant2Swap.golden
+    test/golden/Spec.Transformer.reorderingVariant3Swap.golden
+    test/golden/Spec.Transformer.reorderingVariantRecord3Swap.golden
+    test/golden/Spec.Transformer.reorderingVariantTuple1Identity.golden
+    test/golden/Spec.Transformer.traversable.golden
+    test/golden/Spec.Transformer.traversableFail.golden
+    test/golden/Spec.Transformer.unwrapData.golden
+    test/golden/Spec.Transformer.unwrapMultiple.golden
+    test/golden/Spec.Transformer.unwrapNewtype.golden
+    test/golden/Spec.Transformer.wrapData.golden
+    test/golden/Spec.Transformer.wrapNewtype.golden
 
 source-repository head
   type: git
@@ -34,9 +74,11 @@ source-repository head
 
 library
   exposed-modules:
+      Test.Lowarn.Golden
       Test.Lowarn.Property
       Test.Lowarn.Story
       Test.Lowarn.Tasty
+      Test.Lowarn.Transformer
   other-modules:
       Paths_lowarn_test
   hs-source-dirs:
@@ -46,9 +88,12 @@ library
       QuickCheck
     , base >=4.7 && <5
     , filepath
+    , generics-sop >=0.5.1 && <0.6
+    , hint >=0.9.0.6 && <0.9.1
     , lowarn
     , lowarn-runtime
     , process
+    , sop-core
     , tasty
     , tasty-golden
     , transformers
@@ -62,6 +107,7 @@ test-suite lowarn-test
       Spec.ManualDsu
       Spec.ProgramName
       Spec.Story
+      Spec.Transformer
       Spec.TransformerId
       Spec.VersionId
       Spec.VersionNumber
@@ -74,10 +120,14 @@ test-suite lowarn-test
     , base >=4.7 && <5
     , filepath
     , following
+    , generics-sop >=0.5.1 && <0.6
+    , hint >=0.9.0.6 && <0.9.1
     , lowarn
     , lowarn-arbitrary
     , lowarn-runtime
     , lowarn-test
+    , lowarn-test-types
+    , lowarn-transformer
     , lowarn-transformer-following-v0-v1v0v0
     , lowarn-transformer-following-v1v0v0-v2v0v0
     , lowarn-transformer-following-v2v0v0-v3v0v0
@@ -92,6 +142,8 @@ test-suite lowarn-test
     , lowarn-version-manual-following-v3v0v0
     , manual-following
     , process
+    , raw-strings-qq
+    , sop-core
     , tasty
     , tasty-golden
     , tasty-quickcheck

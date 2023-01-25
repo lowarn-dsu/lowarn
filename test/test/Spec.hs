@@ -1,6 +1,7 @@
 import Spec.ManualDsu (manualDsuTests)
 import Spec.ProgramName (programNameTests)
 import Spec.Story (storyTests)
+import Spec.Transformer (transformerTests)
 import Spec.TransformerId (transformerIdTests)
 import Spec.VersionId (versionIdTests)
 import Spec.VersionNumber (versionNumberTests)
@@ -25,6 +26,7 @@ main =
             <$> [ versionNumberTests,
                   programNameTests,
                   versionIdTests,
-                  transformerIdTests
+                  transformerIdTests,
+                  transformerTests
                 ]
         )

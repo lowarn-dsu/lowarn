@@ -1,0 +1,15 @@
+Type checking errors:
+<interactive>:3:4: error:
+    • No instance for (Lowarn.Transformer.OrderWithSymbols
+                         '[]
+                         '[]
+                         '["_record1B"]
+                         '[t0]
+                         (Lowarn.Transformer.OrderWithSymbolsWbs '[] '[] '["_record1B"]))
+        arising from a use of ‘genericReorderingTransformer’
+    • In the first argument of ‘unTransformer’, namely
+        ‘(genericReorderingTransformer :: Transformer A.Record1 D.Record1)’
+      In the expression:
+        unTransformer
+          (genericReorderingTransformer :: Transformer A.Record1 D.Record1)
+          (A.Record1A 1)

@@ -1,0 +1,13 @@
+Type checking errors:
+<interactive>:3:4: error:
+    • Couldn't match type: '[A.Variant1]
+                     with: '[]
+        arising from a use of ‘genericUnwrapTransformer’
+    • In the first argument of ‘unTransformer’, namely
+        ‘(genericUnwrapTransformer ::
+            Transformer A.Variant1Wrapper'' A.Variant1)’
+      In the expression:
+        unTransformer
+          (genericUnwrapTransformer ::
+             Transformer A.Variant1Wrapper'' A.Variant1)
+          (A.Variant1Wrapper'' A.Variant1A A.Variant1A)
