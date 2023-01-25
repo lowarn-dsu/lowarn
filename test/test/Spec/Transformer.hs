@@ -11,10 +11,10 @@ import Test.Lowarn.Transformer
 import Test.Tasty (TestTree, testGroup)
 import Text.RawString.QQ
 
-identityTransformer :: TestTree
-identityTransformer =
+identity :: TestTree
+identity =
   transformerGoldenTest
-    (show 'identityTransformer)
+    (show 'identity)
     []
     $ Expression
       [r|
@@ -23,10 +23,10 @@ unTransformer
   0
 |]
 
-traversableTransformer :: TestTree
-traversableTransformer =
+traversable :: TestTree
+traversable =
   transformerGoldenTest
-    (show 'traversableTransformer)
+    (show 'traversable)
     []
     $ Expression
       [r|
@@ -35,10 +35,10 @@ unTransformer
   [A.Record1A 0, A.Record1A 1, A.Record1A 2]
 |]
 
-traversableTransformerFail :: TestTree
-traversableTransformerFail =
+traversableFail :: TestTree
+traversableFail =
   transformerGoldenTest
-    (show 'traversableTransformerFail)
+    (show 'traversableFail)
     [Import "Test.Lowarn.Type.Instance.Fail"]
     $ Expression
       [r|
@@ -385,9 +385,9 @@ transformerTests :: TestTree
 transformerTests =
   testGroup
     "Transformers"
-    [ identityTransformer,
-      traversableTransformer,
-      traversableTransformerFail,
+    [ identity,
+      traversable,
+      traversableFail,
       genericVariantRecord,
       genericVariantTuple,
       genericFail,
