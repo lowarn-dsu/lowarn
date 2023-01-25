@@ -18,15 +18,17 @@ description:         Please see the README on GitHub at <https://github.com/jona
 dependencies:
 - base >= 4.7 && < 5
 - filepath
+- generics-sop >= 0.5.1 && < 0.6
+- hint >= 0.9.0.6 && < 0.9.1
 - lowarn
 - lowarn-runtime
 - process
 - QuickCheck
+- sop-core
 - tasty
 - tasty-golden
 - transformers
 - unix
-- hint >= 0.9.0.6 && < 0.9.1
 
 ghc-options:
 - -Wall

@@ -53,7 +53,9 @@ testHaskell statements ioExpression =
         setImportsQ $
           [ ("Prelude", Nothing),
             ("Lowarn", Nothing),
-            ("Lowarn.Transformer", Nothing)
+            ("Lowarn.Transformer", Nothing),
+            ("Generics.SOP.Universe", Just "Generics.SOP.Universe"),
+            ("Data.SOP.Constraint", Just "Data.SOP.Constraint")
           ]
             <> map
               (\x -> ("Test.Lowarn.Types.Types" <> x, Just x))

@@ -1,11 +1,8 @@
 Type checking errors:
 <interactive>:3:4: error:
-    • Couldn't match type: generics-sop-0.5.1.2:Generics.SOP.Universe.Code
-                             Int
-                     with: sop-core-0.5.0.2:Data.SOP.Constraint.Head
-                             (generics-sop-0.5.1.2:Generics.SOP.Universe.Code Int)
-                             : sop-core-0.5.0.2:Data.SOP.Constraint.Tail
-                                 (generics-sop-0.5.1.2:Generics.SOP.Universe.Code Int)
+    • Couldn't match type: Generics.SOP.Universe.Code Int
+                     with: Data.SOP.Constraint.Head (Generics.SOP.Universe.Code Int)
+                             : Data.SOP.Constraint.Tail (Generics.SOP.Universe.Code Int)
         arising from a use of ‘genericReorderingTransformer’
     • In the first argument of ‘unTransformer’, namely
         ‘(genericReorderingTransformer :: Transformer A.Record2 D.Record2)’

@@ -72,10 +72,12 @@ library
       QuickCheck
     , base >=4.7 && <5
     , filepath
+    , generics-sop >=0.5.1 && <0.6
     , hint >=0.9.0.6 && <0.9.1
     , lowarn
     , lowarn-runtime
     , process
+    , sop-core
     , tasty
     , tasty-golden
     , transformers
@@ -102,6 +104,7 @@ test-suite lowarn-test
     , base >=4.7 && <5
     , filepath
     , following
+    , generics-sop >=0.5.1 && <0.6
     , hint >=0.9.0.6 && <0.9.1
     , lowarn
     , lowarn-arbitrary
@@ -124,6 +127,7 @@ test-suite lowarn-test
     , manual-following
     , process
     , raw-strings-qq
+    , sop-core
     , tasty
     , tasty-golden
     , tasty-quickcheck
