@@ -488,6 +488,30 @@ unTransformer
   A.Variant1A
 |]
 
+coerceData :: TestTree
+coerceData =
+  transformerGoldenTest
+    (show 'coerceData)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (coerceTransformer :: Transformer A.Variant1 A.Variant1Wrapper)
+  A.Variant1A
+|]
+
+coerceNewtype :: TestTree
+coerceNewtype =
+  transformerGoldenTest
+    (show 'coerceNewtype)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (coerceTransformer :: Transformer A.Variant1 A.Variant1Wrapper')
+  A.Variant1A
+|]
+
 transformerTests :: TestTree
 transformerTests =
   testGroup
@@ -529,5 +553,7 @@ transformerTests =
       unwrapNewtype,
       unwrapMultiple,
       wrapData,
-      wrapNewtype
+      wrapNewtype,
+      coerceData,
+      coerceNewtype
     ]
