@@ -55,10 +55,9 @@ testHaskell statements ioExpression =
             ("Lowarn", Nothing),
             ("Lowarn.Transformer", Nothing)
           ]
-          <> ( map
-                 (\x -> ("Test.Lowarn.Types.Types" <> x, Just x))
-                 ["A", "B", "C", "D", "E"]
-             )
+            <> map
+              (\x -> ("Test.Lowarn.Types.Types" <> x, Just x))
+              ["A", "B", "C", "D", "E"]
         mapM_ (runStmt . unStatement) statements
         typeChecksWithDetails (unExpression ioExpression) >>= \case
           Left ghcErrors ->
