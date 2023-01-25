@@ -8,7 +8,7 @@
 --
 -- Module for testing transformers with Lowarn.
 module Test.Lowarn.Transformer
-  ( Statement (Statement),
+  ( Import (Import),
     Expression (Expression),
     transformerGoldenTest,
   )
@@ -31,8 +31,8 @@ import Test.Lowarn.Golden (goldenTest)
 import Test.Tasty (TestTree)
 import Text.Printf (printf)
 
-newtype Statement = Statement
-  { unStatement :: String
+newtype Import = Import
+  { unImport :: String
   }
 
 newtype Expression = Expression
@@ -45,8 +45,8 @@ ghcErrorsToString = unlines . map errMsg
 addNewline :: String -> String
 addNewline s = if last s == '\n' then s else s <> "\n"
 
-testHaskell :: [Statement] -> Expression -> IO String
-testHaskell statements ioExpression =
+testHaskell :: [Import] -> Expression -> IO String
+testHaskell imports ioExpression =
   runInterpreter
     ( do
         unsafeSetGhcOption "-fconstraint-solver-iterations=12"
@@ -60,7 +60,9 @@ testHaskell statements ioExpression =
             <> map
               (\x -> ("Test.Lowarn.Types.Types" <> x, Just x))
               ["A", "B", "C", "D", "E"]
-        mapM_ (runStmt . unStatement) statements
+            <> map
+              (\i -> (unImport i, Nothing))
+              imports
         typeChecksWithDetails (unExpression ioExpression) >>= \case
           Left ghcErrors ->
             return
@@ -91,11 +93,11 @@ testHaskell statements ioExpression =
 
 transformerGoldenTest ::
   String ->
-  [Statement] ->
+  [Import] ->
   Expression ->
   TestTree
-transformerGoldenTest testName statements ioExpression =
+transformerGoldenTest testName imports ioExpression =
   goldenTest
     testName
     $ \logFile ->
-      writeFile logFile . addNewline =<< testHaskell statements ioExpression
+      writeFile logFile . addNewline =<< testHaskell imports ioExpression
