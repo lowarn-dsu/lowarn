@@ -13,24 +13,20 @@ main =
   defaultMain
     $ testGroup
       "Lowarn"
-    $ transformerTests
-      : after
-        AllFinish
-        "$1 == \"Transformers\""
-        ( withBinarySemaphore
-            ( \binarySemaphoreAction ->
-                testGroup
-                  "Runtime"
-                  $ [ manualDsuTests,
-                      storyTests
-                    ]
-                    <*> [binarySemaphoreAction]
-            )
-        )
+    $ withBinarySemaphore
+      ( \binarySemaphoreAction ->
+          testGroup
+            "Runtime"
+            $ [ manualDsuTests,
+                storyTests
+              ]
+              <*> [binarySemaphoreAction]
+      )
       : ( after AllFinish "$1 == \"Runtime\""
             <$> [ versionNumberTests,
                   programNameTests,
                   versionIdTests,
-                  transformerIdTests
+                  transformerIdTests,
+                  transformerTests
                 ]
         )
