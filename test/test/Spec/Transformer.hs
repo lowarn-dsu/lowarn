@@ -7,6 +7,30 @@ import Test.Lowarn.Transformer (Expression (Expression), transformerGoldenTest)
 import Test.Tasty (TestTree, testGroup)
 import Text.RawString.QQ
 
+identityTransformer :: TestTree
+identityTransformer =
+  transformerGoldenTest
+    (show 'identityTransformer)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (transformer :: Transformer Int Int)
+  0
+|]
+
+traversableTransformer :: TestTree
+traversableTransformer =
+  transformerGoldenTest
+    (show 'traversableTransformer)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (traversableTransformer :: Transformer [A.Record1] [B.Record1])
+  [A.Record1A 0, A.Record1A 1, A.Record1A 2]
+|]
+
 reorderingVariant1Identity :: TestTree
 reorderingVariant1Identity =
   transformerGoldenTest
@@ -275,7 +299,9 @@ transformerTests :: TestTree
 transformerTests =
   testGroup
     "Transformers"
-    [ reorderingVariant1Identity,
+    [ identityTransformer,
+      traversableTransformer,
+      reorderingVariant1Identity,
       reorderingVariant1RenameConstructor,
       reorderingVariant1AddConstructor,
       reorderingVariant1RenameType,

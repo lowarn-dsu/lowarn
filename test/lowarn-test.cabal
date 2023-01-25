@@ -27,6 +27,7 @@ extra-source-files:
     test/golden/Spec.Story.outputTimeout.golden
     test/golden/Spec.Story.pipeOrderingWithInputFirst.golden
     test/golden/Spec.Story.pipeOrderingWithOutputFirst.golden
+    test/golden/Spec.Transformer.identityTransformer.golden
     test/golden/Spec.Transformer.reorderingRecord1AddField.golden
     test/golden/Spec.Transformer.reorderingRecord1Identity.golden
     test/golden/Spec.Transformer.reorderingRecord1Newtype.golden
@@ -44,6 +45,7 @@ extra-source-files:
     test/golden/Spec.Transformer.reorderingVariant3Swap.golden
     test/golden/Spec.Transformer.reorderingVariantRecord3Swap.golden
     test/golden/Spec.Transformer.reorderingVariantTuple1Identity.golden
+    test/golden/Spec.Transformer.traversableTransformer.golden
     test/golden/Spec.Transformer.unwrapData.golden
     test/golden/Spec.Transformer.unwrapMultiple.golden
     test/golden/Spec.Transformer.unwrapNewtype.golden
