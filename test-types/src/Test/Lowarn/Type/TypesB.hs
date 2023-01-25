@@ -16,6 +16,7 @@ module Test.Lowarn.Type.TypesB
     Variant3 (..),
     Record3 (..),
     VariantRecord3 (..),
+    Variant1Wrapper (..),
   )
 where
 
@@ -74,6 +75,9 @@ data VariantRecord3
       }
   deriving (Show)
 
+data Variant1Wrapper = Variant1Wrapper Variant1
+  deriving (Show)
+
 deriveGeneric ''Variant1
 deriveGeneric ''VariantTuple1
 deriveGeneric ''Record1
@@ -83,3 +87,4 @@ deriveGeneric ''Record2
 deriveGeneric ''Variant3
 deriveGeneric ''Record3
 deriveGeneric ''VariantRecord3
+deriveGeneric ''Variant1Wrapper

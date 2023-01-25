@@ -47,6 +47,76 @@ unTransformer
   [A.Variant2A, A.Variant2B, A.Variant2A]
 |]
 
+genericVariantRecord :: TestTree
+genericVariantRecord =
+  transformerGoldenTest
+    (show 'genericVariantRecord)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericTransformer :: Transformer A.VariantRecord3 A.VariantRecord3')
+  (A.VariantRecord3A 1 "a" True)
+|]
+
+genericVariantTuple :: TestTree
+genericVariantTuple =
+  transformerGoldenTest
+    (show 'genericVariantTuple)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericTransformer :: Transformer A.VariantTuple1 A.VariantTuple1')
+  (A.VariantTuple1A 1)
+|]
+
+genericFail :: TestTree
+genericFail =
+  transformerGoldenTest
+    (show 'genericFail)
+    [Import "Test.Lowarn.Type.Instance.Fail"]
+    $ Expression
+      [r|
+unTransformer
+  (genericTransformer :: Transformer A.Variant1Wrapper B.Variant1Wrapper)
+  (A.Variant1Wrapper A.Variant1A)
+|]
+
+genericVariantSwap :: TestTree
+genericVariantSwap =
+  transformerGoldenTest
+    (show 'genericVariantSwap)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericTransformer :: Transformer A.Variant2 C.Variant2)
+  A.Variant2A
+|]
+
+genericRecordSwap :: TestTree
+genericRecordSwap =
+  transformerGoldenTest
+    (show 'genericRecordSwap)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericTransformer :: Transformer A.Record2 C.Record2)
+  (A.Record2A 1 "a")
+|]
+
+-- renamingVariantRecord
+
+-- renamingVariantTuple
+
+-- renamingWithoutAliases
+
+-- renamingVariantSwap
+
+-- renamingRecordSwap
+
 reorderingVariant1Identity :: TestTree
 reorderingVariant1Identity =
   transformerGoldenTest
@@ -318,6 +388,11 @@ transformerTests =
     [ identityTransformer,
       traversableTransformer,
       traversableTransformerFail,
+      genericVariantRecord,
+      genericVariantTuple,
+      genericFail,
+      genericVariantSwap,
+      genericRecordSwap,
       reorderingVariant1Identity,
       reorderingVariant1RenameConstructor,
       reorderingVariant1AddConstructor,

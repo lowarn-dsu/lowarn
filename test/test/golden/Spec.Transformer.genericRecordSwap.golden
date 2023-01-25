@@ -1,0 +1,17 @@
+Type checking errors:
+<interactive>:3:4: error:
+    • Couldn't match type: Lowarn.Transformer.ConstructorInfosOf
+                             (Generics.SOP.Universe.DatatypeInfoOf Int)
+                     with: Data.SOP.Constraint.Head
+                             (Lowarn.Transformer.ConstructorInfosOf
+                                (Generics.SOP.Universe.DatatypeInfoOf Int))
+                             : Data.SOP.Constraint.Tail
+                                 (Lowarn.Transformer.ConstructorInfosOf
+                                    (Generics.SOP.Universe.DatatypeInfoOf Int))
+        arising from a use of ‘genericTransformer’
+    • In the first argument of ‘unTransformer’, namely
+        ‘(genericTransformer :: Transformer A.Record2 C.Record2)’
+      In the expression:
+        unTransformer
+          (genericTransformer :: Transformer A.Record2 C.Record2)
+          (A.Record2A 1 "a")
