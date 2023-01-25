@@ -3,7 +3,11 @@
 
 module Spec.Transformer (transformerTests) where
 
-import Test.Lowarn.Transformer (Expression (Expression), transformerGoldenTest)
+import Test.Lowarn.Transformer
+  ( Expression (Expression),
+    Import (Import),
+    transformerGoldenTest,
+  )
 import Test.Tasty (TestTree, testGroup)
 import Text.RawString.QQ
 
@@ -29,6 +33,18 @@ traversableTransformer =
 unTransformer
   (traversableTransformer :: Transformer [A.Record1] [B.Record1])
   [A.Record1A 0, A.Record1A 1, A.Record1A 2]
+|]
+
+traversableTransformerFail :: TestTree
+traversableTransformerFail =
+  transformerGoldenTest
+    (show 'traversableTransformerFail)
+    [Import "Test.Lowarn.Type.Instance.Fail"]
+    $ Expression
+      [r|
+unTransformer
+  (traversableTransformer :: Transformer [A.Variant2] [B.Variant2])
+  [A.Variant2A, A.Variant2B, A.Variant2A]
 |]
 
 reorderingVariant1Identity :: TestTree
@@ -301,6 +317,7 @@ transformerTests =
     "Transformers"
     [ identityTransformer,
       traversableTransformer,
+      traversableTransformerFail,
       reorderingVariant1Identity,
       reorderingVariant1RenameConstructor,
       reorderingVariant1AddConstructor,
