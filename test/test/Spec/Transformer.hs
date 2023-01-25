@@ -128,6 +128,18 @@ unTransformer
   (A.Record2A 1 "a")
 |]
 
+renamingIdentity :: TestTree
+renamingIdentity =
+  transformerGoldenTest
+    (show 'renamingIdentity)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.Record2 B.Record2)
+  (A.Record2A 1 "a")
+|]
+
 renamingRenameVariantRecord :: TestTree
 renamingRenameVariantRecord =
   transformerGoldenTest
@@ -488,6 +500,7 @@ transformerTests =
       genericFail,
       genericVariantSwap,
       genericRecordSwap,
+      renamingIdentity,
       renamingRenameVariantRecord,
       renamingRenameVariantTuple,
       renamingWithoutDatatypeNameAliases,
