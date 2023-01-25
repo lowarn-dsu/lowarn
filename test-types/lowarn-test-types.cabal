@@ -25,11 +25,11 @@ source-repository head
 
 library
   exposed-modules:
-      Test.Lowarn.Types.TypesA
-      Test.Lowarn.Types.TypesB
-      Test.Lowarn.Types.TypesC
-      Test.Lowarn.Types.TypesD
-      Test.Lowarn.Types.TypesE
+      Test.Lowarn.Type.TypesA
+      Test.Lowarn.Type.TypesB
+      Test.Lowarn.Type.TypesC
+      Test.Lowarn.Type.TypesD
+      Test.Lowarn.Type.TypesE
   other-modules:
       Paths_lowarn_test_types
   hs-source-dirs:

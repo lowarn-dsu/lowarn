@@ -6,7 +6,7 @@
 
 {-# HLINT ignore "Use newtype instead of data" #-}
 
-module Test.Lowarn.Types.TypesE (Variant1' (..)) where
+module Test.Lowarn.Type.TypesE (Variant1' (..)) where
 
 import Lowarn.Transformer (deriveGeneric)
 

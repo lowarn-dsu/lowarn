@@ -58,7 +58,7 @@ testHaskell imports ioExpression =
             ("Data.SOP.Constraint", Just "Data.SOP.Constraint")
           ]
             <> map
-              (\x -> ("Test.Lowarn.Types.Types" <> x, Just x))
+              (\x -> ("Test.Lowarn.Type.Types" <> x, Just x))
               ["A", "B", "C", "D", "E"]
             <> map
               (\i -> (unImport i, Nothing))

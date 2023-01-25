@@ -6,7 +6,7 @@
 
 {-# HLINT ignore "Use newtype instead of data" #-}
 
-module Test.Lowarn.Types.TypesB
+module Test.Lowarn.Type.TypesB
   ( Variant1 (..),
     VariantTuple1 (..),
     Record1 (..),
