@@ -6,6 +6,13 @@
 
 {-# HLINT ignore "Use newtype instead of data" #-}
 
+-- |
+-- Module                  : Test.Lowarn.Type.TypesC
+-- SPDX-License-Identifier : MIT
+-- Stability               : experimental
+-- Portability             : non-portable (GHC)
+--
+-- Module for types for testing lowarn-transformer.
 module Test.Lowarn.Type.TypesC
   ( Variant1 (..),
     Record1 (..),

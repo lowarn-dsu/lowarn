@@ -6,6 +6,13 @@
 
 {-# HLINT ignore "Use newtype instead of data" #-}
 
+-- |
+-- Module                  : Test.Lowarn.Type.TypesA
+-- SPDX-License-Identifier : MIT
+-- Stability               : experimental
+-- Portability             : non-portable (GHC)
+--
+-- Module for types for testing lowarn-transformer.
 module Test.Lowarn.Type.TypesA
   ( Variant1 (..),
     VariantTuple1 (..),
