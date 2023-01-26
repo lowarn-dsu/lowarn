@@ -16,3 +16,7 @@ import Lowarn.Transformer (DatatypeNameAlias)
 instance DatatypeNameAlias "VariantUnlabelled3" "VariantUnlabelled3'"
 
 instance DatatypeNameAlias "VariantRecord3" "VariantRecord3'"
+
+instance DatatypeNameAlias "VariantUnlabelled3" "VariantRecord3"
+
+instance DatatypeNameAlias "VariantRecord3" "VariantUnlabelled3"

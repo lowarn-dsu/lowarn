@@ -248,6 +248,30 @@ unTransformer
   (A.Record2A 1 "a")
 |]
 
+renamingUnlabelledToRecord :: TestTree
+renamingUnlabelledToRecord =
+  transformerGoldenTest
+    (show 'renamingUnlabelledToRecord)
+    aliasImports
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.VariantUnlabelled3 A.VariantRecord3)
+  (A.VariantUnlabelled3A 1 "a" True)
+|]
+
+renamingRecordToUnlabelled :: TestTree
+renamingRecordToUnlabelled =
+  transformerGoldenTest
+    (show 'renamingRecordToUnlabelled)
+    aliasImports
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.VariantRecord3 A.VariantUnlabelled3)
+  (A.VariantRecord3A 1 "a" True)
+|]
+
 reorderingVariant1Identity :: TestTree
 reorderingVariant1Identity =
   transformerGoldenTest
@@ -606,6 +630,8 @@ transformerTests =
       renamingWithoutFieldNameAliases,
       renamingVariantSwap,
       renamingRecordSwap,
+      renamingUnlabelledToRecord,
+      renamingRecordToUnlabelled,
       reorderingVariant1Identity,
       reorderingVariant1RenameConstructor,
       reorderingVariant1AddConstructor,
