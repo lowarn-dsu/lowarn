@@ -1,8 +1,56 @@
 Type checking errors:
 <interactive>:3:4: error:
-    • Couldn't match type: '[Char, [Char]]
-                     with: '[]
-        arising from a use of ‘genericReorderingTransformer’
+    • Datatype name "Bool" doesn't match datatype name "[]".
+    • In the first argument of ‘unTransformer’, namely
+        ‘(genericReorderingTransformer ::
+            Transformer A.VariantUnlabelled3 C.VariantUnlabelled3)’
+      In the expression:
+        unTransformer
+          (genericReorderingTransformer ::
+             Transformer A.VariantUnlabelled3 C.VariantUnlabelled3)
+          (A.VariantUnlabelled3B True 1 "a")
+<interactive>:3:4: error:
+    • Constructor name "False" doesn't match constructor name "[]".
+    • In the first argument of ‘unTransformer’, namely
+        ‘(genericReorderingTransformer ::
+            Transformer A.VariantUnlabelled3 C.VariantUnlabelled3)’
+      In the expression:
+        unTransformer
+          (genericReorderingTransformer ::
+             Transformer A.VariantUnlabelled3 C.VariantUnlabelled3)
+          (A.VariantUnlabelled3B True 1 "a")
+<interactive>:3:4: error:
+    • Constructor name "True" doesn't match constructor name ":".
+    • In the first argument of ‘unTransformer’, namely
+        ‘(genericReorderingTransformer ::
+            Transformer A.VariantUnlabelled3 C.VariantUnlabelled3)’
+      In the expression:
+        unTransformer
+          (genericReorderingTransformer ::
+             Transformer A.VariantUnlabelled3 C.VariantUnlabelled3)
+          (A.VariantUnlabelled3B True 1 "a")
+<interactive>:3:4: error:
+    • Datatype name "[]" doesn't match datatype name "Bool".
+    • In the first argument of ‘unTransformer’, namely
+        ‘(genericReorderingTransformer ::
+            Transformer A.VariantUnlabelled3 C.VariantUnlabelled3)’
+      In the expression:
+        unTransformer
+          (genericReorderingTransformer ::
+             Transformer A.VariantUnlabelled3 C.VariantUnlabelled3)
+          (A.VariantUnlabelled3B True 1 "a")
+<interactive>:3:4: error:
+    • Constructor name "[]" doesn't match constructor name "False".
+    • In the first argument of ‘unTransformer’, namely
+        ‘(genericReorderingTransformer ::
+            Transformer A.VariantUnlabelled3 C.VariantUnlabelled3)’
+      In the expression:
+        unTransformer
+          (genericReorderingTransformer ::
+             Transformer A.VariantUnlabelled3 C.VariantUnlabelled3)
+          (A.VariantUnlabelled3B True 1 "a")
+<interactive>:3:4: error:
+    • Constructor name ":" doesn't match constructor name "True".
     • In the first argument of ‘unTransformer’, namely
         ‘(genericReorderingTransformer ::
             Transformer A.VariantUnlabelled3 C.VariantUnlabelled3)’

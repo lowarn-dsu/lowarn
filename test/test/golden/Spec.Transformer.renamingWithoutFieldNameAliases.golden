@@ -1,7 +1,26 @@
 Type checking errors:
 <interactive>:3:4: error:
-    • Couldn't match type ‘'GT’ with ‘'EQ’
-        arising from a use of ‘genericRenamingTransformer’
+    • Field name "_variantRecord3A" doesn't match field name "_variantRecord3'A".
+    • In the first argument of ‘unTransformer’, namely
+        ‘(genericRenamingTransformer ::
+            Transformer A.VariantRecord3 A.VariantRecord3')’
+      In the expression:
+        unTransformer
+          (genericRenamingTransformer ::
+             Transformer A.VariantRecord3 A.VariantRecord3')
+          (A.VariantRecord3A 1 "a" True)
+<interactive>:3:4: error:
+    • Field name "_variantRecord3B" doesn't match field name "_variantRecord3'B".
+    • In the first argument of ‘unTransformer’, namely
+        ‘(genericRenamingTransformer ::
+            Transformer A.VariantRecord3 A.VariantRecord3')’
+      In the expression:
+        unTransformer
+          (genericRenamingTransformer ::
+             Transformer A.VariantRecord3 A.VariantRecord3')
+          (A.VariantRecord3A 1 "a" True)
+<interactive>:3:4: error:
+    • Field name "_variantRecord3C" doesn't match field name "_variantRecord3'C".
     • In the first argument of ‘unTransformer’, namely
         ‘(genericRenamingTransformer ::
             Transformer A.VariantRecord3 A.VariantRecord3')’

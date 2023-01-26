@@ -60,7 +60,7 @@ import Control.Arrow
 import qualified Control.Category as Cat
 import Data.Coerce (Coercible, coerce)
 import Data.Kind (Type)
-import GHC.TypeLits (CmpSymbol, Symbol)
+import GHC.TypeLits
 import Generics.SOP
 import Generics.SOP.Constraint
 import Generics.SOP.TH (deriveGeneric)
@@ -281,28 +281,63 @@ type family
   FieldNamesOfConstructors (c ': cs) =
     FieldNamesOf (FieldInfosOf c) ': FieldNamesOfConstructors cs
 
-type family SymbolEquals (a :: Symbol) (b :: Symbol) :: Constraint where
-  SymbolEquals a b = (a `CmpSymbol` b) ~ 'EQ
-
 type family OrderingIsEq (a :: Ordering) :: Bool where
   OrderingIsEq 'EQ = 'True
   OrderingIsEq 'LT = 'False
   OrderingIsEq 'GT = 'False
 
 type family SymbolEqualsBool (a :: Symbol) (b :: Symbol) :: Bool where
-  SymbolEquals a b = OrderingIsEq (a `CmpSymbol` b)
+  SymbolEqualsBool a b = OrderingIsEq (a `CmpSymbol` b)
+
+class NameAlias (nu :: Symbol) (nl :: Symbol) (a :: Symbol) (b :: Symbol)
+
+class
+  NameAlias'
+    (p :: Bool)
+    (nu :: Symbol)
+    (nl :: Symbol)
+    (a :: Symbol)
+    (b :: Symbol)
+
+instance
+  (SymbolEqualsBool a b ~ p, NameAlias' p nu nl a b) =>
+  NameAlias nu nl a b
+
+instance NameAlias' 'True nu nl a b
+
+instance
+  TypeError
+    ( 'Text nu
+        ':<>: 'Text " name "
+        ':<>: 'ShowType a
+        ':<>: 'Text " doesn't match "
+        ':<>: 'Text nl
+        ':<>: 'Text " name "
+        ':<>: 'ShowType b
+        ':<>: 'Text "."
+    ) =>
+  NameAlias' 'False nu nl a b
 
 class DatatypeNameAlias (a :: Symbol) (b :: Symbol)
 
-instance {-# OVERLAPPABLE #-} SymbolEquals a b => DatatypeNameAlias a b
+instance
+  {-# OVERLAPPABLE #-}
+  NameAlias "Datatype" "datatype" a b =>
+  DatatypeNameAlias a b
 
 class ConstructorNameAlias (a :: Symbol) (b :: Symbol)
 
-instance {-# OVERLAPPABLE #-} SymbolEquals a b => ConstructorNameAlias a b
+instance
+  {-# OVERLAPPABLE #-}
+  NameAlias "Constructor" "constructor" a b =>
+  ConstructorNameAlias a b
 
 class FieldNameAlias (a :: Symbol) (b :: Symbol)
 
-instance {-# OVERLAPPABLE #-} SymbolEquals a b => FieldNameAlias a b
+instance
+  {-# OVERLAPPABLE #-}
+  NameAlias "Field" "field" a b =>
+  FieldNameAlias a b
 
 type DatatypesMatchRenamingConstraint a b =
   ( HasDatatypeInfo a,
