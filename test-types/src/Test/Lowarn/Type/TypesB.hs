@@ -23,6 +23,7 @@ module Test.Lowarn.Type.TypesB
     Record2 (..),
     Variant3 (..),
     Record3 (..),
+    VariantUnlabelled3 (..),
     VariantRecord3 (..),
     Variant1Wrapper (..),
   )
@@ -68,6 +69,12 @@ data Record3 = Record3A
   }
   deriving (Show)
 
+data VariantUnlabelled3
+  = VariantUnlabelled3C Int Bool String
+  | VariantUnlabelled3A Bool String Int
+  | VariantUnlabelled3B String Int Bool
+  deriving (Show)
+
 data VariantRecord3
   = VariantRecord3C
       { _variantRecord3A :: Int,
@@ -98,5 +105,6 @@ deriveGeneric ''Unlabelled2
 deriveGeneric ''Record2
 deriveGeneric ''Variant3
 deriveGeneric ''Record3
+deriveGeneric ''VariantUnlabelled3
 deriveGeneric ''VariantRecord3
 deriveGeneric ''Variant1Wrapper

@@ -13,6 +13,6 @@ module Test.Lowarn.Type.Instance.DatatypeNameAlias () where
 
 import Lowarn.Transformer (DatatypeNameAlias)
 
-instance DatatypeNameAlias "VariantRecord3" "VariantRecord3'"
+instance DatatypeNameAlias "VariantUnlabelled3" "VariantUnlabelled3'"
 
-instance DatatypeNameAlias "Unlabelled1" "Unlabelled1'"
+instance DatatypeNameAlias "VariantRecord3" "VariantRecord3'"

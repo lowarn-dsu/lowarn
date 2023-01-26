@@ -68,6 +68,18 @@ unTransformer
   [A.Variant2A, A.Variant2B, A.Variant2A]
 |]
 
+genericVariantUnlabelled :: TestTree
+genericVariantUnlabelled =
+  transformerGoldenTest
+    (show 'genericVariantUnlabelled)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericTransformer :: Transformer A.VariantUnlabelled3 A.VariantUnlabelled3')
+  (A.VariantUnlabelled3A 1 "a" True)
+|]
+
 genericVariantRecord :: TestTree
 genericVariantRecord =
   transformerGoldenTest
@@ -78,18 +90,6 @@ genericVariantRecord =
 unTransformer
   (genericTransformer :: Transformer A.VariantRecord3 A.VariantRecord3')
   (A.VariantRecord3A 1 "a" True)
-|]
-
-genericUnlabelled :: TestTree
-genericUnlabelled =
-  transformerGoldenTest
-    (show 'genericUnlabelled)
-    []
-    $ Expression
-      [r|
-unTransformer
-  (genericTransformer :: Transformer A.Unlabelled1 A.Unlabelled1')
-  (A.Unlabelled1A 1)
 |]
 
 genericFail :: TestTree
@@ -140,6 +140,18 @@ unTransformer
   (A.Record2A 1 "a")
 |]
 
+renamingRenameVariantUnlabelled :: TestTree
+renamingRenameVariantUnlabelled =
+  transformerGoldenTest
+    (show 'renamingRenameVariantUnlabelled)
+    aliasImports
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.VariantUnlabelled3 A.VariantUnlabelled3')
+  (A.VariantUnlabelled3A 1 "a" True)
+|]
+
 renamingRenameVariantRecord :: TestTree
 renamingRenameVariantRecord =
   transformerGoldenTest
@@ -150,18 +162,6 @@ renamingRenameVariantRecord =
 unTransformer
   (genericRenamingTransformer :: Transformer A.VariantRecord3 A.VariantRecord3')
   (A.VariantRecord3A 1 "a" True)
-|]
-
-renamingRenameUnlabelled :: TestTree
-renamingRenameUnlabelled =
-  transformerGoldenTest
-    (show 'renamingRenameUnlabelled)
-    aliasImports
-    $ Expression
-      [r|
-unTransformer
-  (genericRenamingTransformer :: Transformer A.Unlabelled1 A.Unlabelled1')
-  (A.Unlabelled1A 1)
 |]
 
 renamingWithoutDatatypeNameAliases :: TestTree
@@ -543,14 +543,16 @@ transformerTests =
     [ identity,
       traversable,
       traversableFail,
+      genericVariantUnlabelled,
       genericVariantRecord,
-      genericUnlabelled,
       genericFail,
       genericVariantSwap,
       genericRecordSwap,
+      -- genericUnlabelledToRecord,
+      -- genericRecordToUnlabelled,
       renamingIdentity,
+      renamingRenameVariantUnlabelled,
       renamingRenameVariantRecord,
-      renamingRenameUnlabelled,
       renamingWithoutDatatypeNameAliases,
       renamingWithoutConstructorNameAliases,
       renamingWithoutFieldNameAliases,
@@ -574,6 +576,7 @@ transformerTests =
       reorderingRecord2Rename,
       reorderingVariant3Swap,
       reorderingRecord3Swap,
+      -- reorderingVariantUnlabelled3Swap,
       reorderingVariantRecord3Swap,
       unwrapData,
       unwrapNewtype,

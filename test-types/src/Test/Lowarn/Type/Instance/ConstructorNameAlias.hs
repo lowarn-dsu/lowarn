@@ -13,10 +13,14 @@ module Test.Lowarn.Type.Instance.ConstructorNameAlias () where
 
 import Lowarn.Transformer (ConstructorNameAlias)
 
+instance ConstructorNameAlias "VariantUnlabelled3A" "VariantUnlabelled3'A"
+
+instance ConstructorNameAlias "VariantUnlabelled3B" "VariantUnlabelled3'B"
+
+instance ConstructorNameAlias "VariantUnlabelled3C" "VariantUnlabelled3'C"
+
 instance ConstructorNameAlias "VariantRecord3A" "VariantRecord3'A"
 
 instance ConstructorNameAlias "VariantRecord3B" "VariantRecord3'B"
 
 instance ConstructorNameAlias "VariantRecord3C" "VariantRecord3'C"
-
-instance ConstructorNameAlias "Unlabelled1A" "Unlabelled1'A"

@@ -16,7 +16,6 @@
 module Test.Lowarn.Type.TypesA
   ( Variant1 (..),
     Unlabelled1 (..),
-    Unlabelled1' (..),
     Record1 (..),
     Record1' (..),
     Variant2 (..),
@@ -25,6 +24,8 @@ module Test.Lowarn.Type.TypesA
     Record2' (..),
     Variant3 (..),
     Record3 (..),
+    VariantUnlabelled3 (..),
+    VariantUnlabelled3' (..),
     VariantRecord3 (..),
     VariantRecord3' (..),
     Variant1Wrapper (..),
@@ -39,9 +40,6 @@ data Variant1 = Variant1A
   deriving (Show)
 
 data Unlabelled1 = Unlabelled1A Int
-  deriving (Show)
-
-data Unlabelled1' = Unlabelled1'A Int
   deriving (Show)
 
 data Record1 = Record1A
@@ -80,6 +78,18 @@ data Record3 = Record3A
     _record3B :: String,
     _record3C :: Bool
   }
+  deriving (Show)
+
+data VariantUnlabelled3
+  = VariantUnlabelled3A Int String Bool
+  | VariantUnlabelled3B Bool Int String
+  | VariantUnlabelled3C String Bool Int
+  deriving (Show)
+
+data VariantUnlabelled3'
+  = VariantUnlabelled3'A Int String Bool
+  | VariantUnlabelled3'B Bool Int String
+  | VariantUnlabelled3'C String Bool Int
   deriving (Show)
 
 data VariantRecord3
@@ -129,7 +139,6 @@ data Variant1Wrapper'' = Variant1Wrapper'' Variant1 Variant1
 
 deriveGeneric ''Variant1
 deriveGeneric ''Unlabelled1
-deriveGeneric ''Unlabelled1'
 deriveGeneric ''Record1
 deriveGeneric ''Record1'
 deriveGeneric ''Variant2
@@ -138,6 +147,8 @@ deriveGeneric ''Record2
 deriveGeneric ''Record2'
 deriveGeneric ''Variant3
 deriveGeneric ''Record3
+deriveGeneric ''VariantUnlabelled3
+deriveGeneric ''VariantUnlabelled3'
 deriveGeneric ''VariantRecord3
 deriveGeneric ''VariantRecord3'
 deriveGeneric ''Variant1Wrapper
