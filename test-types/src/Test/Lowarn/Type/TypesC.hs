@@ -19,6 +19,7 @@ module Test.Lowarn.Type.TypesC
     Variant2 (..),
     Unlabelled2 (..),
     Record2 (..),
+    VariantUnlabelled3 (..),
   )
 where
 
@@ -44,8 +45,15 @@ data Record2 = Record2A
   }
   deriving (Show)
 
+data VariantUnlabelled3
+  = VariantUnlabelled3C Int Bool String
+  | VariantUnlabelled3A Bool String Int
+  | VariantUnlabelled3B String Int Bool
+  deriving (Show)
+
 deriveGeneric ''Variant1
 deriveGeneric ''Record1
 deriveGeneric ''Variant2
 deriveGeneric ''Unlabelled2
 deriveGeneric ''Record2
+deriveGeneric ''VariantUnlabelled3

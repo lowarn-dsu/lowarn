@@ -440,6 +440,30 @@ unTransformer
   (A.Record3A 1 "a" True)
 |]
 
+reorderingVariantUnlabelled3SwapConstructors :: TestTree
+reorderingVariantUnlabelled3SwapConstructors =
+  transformerGoldenTest
+    (show 'reorderingVariantUnlabelled3SwapConstructors)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.VariantUnlabelled3 B.VariantUnlabelled3)
+  (A.VariantUnlabelled3B True 1 "a")
+|]
+
+reorderingVariantUnlabelled3Swap :: TestTree
+reorderingVariantUnlabelled3Swap =
+  transformerGoldenTest
+    (show 'reorderingVariantUnlabelled3Swap)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.VariantUnlabelled3 C.VariantUnlabelled3)
+  (A.VariantUnlabelled3B True 1 "a")
+|]
+
 reorderingVariantRecord3Swap :: TestTree
 reorderingVariantRecord3Swap =
   transformerGoldenTest
@@ -576,7 +600,8 @@ transformerTests =
       reorderingRecord2Rename,
       reorderingVariant3Swap,
       reorderingRecord3Swap,
-      -- reorderingVariantUnlabelled3Swap,
+      reorderingVariantUnlabelled3SwapConstructors,
+      reorderingVariantUnlabelled3Swap,
       reorderingVariantRecord3Swap,
       unwrapData,
       unwrapNewtype,

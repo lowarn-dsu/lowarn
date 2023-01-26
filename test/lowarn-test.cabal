@@ -38,6 +38,7 @@ extra-source-files:
     test/golden/Spec.Transformer.renamingIdentity.golden
     test/golden/Spec.Transformer.renamingRecordSwap.golden
     test/golden/Spec.Transformer.renamingRenameVariantRecord.golden
+    test/golden/Spec.Transformer.renamingRenameVariantUnlabelled.golden
     test/golden/Spec.Transformer.renamingVariantSwap.golden
     test/golden/Spec.Transformer.renamingWithoutConstructorNameAliases.golden
     test/golden/Spec.Transformer.renamingWithoutDatatypeNameAliases.golden

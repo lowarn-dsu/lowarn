@@ -70,9 +70,9 @@ data Record3 = Record3A
   deriving (Show)
 
 data VariantUnlabelled3
-  = VariantUnlabelled3C Int Bool String
-  | VariantUnlabelled3A Bool String Int
-  | VariantUnlabelled3B String Int Bool
+  = VariantUnlabelled3C String Bool Int
+  | VariantUnlabelled3A Int String Bool
+  | VariantUnlabelled3B Bool Int String
   deriving (Show)
 
 data VariantRecord3
