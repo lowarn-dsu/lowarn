@@ -55,9 +55,11 @@ extra-source-files:
     test/golden/Spec.Transformer.reorderingRecord2Rename.golden
     test/golden/Spec.Transformer.reorderingRecord2Swap.golden
     test/golden/Spec.Transformer.reorderingRecord3Swap.golden
+    test/golden/Spec.Transformer.reorderingRecordToUnlabelled.golden
     test/golden/Spec.Transformer.reorderingUnlabelled1Identity.golden
     test/golden/Spec.Transformer.reorderingUnlabelled2Identity.golden
     test/golden/Spec.Transformer.reorderingUnlabelled2Swap.golden
+    test/golden/Spec.Transformer.reorderingUnlabelledToRecord.golden
     test/golden/Spec.Transformer.reorderingVariant1AddConstructor.golden
     test/golden/Spec.Transformer.reorderingVariant1Identity.golden
     test/golden/Spec.Transformer.reorderingVariant1RenameConstructor.golden
