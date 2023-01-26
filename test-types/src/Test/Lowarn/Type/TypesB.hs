@@ -15,11 +15,11 @@
 -- Module for types for testing lowarn-transformer.
 module Test.Lowarn.Type.TypesB
   ( Variant1 (..),
-    VariantTuple1 (..),
+    Unlabelled1 (..),
     Record1 (..),
     Record1' (..),
     Variant2 (..),
-    VariantTuple2 (..),
+    Unlabelled2 (..),
     Record2 (..),
     Variant3 (..),
     Record3 (..),
@@ -33,7 +33,7 @@ import Lowarn.Transformer (deriveGeneric)
 data Variant1 = Variant1A
   deriving (Show)
 
-data VariantTuple1 = VariantTuple1A Int
+data Unlabelled1 = Unlabelled1A Int
   deriving (Show)
 
 data Record1 = Record1A
@@ -49,7 +49,7 @@ data Record1' = Record1'A
 data Variant2 = Variant2A | Variant2B
   deriving (Show)
 
-data VariantTuple2 = VariantTuple2A Int String
+data Unlabelled2 = Unlabelled2A Int String
   deriving (Show)
 
 data Record2 = Record2A
@@ -90,11 +90,11 @@ data Variant1Wrapper = Variant1Wrapper Variant1
   deriving (Show)
 
 deriveGeneric ''Variant1
-deriveGeneric ''VariantTuple1
+deriveGeneric ''Unlabelled1
 deriveGeneric ''Record1
 deriveGeneric ''Record1'
 deriveGeneric ''Variant2
-deriveGeneric ''VariantTuple2
+deriveGeneric ''Unlabelled2
 deriveGeneric ''Record2
 deriveGeneric ''Variant3
 deriveGeneric ''Record3

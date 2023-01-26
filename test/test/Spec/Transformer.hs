@@ -80,16 +80,16 @@ unTransformer
   (A.VariantRecord3A 1 "a" True)
 |]
 
-genericVariantTuple :: TestTree
-genericVariantTuple =
+genericUnlabelled :: TestTree
+genericUnlabelled =
   transformerGoldenTest
-    (show 'genericVariantTuple)
+    (show 'genericUnlabelled)
     []
     $ Expression
       [r|
 unTransformer
-  (genericTransformer :: Transformer A.VariantTuple1 A.VariantTuple1')
-  (A.VariantTuple1A 1)
+  (genericTransformer :: Transformer A.Unlabelled1 A.Unlabelled1')
+  (A.Unlabelled1A 1)
 |]
 
 genericFail :: TestTree
@@ -152,16 +152,16 @@ unTransformer
   (A.VariantRecord3A 1 "a" True)
 |]
 
-renamingRenameVariantTuple :: TestTree
-renamingRenameVariantTuple =
+renamingRenameUnlabelled :: TestTree
+renamingRenameUnlabelled =
   transformerGoldenTest
-    (show 'renamingRenameVariantTuple)
+    (show 'renamingRenameUnlabelled)
     aliasImports
     $ Expression
       [r|
 unTransformer
-  (genericRenamingTransformer :: Transformer A.VariantTuple1 A.VariantTuple1')
-  (A.VariantTuple1A 1)
+  (genericRenamingTransformer :: Transformer A.Unlabelled1 A.Unlabelled1')
+  (A.Unlabelled1A 1)
 |]
 
 renamingWithoutDatatypeNameAliases :: TestTree
@@ -272,16 +272,16 @@ unTransformer
   A.Variant1A
 |]
 
-reorderingVariantTuple1Identity :: TestTree
-reorderingVariantTuple1Identity =
+reorderingUnlabelled1Identity :: TestTree
+reorderingUnlabelled1Identity =
   transformerGoldenTest
-    (show 'reorderingVariantTuple1Identity)
+    (show 'reorderingUnlabelled1Identity)
     []
     $ Expression
       [r|
 unTransformer
-  (genericReorderingTransformer :: Transformer A.VariantTuple1 B.VariantTuple1)
-  (A.VariantTuple1A 1)
+  (genericReorderingTransformer :: Transformer A.Unlabelled1 B.Unlabelled1)
+  (A.Unlabelled1A 1)
 |]
 
 reorderingRecord1Identity :: TestTree
@@ -356,28 +356,28 @@ unTransformer
   A.Variant2A
 |]
 
-reorderingVariantTuple2Identity :: TestTree
-reorderingVariantTuple2Identity =
+reorderingUnlabelled2Identity :: TestTree
+reorderingUnlabelled2Identity =
   transformerGoldenTest
-    (show 'reorderingVariantTuple2Identity)
+    (show 'reorderingUnlabelled2Identity)
     []
     $ Expression
       [r|
 unTransformer
-  (genericReorderingTransformer :: Transformer A.VariantTuple2 B.VariantTuple2)
-  (A.VariantTuple2A 1 "a")
+  (genericReorderingTransformer :: Transformer A.Unlabelled2 B.Unlabelled2)
+  (A.Unlabelled2A 1 "a")
 |]
 
-reorderingVariantTuple2Swap :: TestTree
-reorderingVariantTuple2Swap =
+reorderingUnlabelled2Swap :: TestTree
+reorderingUnlabelled2Swap =
   transformerGoldenTest
-    (show 'reorderingVariantTuple2Swap)
+    (show 'reorderingUnlabelled2Swap)
     []
     $ Expression
       [r|
 unTransformer
-  (genericReorderingTransformer :: Transformer A.VariantTuple2 C.VariantTuple2)
-  (A.VariantTuple2A 1 "a")
+  (genericReorderingTransformer :: Transformer A.Unlabelled2 C.Unlabelled2)
+  (A.Unlabelled2A 1 "a")
 |]
 
 reorderingRecord2Identity :: TestTree
@@ -544,13 +544,13 @@ transformerTests =
       traversable,
       traversableFail,
       genericVariantRecord,
-      genericVariantTuple,
+      genericUnlabelled,
       genericFail,
       genericVariantSwap,
       genericRecordSwap,
       renamingIdentity,
       renamingRenameVariantRecord,
-      renamingRenameVariantTuple,
+      renamingRenameUnlabelled,
       renamingWithoutDatatypeNameAliases,
       renamingWithoutConstructorNameAliases,
       renamingWithoutFieldNameAliases,
@@ -560,15 +560,15 @@ transformerTests =
       reorderingVariant1RenameConstructor,
       reorderingVariant1AddConstructor,
       reorderingVariant1RenameType,
-      reorderingVariantTuple1Identity,
+      reorderingUnlabelled1Identity,
       reorderingRecord1Identity,
       reorderingRecord1RenameField,
       reorderingRecord1AddField,
       reorderingRecord1Newtype,
       reorderingVariant2Identity,
       reorderingVariant2Swap,
-      reorderingVariantTuple2Identity,
-      reorderingVariantTuple2Swap,
+      reorderingUnlabelled2Identity,
+      reorderingUnlabelled2Swap,
       reorderingRecord2Identity,
       reorderingRecord2Swap,
       reorderingRecord2Rename,

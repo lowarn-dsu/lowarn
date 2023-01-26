@@ -17,7 +17,7 @@ module Test.Lowarn.Type.TypesC
   ( Variant1 (..),
     Record1 (..),
     Variant2 (..),
-    VariantTuple2 (..),
+    Unlabelled2 (..),
     Record2 (..),
   )
 where
@@ -35,7 +35,7 @@ data Record1 = Record1A
 data Variant2 = Variant2B | Variant2A
   deriving (Show)
 
-data VariantTuple2 = VariantTuple2A String Int
+data Unlabelled2 = Unlabelled2A String Int
   deriving (Show)
 
 data Record2 = Record2A
@@ -47,5 +47,5 @@ data Record2 = Record2A
 deriveGeneric ''Variant1
 deriveGeneric ''Record1
 deriveGeneric ''Variant2
-deriveGeneric ''VariantTuple2
+deriveGeneric ''Unlabelled2
 deriveGeneric ''Record2

@@ -15,4 +15,4 @@ import Lowarn.Transformer (DatatypeNameAlias)
 
 instance DatatypeNameAlias "VariantRecord3" "VariantRecord3'"
 
-instance DatatypeNameAlias "VariantTuple1" "VariantTuple1'"
+instance DatatypeNameAlias "Unlabelled1" "Unlabelled1'"

@@ -19,4 +19,4 @@ instance ConstructorNameAlias "VariantRecord3B" "VariantRecord3'B"
 
 instance ConstructorNameAlias "VariantRecord3C" "VariantRecord3'C"
 
-instance ConstructorNameAlias "VariantTuple1A" "VariantTuple1'A"
+instance ConstructorNameAlias "Unlabelled1A" "Unlabelled1'A"

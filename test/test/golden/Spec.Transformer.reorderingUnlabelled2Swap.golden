@@ -6,9 +6,9 @@ Type checking errors:
         arising from a use of ‘genericReorderingTransformer’
     • In the first argument of ‘unTransformer’, namely
         ‘(genericReorderingTransformer ::
-            Transformer A.VariantTuple2 C.VariantTuple2)’
+            Transformer A.Unlabelled2 C.Unlabelled2)’
       In the expression:
         unTransformer
           (genericReorderingTransformer ::
-             Transformer A.VariantTuple2 C.VariantTuple2)
-          (A.VariantTuple2A 1 "a")
+             Transformer A.Unlabelled2 C.Unlabelled2)
+          (A.Unlabelled2A 1 "a")
