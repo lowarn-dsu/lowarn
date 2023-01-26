@@ -128,6 +128,30 @@ unTransformer
   (A.Record2A 1 "a")
 |]
 
+genericUnlabelledToRecord :: TestTree
+genericUnlabelledToRecord =
+  transformerGoldenTest
+    (show 'genericUnlabelledToRecord)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericTransformer :: Transformer A.VariantUnlabelled3 A.VariantRecord3)
+  (A.VariantUnlabelled3A 1 "a" True)
+|]
+
+genericRecordToUnlabelled :: TestTree
+genericRecordToUnlabelled =
+  transformerGoldenTest
+    (show 'genericRecordToUnlabelled)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericTransformer :: Transformer A.VariantRecord3 A.VariantUnlabelled3)
+  (A.VariantRecord3A 1 "a" True)
+|]
+
 renamingIdentity :: TestTree
 renamingIdentity =
   transformerGoldenTest
@@ -572,8 +596,8 @@ transformerTests =
       genericFail,
       genericVariantSwap,
       genericRecordSwap,
-      -- genericUnlabelledToRecord,
-      -- genericRecordToUnlabelled,
+      genericUnlabelledToRecord,
+      genericRecordToUnlabelled,
       renamingIdentity,
       renamingRenameVariantUnlabelled,
       renamingRenameVariantRecord,

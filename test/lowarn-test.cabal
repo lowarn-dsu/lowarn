@@ -62,6 +62,8 @@ extra-source-files:
     test/golden/Spec.Transformer.reorderingVariant2Swap.golden
     test/golden/Spec.Transformer.reorderingVariant3Swap.golden
     test/golden/Spec.Transformer.reorderingVariantRecord3Swap.golden
+    test/golden/Spec.Transformer.reorderingVariantUnlabelled3Swap.golden
+    test/golden/Spec.Transformer.reorderingVariantUnlabelled3SwapConstructors.golden
     test/golden/Spec.Transformer.traversable.golden
     test/golden/Spec.Transformer.traversableFail.golden
     test/golden/Spec.Transformer.unwrapData.golden
