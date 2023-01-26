@@ -31,14 +31,18 @@ extra-source-files:
     test/golden/Spec.Transformer.coerceNewtype.golden
     test/golden/Spec.Transformer.genericFail.golden
     test/golden/Spec.Transformer.genericRecordSwap.golden
+    test/golden/Spec.Transformer.genericRecordToUnlabelled.golden
+    test/golden/Spec.Transformer.genericUnlabelledToRecord.golden
     test/golden/Spec.Transformer.genericVariantRecord.golden
     test/golden/Spec.Transformer.genericVariantSwap.golden
-    test/golden/Spec.Transformer.genericVariantTuple.golden
+    test/golden/Spec.Transformer.genericVariantUnlabelled.golden
     test/golden/Spec.Transformer.identity.golden
     test/golden/Spec.Transformer.renamingIdentity.golden
     test/golden/Spec.Transformer.renamingRecordSwap.golden
+    test/golden/Spec.Transformer.renamingRecordToUnlabelled.golden
     test/golden/Spec.Transformer.renamingRenameVariantRecord.golden
-    test/golden/Spec.Transformer.renamingRenameVariantTuple.golden
+    test/golden/Spec.Transformer.renamingRenameVariantUnlabelled.golden
+    test/golden/Spec.Transformer.renamingUnlabelledToRecord.golden
     test/golden/Spec.Transformer.renamingVariantSwap.golden
     test/golden/Spec.Transformer.renamingWithoutConstructorNameAliases.golden
     test/golden/Spec.Transformer.renamingWithoutDatatypeNameAliases.golden
@@ -51,6 +55,11 @@ extra-source-files:
     test/golden/Spec.Transformer.reorderingRecord2Rename.golden
     test/golden/Spec.Transformer.reorderingRecord2Swap.golden
     test/golden/Spec.Transformer.reorderingRecord3Swap.golden
+    test/golden/Spec.Transformer.reorderingRecordToUnlabelled.golden
+    test/golden/Spec.Transformer.reorderingUnlabelled1Identity.golden
+    test/golden/Spec.Transformer.reorderingUnlabelled2Identity.golden
+    test/golden/Spec.Transformer.reorderingUnlabelled2Swap.golden
+    test/golden/Spec.Transformer.reorderingUnlabelledToRecord.golden
     test/golden/Spec.Transformer.reorderingVariant1AddConstructor.golden
     test/golden/Spec.Transformer.reorderingVariant1Identity.golden
     test/golden/Spec.Transformer.reorderingVariant1RenameConstructor.golden
@@ -59,7 +68,8 @@ extra-source-files:
     test/golden/Spec.Transformer.reorderingVariant2Swap.golden
     test/golden/Spec.Transformer.reorderingVariant3Swap.golden
     test/golden/Spec.Transformer.reorderingVariantRecord3Swap.golden
-    test/golden/Spec.Transformer.reorderingVariantTuple1Identity.golden
+    test/golden/Spec.Transformer.reorderingVariantUnlabelled3Swap.golden
+    test/golden/Spec.Transformer.reorderingVariantUnlabelled3SwapConstructors.golden
     test/golden/Spec.Transformer.traversable.golden
     test/golden/Spec.Transformer.traversableFail.golden
     test/golden/Spec.Transformer.unwrapData.golden

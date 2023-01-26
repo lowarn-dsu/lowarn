@@ -17,6 +17,7 @@ module Test.Lowarn.Type.TypesD
   ( Variant1 (..),
     Record1 (..),
     Record2 (..),
+    VariantUnlabelled3 (..),
   )
 where
 
@@ -37,6 +38,25 @@ data Record2 = Record2A
   }
   deriving (Show)
 
+data VariantUnlabelled3
+  = VariantUnlabelled3A
+      { _variantUnlabelled3A :: Int,
+        _variantUnlabelled3B :: String,
+        _variantUnlabelled3C :: Bool
+      }
+  | VariantUnlabelled3B
+      { _variantUnlabelled3C :: Bool,
+        _variantUnlabelled3A :: Int,
+        _variantUnlabelled3B :: String
+      }
+  | VariantUnlabelled3C
+      { _variantUnlabelled3B :: String,
+        _variantUnlabelled3C :: Bool,
+        _variantUnlabelled3A :: Int
+      }
+  deriving (Show)
+
 deriveGeneric ''Variant1
 deriveGeneric ''Record1
 deriveGeneric ''Record2
+deriveGeneric ''VariantUnlabelled3

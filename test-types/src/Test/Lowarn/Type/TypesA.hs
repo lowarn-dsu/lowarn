@@ -15,15 +15,16 @@
 -- Module for types for testing lowarn-transformer.
 module Test.Lowarn.Type.TypesA
   ( Variant1 (..),
-    VariantTuple1 (..),
-    VariantTuple1' (..),
+    Unlabelled1 (..),
     Record1 (..),
     Record1' (..),
     Variant2 (..),
+    Unlabelled2 (..),
     Record2 (..),
-    Record2' (..),
     Variant3 (..),
     Record3 (..),
+    VariantUnlabelled3 (..),
+    VariantUnlabelled3' (..),
     VariantRecord3 (..),
     VariantRecord3' (..),
     Variant1Wrapper (..),
@@ -37,10 +38,7 @@ import Lowarn.Transformer (deriveGeneric)
 data Variant1 = Variant1A
   deriving (Show)
 
-data VariantTuple1 = VariantTuple1A Int
-  deriving (Show)
-
-data VariantTuple1' = VariantTuple1'A Int
+data Unlabelled1 = Unlabelled1A Int
   deriving (Show)
 
 data Record1 = Record1A
@@ -56,15 +54,12 @@ newtype Record1' = Record1'A
 data Variant2 = Variant2A | Variant2B
   deriving (Show)
 
+data Unlabelled2 = Unlabelled2A Int String
+  deriving (Show)
+
 data Record2 = Record2A
   { _record2A :: Int,
     _record2B :: String
-  }
-  deriving (Show)
-
-data Record2' = Record2'A
-  { _record2'A :: Int,
-    _record2'B :: String
   }
   deriving (Show)
 
@@ -76,6 +71,18 @@ data Record3 = Record3A
     _record3B :: String,
     _record3C :: Bool
   }
+  deriving (Show)
+
+data VariantUnlabelled3
+  = VariantUnlabelled3A Int String Bool
+  | VariantUnlabelled3B Bool Int String
+  | VariantUnlabelled3C String Bool Int
+  deriving (Show)
+
+data VariantUnlabelled3'
+  = VariantUnlabelled3'A Int String Bool
+  | VariantUnlabelled3'B Bool Int String
+  | VariantUnlabelled3'C String Bool Int
   deriving (Show)
 
 data VariantRecord3
@@ -124,15 +131,16 @@ data Variant1Wrapper'' = Variant1Wrapper'' Variant1 Variant1
   deriving (Show)
 
 deriveGeneric ''Variant1
-deriveGeneric ''VariantTuple1
-deriveGeneric ''VariantTuple1'
+deriveGeneric ''Unlabelled1
 deriveGeneric ''Record1
 deriveGeneric ''Record1'
 deriveGeneric ''Variant2
+deriveGeneric ''Unlabelled2
 deriveGeneric ''Record2
-deriveGeneric ''Record2'
 deriveGeneric ''Variant3
 deriveGeneric ''Record3
+deriveGeneric ''VariantUnlabelled3
+deriveGeneric ''VariantUnlabelled3'
 deriveGeneric ''VariantRecord3
 deriveGeneric ''VariantRecord3'
 deriveGeneric ''Variant1Wrapper

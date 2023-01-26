@@ -68,6 +68,18 @@ unTransformer
   [A.Variant2A, A.Variant2B, A.Variant2A]
 |]
 
+genericVariantUnlabelled :: TestTree
+genericVariantUnlabelled =
+  transformerGoldenTest
+    (show 'genericVariantUnlabelled)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericTransformer :: Transformer A.VariantUnlabelled3 A.VariantUnlabelled3')
+  (A.VariantUnlabelled3A 1 "a" True)
+|]
+
 genericVariantRecord :: TestTree
 genericVariantRecord =
   transformerGoldenTest
@@ -78,18 +90,6 @@ genericVariantRecord =
 unTransformer
   (genericTransformer :: Transformer A.VariantRecord3 A.VariantRecord3')
   (A.VariantRecord3A 1 "a" True)
-|]
-
-genericVariantTuple :: TestTree
-genericVariantTuple =
-  transformerGoldenTest
-    (show 'genericVariantTuple)
-    []
-    $ Expression
-      [r|
-unTransformer
-  (genericTransformer :: Transformer A.VariantTuple1 A.VariantTuple1')
-  (A.VariantTuple1A 1)
 |]
 
 genericFail :: TestTree
@@ -128,6 +128,30 @@ unTransformer
   (A.Record2A 1 "a")
 |]
 
+genericUnlabelledToRecord :: TestTree
+genericUnlabelledToRecord =
+  transformerGoldenTest
+    (show 'genericUnlabelledToRecord)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericTransformer :: Transformer A.VariantUnlabelled3 A.VariantRecord3)
+  (A.VariantUnlabelled3A 1 "a" True)
+|]
+
+genericRecordToUnlabelled :: TestTree
+genericRecordToUnlabelled =
+  transformerGoldenTest
+    (show 'genericRecordToUnlabelled)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericTransformer :: Transformer A.VariantRecord3 A.VariantUnlabelled3)
+  (A.VariantRecord3A 1 "a" True)
+|]
+
 renamingIdentity :: TestTree
 renamingIdentity =
   transformerGoldenTest
@@ -140,6 +164,18 @@ unTransformer
   (A.Record2A 1 "a")
 |]
 
+renamingRenameVariantUnlabelled :: TestTree
+renamingRenameVariantUnlabelled =
+  transformerGoldenTest
+    (show 'renamingRenameVariantUnlabelled)
+    aliasImports
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.VariantUnlabelled3 A.VariantUnlabelled3')
+  (A.VariantUnlabelled3A 1 "a" True)
+|]
+
 renamingRenameVariantRecord :: TestTree
 renamingRenameVariantRecord =
   transformerGoldenTest
@@ -150,18 +186,6 @@ renamingRenameVariantRecord =
 unTransformer
   (genericRenamingTransformer :: Transformer A.VariantRecord3 A.VariantRecord3')
   (A.VariantRecord3A 1 "a" True)
-|]
-
-renamingRenameVariantTuple :: TestTree
-renamingRenameVariantTuple =
-  transformerGoldenTest
-    (show 'renamingRenameVariantTuple)
-    aliasImports
-    $ Expression
-      [r|
-unTransformer
-  (genericRenamingTransformer :: Transformer A.VariantTuple1 A.VariantTuple1')
-  (A.VariantTuple1A 1)
 |]
 
 renamingWithoutDatatypeNameAliases :: TestTree
@@ -224,6 +248,30 @@ unTransformer
   (A.Record2A 1 "a")
 |]
 
+renamingUnlabelledToRecord :: TestTree
+renamingUnlabelledToRecord =
+  transformerGoldenTest
+    (show 'renamingUnlabelledToRecord)
+    aliasImports
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.VariantUnlabelled3 A.VariantRecord3)
+  (A.VariantUnlabelled3A 1 "a" True)
+|]
+
+renamingRecordToUnlabelled :: TestTree
+renamingRecordToUnlabelled =
+  transformerGoldenTest
+    (show 'renamingRecordToUnlabelled)
+    aliasImports
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.VariantRecord3 A.VariantUnlabelled3)
+  (A.VariantRecord3A 1 "a" True)
+|]
+
 reorderingVariant1Identity :: TestTree
 reorderingVariant1Identity =
   transformerGoldenTest
@@ -272,16 +320,16 @@ unTransformer
   A.Variant1A
 |]
 
-reorderingVariantTuple1Identity :: TestTree
-reorderingVariantTuple1Identity =
+reorderingUnlabelled1Identity :: TestTree
+reorderingUnlabelled1Identity =
   transformerGoldenTest
-    (show 'reorderingVariantTuple1Identity)
+    (show 'reorderingUnlabelled1Identity)
     []
     $ Expression
       [r|
 unTransformer
-  (genericReorderingTransformer :: Transformer A.VariantTuple1 B.VariantTuple1)
-  (A.VariantTuple1A 1)
+  (genericReorderingTransformer :: Transformer A.Unlabelled1 B.Unlabelled1)
+  (A.Unlabelled1A 1)
 |]
 
 reorderingRecord1Identity :: TestTree
@@ -356,6 +404,30 @@ unTransformer
   A.Variant2A
 |]
 
+reorderingUnlabelled2Identity :: TestTree
+reorderingUnlabelled2Identity =
+  transformerGoldenTest
+    (show 'reorderingUnlabelled2Identity)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.Unlabelled2 B.Unlabelled2)
+  (A.Unlabelled2A 1 "a")
+|]
+
+reorderingUnlabelled2Swap :: TestTree
+reorderingUnlabelled2Swap =
+  transformerGoldenTest
+    (show 'reorderingUnlabelled2Swap)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.Unlabelled2 C.Unlabelled2)
+  (A.Unlabelled2A 1 "a")
+|]
+
 reorderingRecord2Identity :: TestTree
 reorderingRecord2Identity =
   transformerGoldenTest
@@ -416,6 +488,30 @@ unTransformer
   (A.Record3A 1 "a" True)
 |]
 
+reorderingVariantUnlabelled3SwapConstructors :: TestTree
+reorderingVariantUnlabelled3SwapConstructors =
+  transformerGoldenTest
+    (show 'reorderingVariantUnlabelled3SwapConstructors)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.VariantUnlabelled3 B.VariantUnlabelled3)
+  (A.VariantUnlabelled3B True 1 "a")
+|]
+
+reorderingVariantUnlabelled3Swap :: TestTree
+reorderingVariantUnlabelled3Swap =
+  transformerGoldenTest
+    (show 'reorderingVariantUnlabelled3Swap)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.VariantUnlabelled3 C.VariantUnlabelled3)
+  (A.VariantUnlabelled3B True 1 "a")
+|]
+
 reorderingVariantRecord3Swap :: TestTree
 reorderingVariantRecord3Swap =
   transformerGoldenTest
@@ -426,6 +522,30 @@ reorderingVariantRecord3Swap =
 unTransformer
   (genericReorderingTransformer :: Transformer A.VariantRecord3 B.VariantRecord3)
   (A.VariantRecord3B True 1 "a")
+|]
+
+reorderingUnlabelledToRecord :: TestTree
+reorderingUnlabelledToRecord =
+  transformerGoldenTest
+    (show 'reorderingUnlabelledToRecord)
+    aliasImports
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.VariantUnlabelled3 D.VariantUnlabelled3)
+  (A.VariantUnlabelled3A 1 "a" True)
+|]
+
+reorderingRecordToUnlabelled :: TestTree
+reorderingRecordToUnlabelled =
+  transformerGoldenTest
+    (show 'reorderingRecordToUnlabelled)
+    aliasImports
+    $ Expression
+      [r|
+unTransformer
+  (genericRenamingTransformer :: Transformer A.VariantRecord3 C.VariantRecord3)
+  (A.VariantRecord3A 1 "a" True)
 |]
 
 unwrapData :: TestTree
@@ -519,36 +639,46 @@ transformerTests =
     [ identity,
       traversable,
       traversableFail,
+      genericVariantUnlabelled,
       genericVariantRecord,
-      genericVariantTuple,
       genericFail,
       genericVariantSwap,
       genericRecordSwap,
+      genericUnlabelledToRecord,
+      genericRecordToUnlabelled,
       renamingIdentity,
+      renamingRenameVariantUnlabelled,
       renamingRenameVariantRecord,
-      renamingRenameVariantTuple,
       renamingWithoutDatatypeNameAliases,
       renamingWithoutConstructorNameAliases,
       renamingWithoutFieldNameAliases,
       renamingVariantSwap,
       renamingRecordSwap,
+      renamingUnlabelledToRecord,
+      renamingRecordToUnlabelled,
       reorderingVariant1Identity,
       reorderingVariant1RenameConstructor,
       reorderingVariant1AddConstructor,
       reorderingVariant1RenameType,
-      reorderingVariantTuple1Identity,
+      reorderingUnlabelled1Identity,
       reorderingRecord1Identity,
       reorderingRecord1RenameField,
       reorderingRecord1AddField,
       reorderingRecord1Newtype,
       reorderingVariant2Identity,
       reorderingVariant2Swap,
+      reorderingUnlabelled2Identity,
+      reorderingUnlabelled2Swap,
       reorderingRecord2Identity,
       reorderingRecord2Swap,
       reorderingRecord2Rename,
       reorderingVariant3Swap,
       reorderingRecord3Swap,
+      reorderingVariantUnlabelled3SwapConstructors,
+      reorderingVariantUnlabelled3Swap,
       reorderingVariantRecord3Swap,
+      reorderingUnlabelledToRecord,
+      reorderingRecordToUnlabelled,
       unwrapData,
       unwrapNewtype,
       unwrapMultiple,

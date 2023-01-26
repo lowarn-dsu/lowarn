@@ -1,0 +1,16 @@
+Type checking errors:
+<interactive>:3:4: error:
+    • Couldn't match type: '[ 'Generics.SOP.Type.Metadata.FieldInfo
+                                "_variantUnlabelled3A",
+                              'Generics.SOP.Type.Metadata.FieldInfo "_variantUnlabelled3B",
+                              'Generics.SOP.Type.Metadata.FieldInfo "_variantUnlabelled3C"]
+                     with: '[]
+        arising from a use of ‘genericRenamingTransformer’
+    • In the first argument of ‘unTransformer’, namely
+        ‘(genericRenamingTransformer ::
+            Transformer A.VariantUnlabelled3 D.VariantUnlabelled3)’
+      In the expression:
+        unTransformer
+          (genericRenamingTransformer ::
+             Transformer A.VariantUnlabelled3 D.VariantUnlabelled3)
+          (A.VariantUnlabelled3A 1 "a" True)
