@@ -20,6 +20,7 @@ module Test.Lowarn.Type.TypesA
     Record1 (..),
     Record1' (..),
     Variant2 (..),
+    VariantTuple2 (..),
     Record2 (..),
     Record2' (..),
     Variant3 (..),
@@ -54,6 +55,9 @@ newtype Record1' = Record1'A
   deriving (Show)
 
 data Variant2 = Variant2A | Variant2B
+  deriving (Show)
+
+data VariantTuple2 = VariantTuple2A Int String
   deriving (Show)
 
 data Record2 = Record2A
@@ -129,6 +133,7 @@ deriveGeneric ''VariantTuple1'
 deriveGeneric ''Record1
 deriveGeneric ''Record1'
 deriveGeneric ''Variant2
+deriveGeneric ''VariantTuple2
 deriveGeneric ''Record2
 deriveGeneric ''Record2'
 deriveGeneric ''Variant3

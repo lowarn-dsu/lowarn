@@ -1,0 +1,14 @@
+Type checking errors:
+<interactive>:3:4: error:
+    • Couldn't match type: Generics.SOP.Universe.Code Int
+                     with: Data.SOP.Constraint.Head (Generics.SOP.Universe.Code Int)
+                             : Data.SOP.Constraint.Tail (Generics.SOP.Universe.Code Int)
+        arising from a use of ‘genericReorderingTransformer’
+    • In the first argument of ‘unTransformer’, namely
+        ‘(genericReorderingTransformer ::
+            Transformer A.VariantTuple2 C.VariantTuple2)’
+      In the expression:
+        unTransformer
+          (genericReorderingTransformer ::
+             Transformer A.VariantTuple2 C.VariantTuple2)
+          (A.VariantTuple2A 1 "a")

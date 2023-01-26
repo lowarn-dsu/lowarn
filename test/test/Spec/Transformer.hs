@@ -356,6 +356,30 @@ unTransformer
   A.Variant2A
 |]
 
+reorderingVariantTuple2Identity :: TestTree
+reorderingVariantTuple2Identity =
+  transformerGoldenTest
+    (show 'reorderingVariantTuple2Identity)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.VariantTuple2 B.VariantTuple2)
+  (A.VariantTuple2A 1 "a")
+|]
+
+reorderingVariantTuple2Swap :: TestTree
+reorderingVariantTuple2Swap =
+  transformerGoldenTest
+    (show 'reorderingVariantTuple2Swap)
+    []
+    $ Expression
+      [r|
+unTransformer
+  (genericReorderingTransformer :: Transformer A.VariantTuple2 C.VariantTuple2)
+  (A.VariantTuple2A 1 "a")
+|]
+
 reorderingRecord2Identity :: TestTree
 reorderingRecord2Identity =
   transformerGoldenTest
@@ -543,6 +567,8 @@ transformerTests =
       reorderingRecord1Newtype,
       reorderingVariant2Identity,
       reorderingVariant2Swap,
+      reorderingVariantTuple2Identity,
+      reorderingVariantTuple2Swap,
       reorderingRecord2Identity,
       reorderingRecord2Swap,
       reorderingRecord2Rename,

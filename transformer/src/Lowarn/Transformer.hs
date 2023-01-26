@@ -588,6 +588,13 @@ instance OrderWithSymbols '[] '[] '[] '[] '[] where
   orderNP :: NP f '[] -> NP f '[]
   orderNP Nil = Nil
 
+instance OrderWithSymbols (a ': as) '[] '[] (a ': as) '[] where
+  type OrderWithSymbolsBs (a ': as) '[] '[] = (a ': as)
+  type OrderWithSymbolsWbs (a ': as) '[] '[] = '[]
+
+  orderNP :: NP f (a ': as) -> NP f (a ': as)
+  orderNP = id
+
 instance
   forall
     k
