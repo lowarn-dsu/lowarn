@@ -1,7 +1,14 @@
 Type checking errors:
 <interactive>:3:4: error:
-    • Couldn't match type ‘'LT’ with ‘'EQ’
-        arising from a use of ‘genericRenamingTransformer’
+    • Constructor name "Variant2A" doesn't match constructor name "Variant2B".
+    • In the first argument of ‘unTransformer’, namely
+        ‘(genericRenamingTransformer :: Transformer A.Variant2 C.Variant2)’
+      In the expression:
+        unTransformer
+          (genericRenamingTransformer :: Transformer A.Variant2 C.Variant2)
+          A.Variant2A
+<interactive>:3:4: error:
+    • Constructor name "Variant2B" doesn't match constructor name "Variant2A".
     • In the first argument of ‘unTransformer’, namely
         ‘(genericRenamingTransformer :: Transformer A.Variant2 C.Variant2)’
       In the expression:

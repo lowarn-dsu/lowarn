@@ -1,7 +1,6 @@
 Type checking errors:
 <interactive>:3:4: error:
-    • Couldn't match type ‘'LT’ with ‘'EQ’
-        arising from a use of ‘genericRenamingTransformer’
+    • Datatype name "VariantRecord3" doesn't match datatype name "VariantRecord3'".
     • In the first argument of ‘unTransformer’, namely
         ‘(genericRenamingTransformer ::
             Transformer A.VariantRecord3 A.VariantRecord3')’
