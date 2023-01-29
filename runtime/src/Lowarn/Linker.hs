@@ -51,10 +51,17 @@ import Text.Printf (printf)
 foreign import ccall "dynamic"
   mkStablePtr :: FunPtr (IO (StablePtr a)) -> IO (StablePtr a)
 
+data Linkable = Object FilePath | Archive FilePath
+  deriving (Eq, Ord, Show)
+
+linkable :: (FilePath -> a) -> (FilePath -> a) -> Linkable -> a
+linkable f _ (Object objectFile) = f objectFile
+linkable _ f (Archive archiveFile) = f archiveFile
+
 -- | Monad for linking modules from the package database and accessing their
 -- exported entities.
 newtype Linker a = Linker
-  { unLinker :: StateT (Set String) Ghc a
+  { unLinker :: StateT (Set Linkable) Ghc a
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
@@ -98,25 +105,29 @@ load packageName' moduleName' symbol = Linker $ do
     >>= maybe
       (return Nothing)
       ( \unitInfo -> do
-          previousArchiveFiles <- get
-          nextArchiveFiles <-
+          previousLinkables <- get
+          nextLinkables <-
             Set.fromList . catMaybes
               <$> sequence
-                [ liftIO $ findArchiveFile dependencyUnitInfo
+                [ liftIO $ findLinkable dependencyUnitInfo
                   | dependencyUnitInfo <- findDependencyUnitInfo flags unitInfo,
                     unitId dependencyUnitInfo /= rtsUnitId
                 ]
 
-          put nextArchiveFiles
+          put nextLinkables
 
-          let unloadArchiveFiles =
-                Set.difference previousArchiveFiles nextArchiveFiles
-              loadArchiveFiles =
-                Set.difference nextArchiveFiles previousArchiveFiles
+          let unloadLinkables =
+                Set.difference previousLinkables nextLinkables
+              loadLinkables =
+                Set.difference nextLinkables previousLinkables
 
           liftIO $ do
-            mapM_ (unloadObj session) unloadArchiveFiles
-            mapM_ (loadArchive session) loadArchiveFiles
+            mapM_
+              (linkable (unloadObj session) (unloadObj session))
+              unloadLinkables
+            mapM_
+              (linkable (loadObj session) (loadArchive session))
+              loadLinkables
 
             resolveObjs session >>= \case
               Failed -> return Nothing
@@ -163,20 +174,15 @@ lookupUnitInfo flags packageName moduleName = do
         )
         modulesAndPackages
 
-findArchiveFile :: UnitInfo -> IO (Maybe FilePath)
-findArchiveFile unitInfo = do
-  archiveFiles <-
-    concat
-      <$> sequence
-        [ let pattern =
-                compileWith compOptions $
-                  printf "%s/libHS%s*.a" searchDir packageName
-           in globDir1 pattern searchDir
-          | searchDir <- searchDirs
-        ]
-  return $ case archiveFiles of
-    [] -> Nothing
-    _ : _ -> Just $ minimumBy (comparing length) archiveFiles
+findLinkable :: UnitInfo -> IO (Maybe Linkable)
+findLinkable unitInfo = do
+  findFiles "%s/HS%s*.o" >>= \case
+    [objectFile] -> return $ Just $ Object objectFile
+    _ -> do
+      archiveFiles <- findFiles "%s/libHS%s*.a"
+      return $ case archiveFiles of
+        [] -> Nothing
+        _ : _ -> Just $ Archive $ minimumBy (comparing length) archiveFiles
   where
     searchDirs = unitLibraryDirs unitInfo
     packageName = unpackFS $ unPackageName $ unitPackageName unitInfo
@@ -190,6 +196,18 @@ findArchiveFile unitInfo = do
           pathSepInRanges = False,
           errorRecovery = True
         }
+
+    findFiles :: String -> IO [FilePath]
+    findFiles pattern =
+      concat
+        <$> sequence
+          [ globDir1
+              ( compileWith compOptions $
+                  printf pattern searchDir packageName
+              )
+              searchDir
+            | searchDir <- searchDirs
+          ]
 
 findDependencyUnitInfo :: DynFlags -> UnitInfo -> [UnitInfo]
 findDependencyUnitInfo flags rootUnitInfo =
