@@ -11,6 +11,7 @@ description:         Lowarn demo program 2
 dependencies:
 - base >= 4.7 && < 5
 - containers
+- deepseq >= 1.4
 - lowarn
 - lowarn-plugin
 - lowarn-transformer

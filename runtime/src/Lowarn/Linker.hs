@@ -46,6 +46,7 @@ import GHC.Runtime.Interpreter
 import GHC.Unit hiding (moduleName)
 import System.Environment (lookupEnv)
 import System.FilePath.Glob (CompOptions (..), compileWith, globDir1)
+import System.Mem (performGC)
 import Text.Printf (printf)
 
 foreign import ccall "dynamic"
@@ -70,6 +71,7 @@ runLinker :: Linker a -> IO a
 runLinker linker =
   defaultErrorHandler defaultFatalMessager defaultFlushOut $
     runGhc (Just libdir) $ do
+      liftIO performGC
       flags <- getSessionDynFlags
       flags' <-
         liftIO $

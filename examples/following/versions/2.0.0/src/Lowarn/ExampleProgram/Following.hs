@@ -1,7 +1,5 @@
-{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies #-}
 
 module Lowarn.ExampleProgram.Following
   ( User (..),
@@ -11,10 +9,12 @@ module Lowarn.ExampleProgram.Following
   )
 where
 
+import Control.DeepSeq
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
+import qualified GHC.Generics as GHC (Generic)
 import Lowarn (RuntimeData, isUpdateAvailable)
-import Lowarn.Transformer (deriveGeneric)
+import Lowarn.Transformer (Generic, HasDatatypeInfo)
 import System.IO
   ( Handle,
     hFlush,
@@ -28,15 +28,17 @@ data User = User
   { _nickname :: String,
     _userId :: Int
   }
+  deriving (GHC.Generic, NFData, Generic, HasDatatypeInfo)
 
 data State = State
   { _users :: Seq User,
     _in :: Handle,
     _out :: Handle
   }
+  deriving (GHC.Generic, Generic, HasDatatypeInfo)
 
-deriveGeneric ''User
-deriveGeneric ''State
+instance NFData State where
+  rnf state = state `seq` rnf (_users state)
 
 showUser :: User -> String
 showUser (User nickname userId) = printf "%s#%04d" nickname userId

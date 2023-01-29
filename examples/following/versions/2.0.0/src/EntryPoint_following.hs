@@ -12,10 +12,12 @@ import System.IO
   ( stdin,
     stdout,
   )
+import System.Mem (performGC)
 
 entryPoint :: EntryPoint State
 entryPoint = EntryPoint $
-  \runtimeData ->
+  \runtimeData -> do
+    performGC
     eventLoop runtimeData $
       fromMaybe (State Seq.empty stdin stdout) (lastState runtimeData)
 

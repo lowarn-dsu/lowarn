@@ -4,18 +4,16 @@
 {-# LANGUAGE PackageImports #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Transformer_following
-  ( transformer,
-  )
-where
+module Transformer_following () where
 
 import Control.Arrow
 import Data.Foldable (toList)
 import Foreign (StablePtr, newStablePtr)
 import Lowarn (Transformer)
-import Lowarn.Transformer (Transformable (transformer))
 import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Following as PreviousVersion
 import qualified "lowarn-version-following-v3v0v0" Lowarn.ExampleProgram.Following as NextVersion
+import Lowarn.Transformer (Transformable (transformer))
+import Lowarn.Transformer.Strict (StrictTransformable (transformer'))
 
 instance
   (Traversable t) =>
@@ -34,4 +32,4 @@ foreign export ccall "hs_transformer_v2v0v0_v3v0v0"
 
 hsTransformer ::
   IO (StablePtr (Transformer PreviousVersion.State NextVersion.State))
-hsTransformer = newStablePtr transformer
+hsTransformer = newStablePtr transformer'

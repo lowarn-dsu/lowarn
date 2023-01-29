@@ -16,6 +16,7 @@ description:         Please see the README on GitHub at <https://github.com/jona
 
 dependencies:
 - base >= 4.7 && < 5
+- deepseq >= 1.4
 - generics-sop >= 0.5.1 && < 0.6
 - lowarn
 

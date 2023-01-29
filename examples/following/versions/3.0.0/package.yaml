@@ -10,6 +10,7 @@ description:         Lowarn demo program 3
 
 dependencies:
 - base >= 4.7 && < 5
+- deepseq >= 1.4
 - lowarn
 - lowarn-plugin
 - lowarn-transformer
