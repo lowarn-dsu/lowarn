@@ -1,9 +1,6 @@
 {-# LANGUAGE PackageImports #-}
 
-module Transformer_manual_following
-  ( transformer,
-  )
-where
+module Transformer_manual_following () where
 
 import Data.Foldable (toList)
 import Foreign (StablePtr, newStablePtr)

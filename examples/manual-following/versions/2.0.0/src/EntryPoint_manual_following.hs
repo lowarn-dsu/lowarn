@@ -1,7 +1,4 @@
-module EntryPoint_manual_following
-  ( entryPoint,
-  )
-where
+module EntryPoint_manual_following () where
 
 import Data.Maybe (fromMaybe)
 import qualified Data.Sequence as Seq

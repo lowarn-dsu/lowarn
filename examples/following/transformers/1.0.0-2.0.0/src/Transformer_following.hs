@@ -4,10 +4,7 @@
 {-# LANGUAGE PackageImports #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Transformer_following
-  ( transformer,
-  )
-where
+module Transformer_following () where
 
 import Control.Arrow (first)
 import Data.Sequence (Seq)
