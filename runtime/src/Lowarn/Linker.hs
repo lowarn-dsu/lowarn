@@ -74,6 +74,7 @@ runLinker :: Linker a -> IO a
 runLinker linker =
   defaultErrorHandler defaultFatalMessager defaultFlushOut $
     runGhc (Just libdir) $ do
+      setSessionDynFlags =<< getSessionDynFlags
       flags <- getSessionDynFlags
       session <- getSession
       flags' <-
