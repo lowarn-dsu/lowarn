@@ -3,4 +3,5 @@ write-ghc-environment-files: always
 packages:
     */*.cabal
   , examples/*/demo/*.cabal
-  , examples/*/{versions,transformers}/*/*.cabal
+  , examples/*/versions/*/*.cabal
+  , examples/*/transformers/*/*.cabal
