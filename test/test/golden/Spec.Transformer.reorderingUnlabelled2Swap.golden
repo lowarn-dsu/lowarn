@@ -1,14 +1,12 @@
 Type checking errors:
-<interactive>:3:4: error:
-    • Couldn't match type: Generics.SOP.Universe.Code Int
-                     with: Data.SOP.Constraint.Head (Generics.SOP.Universe.Code Int)
-                             : Data.SOP.Constraint.Tail (Generics.SOP.Universe.Code Int)
-        arising from a use of ‘genericReorderingTransformer’
-    • In the first argument of ‘unTransformer’, namely
-        ‘(genericReorderingTransformer ::
-            Transformer A.Unlabelled2 C.Unlabelled2)’
-      In the expression:
-        unTransformer
-          (genericReorderingTransformer ::
-             Transformer A.Unlabelled2 C.Unlabelled2)
-          (A.Unlabelled2A 1 "a")
+Couldn't match type: Code Int
+               with: Head (Code Int) : Tail (Code Int)
+  arising from a use of ‘genericReorderingTransformer’
+In the first argument of ‘unTransformer’, namely
+  ‘(genericReorderingTransformer ::
+      Transformer Unlabelled2 Unlabelled2)’
+In the expression:
+  unTransformer
+    (genericReorderingTransformer ::
+       Transformer Unlabelled2 Unlabelled2)
+    (Unlabelled2A 1 "a")

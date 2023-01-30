@@ -1,13 +1,12 @@
 Type checking errors:
-<interactive>:3:4: error:
-    • Couldn't match type: '[]
-                     with: Data.SOP.Constraint.Head '[] : Data.SOP.Constraint.Tail '[]
-        arising from a use of ‘genericRenamingTransformer’
-    • In the first argument of ‘unTransformer’, namely
-        ‘(genericRenamingTransformer ::
-            Transformer A.VariantRecord3 A.VariantUnlabelled3)’
-      In the expression:
-        unTransformer
-          (genericRenamingTransformer ::
-             Transformer A.VariantRecord3 A.VariantUnlabelled3)
-          (A.VariantRecord3A 1 "a" True)
+Couldn't match type: '[]
+               with: Head '[] : Tail '[]
+  arising from a use of ‘genericRenamingTransformer’
+In the first argument of ‘unTransformer’, namely
+  ‘(genericRenamingTransformer ::
+      Transformer VariantRecord3 VariantUnlabelled3)’
+In the expression:
+  unTransformer
+    (genericRenamingTransformer ::
+       Transformer VariantRecord3 VariantUnlabelled3)
+    (VariantRecord3A 1 "a" True)

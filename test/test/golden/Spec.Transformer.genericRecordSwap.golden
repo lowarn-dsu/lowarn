@@ -1,12 +1,10 @@
 Type checking errors:
-<interactive>:3:4: error:
-    • Couldn't match type: Generics.SOP.Universe.Code Int
-                     with: Data.SOP.Constraint.Head (Generics.SOP.Universe.Code Int)
-                             : Data.SOP.Constraint.Tail (Generics.SOP.Universe.Code Int)
-        arising from a use of ‘genericTransformer’
-    • In the first argument of ‘unTransformer’, namely
-        ‘(genericTransformer :: Transformer A.Record2 C.Record2)’
-      In the expression:
-        unTransformer
-          (genericTransformer :: Transformer A.Record2 C.Record2)
-          (A.Record2A 1 "a")
+Couldn't match type: Code Int
+               with: Head (Code Int) : Tail (Code Int)
+  arising from a use of ‘genericTransformer’
+In the first argument of ‘unTransformer’, namely
+  ‘(genericTransformer :: Transformer Record2 Record2)’
+In the expression:
+  unTransformer
+    (genericTransformer :: Transformer Record2 Record2)
+    (Record2A 1 "a")
