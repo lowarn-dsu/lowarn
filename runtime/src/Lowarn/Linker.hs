@@ -121,10 +121,12 @@ load packageName' moduleName' symbol = Linker $ do
                     unitId dependencyUnitInfo /= rtsUnitId
                 ]
 
-          put nextLinkables
+          -- put nextLinkables
+          put $ Set.union nextLinkables previousLinkables
 
           let unloadLinkables =
-                Set.difference previousLinkables nextLinkables
+                Set.empty
+              -- Set.difference previousLinkables nextLinkables
               loadLinkables =
                 Set.difference nextLinkables previousLinkables
 
