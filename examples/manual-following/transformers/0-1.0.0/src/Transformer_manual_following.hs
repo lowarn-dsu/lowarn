@@ -1,7 +1,4 @@
-module Transformer_manual_following
-  ( transformer,
-  )
-where
+module Transformer_manual_following () where
 
 import Foreign (StablePtr, newStablePtr)
 import Lowarn (Transformer (Transformer))
