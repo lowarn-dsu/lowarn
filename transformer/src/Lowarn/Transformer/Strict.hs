@@ -10,7 +10,6 @@ module Lowarn.Transformer.Strict
   )
 where
 
-import Control.Arrow
 import Control.DeepSeq
 import Control.Exception (evaluate)
 import Lowarn (Transformer (..))
@@ -22,16 +21,29 @@ class NFData b => StrictTransformable a b where
   -- | Gives a transformer that attempts to transform data from type @a@ to type
   -- @b@.
   transformer' :: Transformer a b
-  transformer' = Transformer transform'
+  transformer' = Transformer $! transform'
 
   -- | Attempt to transform data from type @a@ to type @b@, giving @Nothing@ if
   -- this is not possible.
   transform' :: a -> IO (Maybe b)
-  transform' = unTransformer transformer'
+  transform' = unTransformer $! transformer'
 
 instance (Transformable a b, NFData b) => StrictTransformable a b where
   transformer' :: Transformer a b
-  transformer' = forceTransformer <<< transformer
+  transformer' =
+    Transformer
+      ( \x -> do
+          y <- transform $! x
+          case y of
+            Nothing -> return Nothing
+            Just y' -> (unTransformer $! forceTransformer) $! y'
+      )
 
 forceTransformer :: (NFData a) => Transformer a a
-forceTransformer = Transformer $ fmap Just . evaluate . force
+forceTransformer =
+  Transformer
+    ( \x ->
+        do
+          x' <- evaluate $ force x
+          evaluate $ force $ Just x'
+    )
