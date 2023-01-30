@@ -37,6 +37,7 @@ import Foreign
     deRefStablePtr,
     freeStablePtr,
   )
+import Foreign.C (CInt (CInt))
 import GHC hiding (load, moduleName)
 import GHC.Data.FastString
 import GHC.Driver.Monad
@@ -54,6 +55,8 @@ foreign import ccall "dynamic"
 
 data Linkable = Object FilePath | Archive FilePath
   deriving (Eq, Ord, Show)
+
+foreign import ccall unsafe "initLinker_" c_initLinker_ :: CInt -> IO ()
 
 linkable :: (FilePath -> a) -> (FilePath -> a) -> Linkable -> a
 linkable f _ (Object objectFile) = f objectFile
@@ -82,7 +85,7 @@ runLinker linker =
               Just lowarnPackageEnv -> do
                 interpretPackageEnv $ flags {packageEnv = Just lowarnPackageEnv}
       void $ setSessionDynFlags $ flags' {ghcLink = LinkStaticLib}
-      liftIO . initObjLinker =<< getSession
+      liftIO $ c_initLinker_ 0
       evalStateT (unLinker linker) Set.empty
 
 -- | Action that gives an entity exported by a module in a package in the
@@ -97,6 +100,7 @@ load ::
   String ->
   Linker (Maybe a)
 load packageName' moduleName' symbol = Linker $ do
+  liftIO performGC
   flags <- lift getSessionDynFlags
   session <- lift getSession
 
