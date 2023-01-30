@@ -37,6 +37,7 @@ library
     , base >=4.7 && <5
     , containers
     , ghc ==9.2.5
+    , ghc-boot ==9.2.5
     , ghc-paths
     , lowarn
     , transformers

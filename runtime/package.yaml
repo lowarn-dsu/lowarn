@@ -18,6 +18,7 @@ dependencies:
 - base >= 4.7 && < 5
 - containers
 - ghc == 9.2.5
+- ghc-boot == 9.2.5
 - ghc-paths
 - Glob >= 0.10.2 && < 0.11
 - lowarn
