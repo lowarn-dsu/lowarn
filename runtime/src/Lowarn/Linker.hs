@@ -21,7 +21,6 @@ module Lowarn.Linker
 where
 
 import Control.Exception (bracket)
-import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.State.Strict (StateT, evalStateT, get, put)
@@ -39,11 +38,15 @@ import Foreign
   )
 import GHC hiding (load, moduleName)
 import GHC.Data.FastString
+import GHC.Data.ShortText (unpack)
+import GHC.Driver.Env (HscEnv (..))
 import GHC.Driver.Monad
 import GHC.Driver.Session
 import GHC.Paths (libdir)
 import GHC.Runtime.Interpreter
 import GHC.Unit hiding (moduleName)
+import GHC.Unit.Env (UnitEnv (..))
+import GHC.Unit.State
 import System.Environment (lookupEnv)
 import System.FilePath.Glob (CompOptions (..), compileWith, globDir1)
 import Text.Printf (printf)
@@ -71,16 +74,18 @@ runLinker linker =
   defaultErrorHandler defaultFatalMessager defaultFlushOut $
     runGhc (Just libdir) $ do
       flags <- getSessionDynFlags
+      session <- getSession
       flags' <-
         liftIO $
           lookupEnv "LOWARN_PACKAGE_ENV"
             >>= \case
               Just "" -> return flags
               Nothing -> return flags
-              Just lowarnPackageEnv -> do
-                interpretPackageEnv $ flags {packageEnv = Just lowarnPackageEnv}
-      void $ setSessionDynFlags $ flags' {ghcLink = LinkStaticLib}
-      liftIO . initObjLinker =<< getSession
+              Just lowarnPackageEnv ->
+                interpretPackageEnv (hsc_logger session) $
+                  flags {packageEnv = Just lowarnPackageEnv}
+      setSessionDynFlags flags' {ghcLink = LinkStaticLib}
+      liftIO . initObjLinker . hscInterp =<< getSession
       evalStateT (unLinker linker) Set.empty
 
 -- | Action that gives an entity exported by a module in a package in the
@@ -95,13 +100,12 @@ load ::
   String ->
   Linker (Maybe a)
 load packageName' moduleName' symbol = Linker $ do
-  flags <- lift getSessionDynFlags
   session <- lift getSession
 
   let moduleName = mkModuleName moduleName'
       packageName = PackageName $ mkFastString packageName'
 
-  liftIO (lookupUnitInfo flags packageName moduleName)
+  liftIO (lookupUnitInfo session packageName moduleName)
     >>= maybe
       (return Nothing)
       ( \unitInfo -> do
@@ -110,29 +114,34 @@ load packageName' moduleName' symbol = Linker $ do
             Set.fromList . catMaybes
               <$> sequence
                 [ liftIO $ findLinkable dependencyUnitInfo
-                  | dependencyUnitInfo <- findDependencyUnitInfo flags unitInfo,
+                  | dependencyUnitInfo <-
+                      findDependencyUnitInfo session unitInfo,
                     unitId dependencyUnitInfo /= rtsUnitId
                 ]
 
-          put nextLinkables
+          -- put nextLinkables
+          put $ Set.union nextLinkables previousLinkables
 
           let unloadLinkables =
-                Set.difference previousLinkables nextLinkables
+                Set.empty
+              -- Set.difference previousLinkables nextLinkables
               loadLinkables =
                 Set.difference nextLinkables previousLinkables
 
+          let interp = hscInterp session
+
           liftIO $ do
             mapM_
-              (linkable (unloadObj session) (unloadObj session))
+              (linkable (unloadObj interp) (unloadObj interp))
               unloadLinkables
             mapM_
-              (linkable (loadObj session) (loadArchive session))
+              (linkable (loadObj interp) (loadArchive interp))
               loadLinkables
 
-            resolveObjs session >>= \case
+            resolveObjs interp >>= \case
               Failed -> return Nothing
               Succeeded ->
-                lookupSymbol session (mkFastString symbol)
+                lookupSymbol interp (mkFastString symbol)
                   >>= maybe
                     (return Nothing)
                     ( \symbolPtr ->
@@ -151,22 +160,42 @@ load packageName' moduleName' symbol = Linker $ do
 updatePackageDatabase :: Linker ()
 updatePackageDatabase = Linker $ lift $ do
   flags <- getSessionDynFlags
-  flagsWithInterpretedPackageEnv <- case packageEnv flags of
+  session <- getSession
+  case packageEnv flags of
     Nothing ->
-      return $ flags {unitState = emptyUnitState, unitDatabases = Nothing}
+      setSession $
+        session
+          { hsc_unit_env = (hsc_unit_env session) {ue_units = emptyUnitState},
+            hsc_unit_dbs = Nothing
+          }
     Just _ -> do
-      liftIO $ interpretPackageEnv flags
-  setSessionDynFlags =<< liftIO (initUnits flagsWithInterpretedPackageEnv)
+      setSessionDynFlags
+        =<< liftIO (interpretPackageEnv (hsc_logger session) flags)
+  flags' <- getSessionDynFlags
+  (unitDbs, unitState, homeUnit, platformConstants) <-
+    liftIO $ initUnits (hsc_logger session) flags' (hsc_unit_dbs session)
+  setSessionDynFlags
+    =<< liftIO (updatePlatformConstants flags' platformConstants)
+  setSession $
+    session
+      { hsc_unit_env =
+          (hsc_unit_env session)
+            { ue_units = unitState,
+              ue_home_unit = homeUnit
+            },
+        hsc_unit_dbs = Just unitDbs
+      }
 
-lookupUnitInfo :: DynFlags -> PackageName -> ModuleName -> IO (Maybe UnitInfo)
-lookupUnitInfo flags packageName moduleName = do
+lookupUnitInfo :: HscEnv -> PackageName -> ModuleName -> IO (Maybe UnitInfo)
+lookupUnitInfo session packageName moduleName = do
   case exposedModulesAndPackages of
     [] -> do
       putStrLn $ "Can't find module " <> moduleNameString moduleName
       return Nothing
     (_, unitInfo) : _ -> return $ Just unitInfo
   where
-    modulesAndPackages = lookupModuleInAllUnits (unitState flags) moduleName
+    modulesAndPackages =
+      lookupModuleInAllUnits (ue_units $ hsc_unit_env session) moduleName
     exposedModulesAndPackages =
       filter
         ( \(_, unitInfo) ->
@@ -206,11 +235,12 @@ findLinkable unitInfo = do
                   printf pattern searchDir packageName
               )
               searchDir
-            | searchDir <- searchDirs
+            | searchDirShort <- searchDirs,
+              let searchDir = unpack searchDirShort
           ]
 
-findDependencyUnitInfo :: DynFlags -> UnitInfo -> [UnitInfo]
-findDependencyUnitInfo flags rootUnitInfo =
+findDependencyUnitInfo :: HscEnv -> UnitInfo -> [UnitInfo]
+findDependencyUnitInfo session rootUnitInfo =
   transitiveClosure [rootUnitInfo] (Set.singleton $ unitId rootUnitInfo) []
   where
     transitiveClosure :: [UnitInfo] -> Set UnitId -> [UnitInfo] -> [UnitInfo]
@@ -225,4 +255,6 @@ findDependencyUnitInfo flags rootUnitInfo =
         newUnvisitedDependencyIds =
           filter (`Set.notMember` seenDependencyIds) dependencyIds
         newUnvisitedDependencies =
-          mapMaybe (lookupUnitId $ unitState flags) newUnvisitedDependencyIds
+          mapMaybe
+            (lookupUnitId $ ue_units $ hsc_unit_env session)
+            newUnvisitedDependencyIds

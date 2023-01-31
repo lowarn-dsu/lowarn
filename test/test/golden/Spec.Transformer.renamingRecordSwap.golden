@@ -1,17 +1,15 @@
 Type checking errors:
-<interactive>:3:4: error:
-    • Field name "_record2A" doesn't match field name "_record2B".
-    • In the first argument of ‘unTransformer’, namely
-        ‘(genericRenamingTransformer :: Transformer A.Record2 C.Record2)’
-      In the expression:
-        unTransformer
-          (genericRenamingTransformer :: Transformer A.Record2 C.Record2)
-          (A.Record2A 1 "a")
-<interactive>:3:4: error:
-    • Field name "_record2B" doesn't match field name "_record2A".
-    • In the first argument of ‘unTransformer’, namely
-        ‘(genericRenamingTransformer :: Transformer A.Record2 C.Record2)’
-      In the expression:
-        unTransformer
-          (genericRenamingTransformer :: Transformer A.Record2 C.Record2)
-          (A.Record2A 1 "a")
+Field name "_record2B" doesn't match field name "_record2A".
+In the first argument of ‘unTransformer’, namely
+  ‘(genericRenamingTransformer :: Transformer Record2 Record2)’
+In the expression:
+  unTransformer
+    (genericRenamingTransformer :: Transformer Record2 Record2)
+    (Record2A 1 "a")
+Field name "_record2A" doesn't match field name "_record2B".
+In the first argument of ‘unTransformer’, namely
+  ‘(genericRenamingTransformer :: Transformer Record2 Record2)’
+In the expression:
+  unTransformer
+    (genericRenamingTransformer :: Transformer Record2 Record2)
+    (Record2A 1 "a")

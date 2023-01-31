@@ -1,35 +1,24 @@
 Type checking errors:
-<interactive>:3:4: error:
-    • No instance for (Lowarn.Transformer.TakeWithSymbols'
-                         'False
-                         '[ '[]]
-                         '[ 'Lowarn.Transformer.SymbolWithSymbols "Variant1A" '[]]
-                         "Variant1'A"
-                         (Lowarn.Transformer.TakeWithSymbols'B
-                            'False
-                            '[ '[]]
-                            '[ 'Lowarn.Transformer.SymbolWithSymbols "Variant1A" '[]]
-                            "Variant1'A")
-                         (Lowarn.Transformer.TakeWithSymbols'Wb
-                            'False
-                            '[ '[]]
-                            '[ 'Lowarn.Transformer.SymbolWithSymbols "Variant1A" '[]]
-                            "Variant1'A")
-                         (Lowarn.Transformer.TakeWithSymbols'Cs
-                            'False
-                            '[ '[]]
-                            '[ 'Lowarn.Transformer.SymbolWithSymbols "Variant1A" '[]]
-                            "Variant1'A")
-                         (Lowarn.Transformer.TakeWithSymbols'Wcs
-                            'False
-                            '[ '[]]
-                            '[ 'Lowarn.Transformer.SymbolWithSymbols "Variant1A" '[]]
-                            "Variant1'A"))
-        arising from a use of ‘genericReorderingTransformer’
-    • In the first argument of ‘unTransformer’, namely
-        ‘(genericReorderingTransformer ::
-            Transformer A.Variant1 C.Variant1)’
-      In the expression:
-        unTransformer
-          (genericReorderingTransformer :: Transformer A.Variant1 C.Variant1)
-          A.Variant1A
+No instance for (TakeWithSymbols'
+                   'False
+                   '[ '[]]
+                   '[ 'SymbolWithSymbols "Variant1A" '[]]
+                   "Variant1'A"
+                   (TakeWithSymbols'B
+                      'False '[ '[]] '[ 'SymbolWithSymbols "Variant1A" '[]] "Variant1'A")
+                   (TakeWithSymbols'Wb
+                      'False '[ '[]] '[ 'SymbolWithSymbols "Variant1A" '[]] "Variant1'A")
+                   (TakeWithSymbols'Cs
+                      'False '[ '[]] '[ 'SymbolWithSymbols "Variant1A" '[]] "Variant1'A")
+                   (TakeWithSymbols'Wcs
+                      'False
+                      '[ '[]]
+                      '[ 'SymbolWithSymbols "Variant1A" '[]]
+                      "Variant1'A"))
+  arising from a use of ‘genericReorderingTransformer’
+In the first argument of ‘unTransformer’, namely
+  ‘(genericReorderingTransformer :: Transformer Variant1 Variant1)’
+In the expression:
+  unTransformer
+    (genericReorderingTransformer :: Transformer Variant1 Variant1)
+    Variant1A

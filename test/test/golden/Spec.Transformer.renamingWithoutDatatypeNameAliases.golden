@@ -1,11 +1,10 @@
 Type checking errors:
-<interactive>:3:4: error:
-    • Datatype name "VariantRecord3" doesn't match datatype name "VariantRecord3'".
-    • In the first argument of ‘unTransformer’, namely
-        ‘(genericRenamingTransformer ::
-            Transformer A.VariantRecord3 A.VariantRecord3')’
-      In the expression:
-        unTransformer
-          (genericRenamingTransformer ::
-             Transformer A.VariantRecord3 A.VariantRecord3')
-          (A.VariantRecord3A 1 "a" True)
+Datatype name "VariantRecord3" doesn't match datatype name "VariantRecord3'".
+In the first argument of ‘unTransformer’, namely
+  ‘(genericRenamingTransformer ::
+      Transformer VariantRecord3 VariantRecord3')’
+In the expression:
+  unTransformer
+    (genericRenamingTransformer ::
+       Transformer VariantRecord3 VariantRecord3')
+    (VariantRecord3A 1 "a" True)
