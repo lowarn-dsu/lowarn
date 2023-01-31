@@ -246,8 +246,8 @@ type family
   ConstructorInfosOf (a :: M.DatatypeInfo) ::
     [M.ConstructorInfo]
   where
-  DatatypeNameOf ('M.ADT _ _ constructorInfos _) = constructorInfos
-  DatatypeNameOf ('M.Newtype _ _ constructorInfo) = '[constructorInfo]
+  ConstructorInfosOf ('M.ADT _ _ constructorInfos _) = constructorInfos
+  ConstructorInfosOf ('M.Newtype _ _ constructorInfo) = '[constructorInfo]
 
 type family ConstructorNameOf (a :: M.ConstructorInfo) :: Symbol where
   ConstructorNameOf ('M.Constructor constructorName) = constructorName
@@ -256,7 +256,7 @@ type family ConstructorNameOf (a :: M.ConstructorInfo) :: Symbol where
 
 type family ConstructorNamesOf (a :: [M.ConstructorInfo]) :: [Symbol] where
   ConstructorNamesOf '[] = '[]
-  ConstructorNameOf (c ': cs) = ConstructorNameOf c ': ConstructorNamesOf cs
+  ConstructorNamesOf (c ': cs) = ConstructorNameOf c ': ConstructorNamesOf cs
 
 type family
   FieldInfosOf (a :: M.ConstructorInfo) ::

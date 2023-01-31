@@ -1,6 +1,7 @@
-with-compiler: ghc-9.0.2
+with-compiler: ghc-9.2.5
 write-ghc-environment-files: always
 packages:
     */*.cabal
   , examples/*/demo/*.cabal
-  , examples/*/{versions,transformers}/*/*.cabal
+  , examples/*/versions/*/*.cabal
+  , examples/*/transformers/*/*.cabal
