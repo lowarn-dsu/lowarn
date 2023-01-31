@@ -21,7 +21,6 @@ module Lowarn.Linker
 where
 
 import Control.Exception (bracket)
-import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.State.Strict (StateT, evalStateT, get, put)
@@ -74,7 +73,6 @@ runLinker :: Linker a -> IO a
 runLinker linker =
   defaultErrorHandler defaultFatalMessager defaultFlushOut $
     runGhc (Just libdir) $ do
-      setSessionDynFlags =<< getSessionDynFlags
       flags <- getSessionDynFlags
       session <- getSession
       flags' <-
@@ -83,11 +81,11 @@ runLinker linker =
             >>= \case
               Just "" -> return flags
               Nothing -> return flags
-              Just lowarnPackageEnv -> do
+              Just lowarnPackageEnv ->
                 interpretPackageEnv (hsc_logger session) $
                   flags {packageEnv = Just lowarnPackageEnv}
-      void $ setSessionDynFlags $ flags' {ghcLink = LinkStaticLib}
-      liftIO $ initObjLinker $ hscInterp session
+      setSessionDynFlags flags' {ghcLink = LinkStaticLib}
+      liftIO . initObjLinker . hscInterp =<< getSession
       evalStateT (unLinker linker) Set.empty
 
 -- | Action that gives an entity exported by a module in a package in the
