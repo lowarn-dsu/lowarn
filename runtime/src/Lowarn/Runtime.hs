@@ -42,15 +42,12 @@ import Lowarn.Linker
     runLinker,
   )
 import qualified Lowarn.Linker as Linker (updatePackageDatabase)
-import Lowarn.ProgramName (showEntryPointModuleName, showTransformerModuleName)
 import Lowarn.TransformerId
   ( TransformerId (..),
     nextVersionId,
     showTransformerPackageName,
   )
-import qualified Lowarn.TransformerId as TransformerId (_programName)
 import Lowarn.VersionId (VersionId (_versionNumber), showVersionPackageName)
-import qualified Lowarn.VersionId as VersionId (_programName)
 import Lowarn.VersionNumber (showEntryPointExport, showTransformerExport)
 import System.Posix.Signals (Handler (Catch), installHandler, sigUSR2)
 import Text.Printf (printf)
@@ -81,18 +78,16 @@ liftLinker = Runtime . lift
 
 withLinkedEntity ::
   String ->
-  String ->
   EntityReader (Maybe a) ->
   (a -> IO b) ->
   Runtime b
-withLinkedEntity packageName moduleName entityReader f =
+withLinkedEntity packageName entityReader f =
   liftLinker $
-    load packageName moduleName entityReader
+    load packageName entityReader
       >>= maybe
         ( error $
             printf
-              "Could not find entities in module %s in package %s"
-              moduleName
+              "Could not find entities in package %s"
               packageName
         )
         (liftIO . f)
@@ -112,13 +107,11 @@ loadVersion versionId mPreviousState = do
   updateSignalRegister <- Runtime ask
   withLinkedEntity
     packageName
-    moduleName
     entityReader
     $ \entryPoint ->
       unEntryPoint entryPoint $
         RuntimeData updateSignalRegister (UpdateInfo <$> mPreviousState)
   where
-    moduleName = showEntryPointModuleName $ VersionId._programName versionId
     packageName = showVersionPackageName versionId
     entityReader =
       askEntity $ showEntryPointExport $ _versionNumber versionId
@@ -136,7 +129,6 @@ loadTransformerAndVersion transformerId previousState = do
   updateSignalRegister <- Runtime ask
   withLinkedEntity
     packageName
-    moduleName
     entityReader
     ( \(transformer, entryPoint) -> do
         previousState' <-
@@ -145,8 +137,6 @@ loadTransformerAndVersion transformerId previousState = do
           RuntimeData updateSignalRegister (UpdateInfo <$> previousState')
     )
   where
-    moduleName =
-      showTransformerModuleName . TransformerId._programName $ transformerId
     packageName = showTransformerPackageName transformerId
     transformerEntity =
       showTransformerExport

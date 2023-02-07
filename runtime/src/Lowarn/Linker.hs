@@ -28,6 +28,7 @@ module Lowarn.Linker
 where
 
 import Control.Exception (bracket)
+import Control.Monad
 import Control.Monad.Free (Free, foldFree, liftF)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
@@ -74,7 +75,7 @@ newtype LinkerState = LinkerState
   { _currentLinkables :: Set Linkable
   }
 
--- | Monad for linking modules from the package database and accessing their
+-- | Monad for linking packages from the package database and accessing their
 -- exported entities.
 newtype Linker a = Linker
   { unLinker :: StateT LinkerState Ghc a
@@ -110,78 +111,72 @@ data EntityReaderF a = EntityReaderF
 -- | Monad for getting entities from object files just loaded by the linker.
 type EntityReader = Free EntityReaderF
 
--- | Action that gives an entity with a given name from the 'EntityReader'\'s
--- environment if it exists.
+-- | Action that gives an entity with a given name (if it exists) from the
+-- 'EntityReader'\'s environment.
 askEntity :: String -> EntityReader (Maybe a)
 askEntity entityName = liftF (EntityReaderF entityName (fmap unsafeCoerce))
 
 -- | Action that gives entities exported by object files corresponding to a
--- module in a package in the package database. The object files are only linked
--- if they haven't already been. @Nothing@  is given if the module, package, or
--- entities cannot be found.
+-- given package (and its dependencies) in the package database. The object
+-- files are only linked if they haven't already been. @Nothing@ is given if the
+-- module, package, or entities cannot be found.
 load ::
-  -- | The name of the package to find the module in.
+  -- | The name of the package to load.
   String ->
-  -- | The name of the module to find.
-  String ->
-  -- | A computation in the 'EntityReader' monad that can give entities.
+  -- | A computation in the 'EntityReader' monad that gives entities from the
+  -- loaded object files.
   EntityReader (Maybe a) ->
   Linker (Maybe a)
-load packageName' moduleName' entityReader = Linker $ do
+load packageName' entityReader = Linker $ do
   session <- lift getSession
 
-  let moduleName = mkModuleName moduleName'
-      packageName = PackageName $ mkFastString packageName'
+  case lookupUnitInfo session (PackageName $ mkFastString packageName') of
+    Nothing -> return Nothing
+    Just unitInfo -> do
+      previousLinkables <- _currentLinkables <$> get
 
-  liftIO (lookupUnitInfo session packageName moduleName)
-    >>= maybe
-      (return Nothing)
-      ( \unitInfo -> do
-          previousLinkables <- _currentLinkables <$> get
+      nextLinkables <-
+        Set.fromList . catMaybes
+          <$> sequence
+            [ liftIO $ findLinkable dependencyUnitInfo
+              | dependencyUnitInfo <-
+                  findDependencyUnitInfo session unitInfo,
+                unitId dependencyUnitInfo /= rtsUnitId
+            ]
 
-          nextLinkables <-
-            Set.fromList . catMaybes
-              <$> sequence
-                [ liftIO $ findLinkable dependencyUnitInfo
-                  | dependencyUnitInfo <-
-                      findDependencyUnitInfo session unitInfo,
-                    unitId dependencyUnitInfo /= rtsUnitId
-                ]
+      put $ LinkerState nextLinkables
 
-          put $ LinkerState nextLinkables
+      liftIO $ do
+        mapM_
+          (linkable loadObj loadArchive)
+          (Set.difference nextLinkables previousLinkables)
 
-          liftIO $ do
-            mapM_
-              (linkable loadObj loadArchive)
-              (Set.difference nextLinkables previousLinkables)
+        output <-
+          resolveObjs >>= \case
+            False -> return Nothing
+            True ->
+              foldFree
+                ( \(EntityReaderF entityName continuation) -> do
+                    mx <-
+                      lookupSymbol entityName
+                        >>= maybe
+                          (return Nothing)
+                          ( \symbolPtr ->
+                              Just
+                                <$> bracket
+                                  (mkStablePtr $ castPtrToFunPtr symbolPtr)
+                                  freeStablePtr
+                                  deRefStablePtr
+                          )
+                    return $ continuation mx
+                )
+                entityReader
 
-            output <-
-              resolveObjs >>= \case
-                False -> return Nothing
-                True -> do
-                  foldFree
-                    ( \(EntityReaderF entityName continuation) -> do
-                        mx <-
-                          lookupSymbol entityName
-                            >>= maybe
-                              (return Nothing)
-                              ( \symbolPtr ->
-                                  Just
-                                    <$> bracket
-                                      (mkStablePtr $ castPtrToFunPtr symbolPtr)
-                                      freeStablePtr
-                                      deRefStablePtr
-                              )
-                        return $ continuation mx
-                    )
-                    entityReader
+        mapM_
+          (linkable unloadObj unloadObj)
+          (Set.difference previousLinkables nextLinkables)
 
-            mapM_
-              (linkable unloadObj unloadObj)
-              (Set.difference previousLinkables nextLinkables)
-
-            return output
-      )
+        return output
 
 -- | Action that updates the package database. This uses the package environment
 -- if it is specified. This can be set with the @LOWARN_PACKAGE_ENV@ environment
@@ -216,22 +211,15 @@ updatePackageDatabase = Linker $ lift $ do
         hsc_unit_dbs = Just unitDbs
       }
 
-lookupUnitInfo :: HscEnv -> PackageName -> ModuleName -> IO (Maybe UnitInfo)
-lookupUnitInfo session packageName moduleName = do
-  case exposedModulesAndPackages of
-    [] -> do
-      putStrLn $ "Can't find module " <> moduleNameString moduleName
-      return Nothing
-    (_, unitInfo) : _ -> return $ Just unitInfo
+lookupUnitInfo :: HscEnv -> PackageName -> Maybe UnitInfo
+lookupUnitInfo session packageName = do
+  unitInfo <-
+    lookupUnitId unitState . indefUnit
+      =<< lookupPackageName unitState packageName
+  unless (unitIsExposed unitInfo) Nothing
+  return unitInfo
   where
-    modulesAndPackages =
-      lookupModuleInAllUnits (ue_units $ hsc_unit_env session) moduleName
-    exposedModulesAndPackages =
-      filter
-        ( \(_, unitInfo) ->
-            unitIsExposed unitInfo && unitPackageName unitInfo == packageName
-        )
-        modulesAndPackages
+    unitState = ue_units $ hsc_unit_env session
 
 findLinkable :: UnitInfo -> IO (Maybe Linkable)
 findLinkable unitInfo = do
