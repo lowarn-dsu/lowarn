@@ -35,5 +35,8 @@ executables:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -rdynamic
+    - -fkeep-cafs
+    - -fwhole-archive-hs-libs
     dependencies:
     - following

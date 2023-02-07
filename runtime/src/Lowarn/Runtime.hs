@@ -12,16 +12,18 @@ module Lowarn.Runtime
     runRuntime,
     loadVersion,
     loadTransformer,
+    loadTransformerAndVersion,
     updatePackageDatabase,
     liftLinker,
     liftIO,
   )
 where
 
-import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
+import Data.Functor
+import GHC.IO (evaluate)
 import Lowarn
   ( EntryPoint (unEntryPoint),
     RuntimeData (RuntimeData),
@@ -31,7 +33,15 @@ import Lowarn
     fillUpdateSignalRegister,
     mkUpdateSignalRegister,
   )
-import Lowarn.Linker (Linker, liftIO, load, runLinker)
+import Lowarn.Linker
+  ( Entity (..),
+    GetEntityProgram,
+    Linker,
+    getEntity,
+    liftIO,
+    load,
+    runLinker,
+  )
 import qualified Lowarn.Linker as Linker (updatePackageDatabase)
 import Lowarn.ProgramName (showEntryPointModuleName, showTransformerModuleName)
 import Lowarn.TransformerId
@@ -44,6 +54,7 @@ import qualified Lowarn.VersionId as VersionId (_programName)
 import Lowarn.VersionNumber (showEntryPointExport, showTransformerExport)
 import System.Posix.Signals (Handler (Catch), installHandler, sigUSR2)
 import Text.Printf (printf)
+import Unsafe.Coerce (unsafeCoerce)
 
 -- | Monad for loading versions of programs while handling signals and
 -- transferring state.
@@ -69,10 +80,11 @@ runRuntime runtime = do
 liftLinker :: Linker a -> Runtime a
 liftLinker = Runtime . lift
 
-withLinkedEntity :: String -> String -> String -> (a -> IO b) -> Runtime b
+withLinkedEntity ::
+  String -> String -> String -> (a -> IO b) -> Runtime b
 withLinkedEntity packageName moduleName entityName f =
   liftLinker $
-    load packageName moduleName entityName
+    load packageName moduleName getEntityProgram
       >>= maybe
         ( error $
             printf
@@ -82,6 +94,37 @@ withLinkedEntity packageName moduleName entityName f =
               packageName
         )
         (liftIO . f)
+  where
+    getEntityProgram :: GetEntityProgram (Maybe a)
+    getEntityProgram =
+      getEntity entityName
+        <&> maybe Nothing (\(Entity a) -> Just $ unsafeCoerce a)
+
+withLinkedEntity' ::
+  String -> String -> String -> String -> ((a, b) -> IO c) -> Runtime c
+withLinkedEntity' packageName moduleName entityName1 entityName2 f =
+  liftLinker $
+    load packageName moduleName getEntityProgram
+      >>= maybe
+        ( error $
+            printf
+              "Could not find entities %s and %s in module %s in package %s"
+              entityName1
+              entityName2
+              moduleName
+              packageName
+        )
+        (liftIO . f)
+  where
+    getEntityProgram :: GetEntityProgram (Maybe (a, b))
+    getEntityProgram =
+      getEntity entityName1
+        >>= maybe
+          (return Nothing)
+          ( \(Entity a) ->
+              getEntity entityName2
+                <&> maybe Nothing (\(Entity b) -> Just $ unsafeCoerce (a, b))
+          )
 
 -- | Action that loads and runs a given version of a program, producing the
 -- final state of the program when it finishes.
@@ -115,7 +158,7 @@ loadTransformer ::
   TransformerId ->
   -- | State from the previous version of the program.
   a ->
-  Runtime (Maybe a)
+  Runtime (Maybe b)
 loadTransformer transformerId previousState =
   withLinkedEntity
     packageName
@@ -125,6 +168,37 @@ loadTransformer transformerId previousState =
         (_nextVersionNumber transformerId)
     )
     (`unTransformer` previousState)
+  where
+    moduleName =
+      showTransformerModuleName . TransformerId._programName $ transformerId
+    packageName = showTransformerPackageName transformerId
+
+-- | Action that loads and runs a given state transformer, producing the state
+-- for the next version of a program.
+loadTransformerAndVersion ::
+  -- | The ID corresponding to the transformer.
+  TransformerId ->
+  -- | The ID corresponding to the version.
+  VersionId ->
+  -- | State from the previous version of the program.
+  a ->
+  Runtime b
+loadTransformerAndVersion transformerId versionId previousState = do
+  updateSignalRegister <- Runtime ask
+  withLinkedEntity'
+    packageName
+    moduleName
+    ( showTransformerExport
+        (_previousVersionNumber transformerId)
+        (_nextVersionNumber transformerId)
+    )
+    (showEntryPointExport $ _versionNumber versionId)
+    ( \(transformer, entryPoint) -> do
+        previousState' <-
+          evaluate =<< unTransformer transformer previousState
+        unEntryPoint entryPoint $
+          RuntimeData updateSignalRegister (UpdateInfo <$> previousState')
+    )
   where
     moduleName =
       showTransformerModuleName . TransformerId._programName $ transformerId

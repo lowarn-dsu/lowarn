@@ -1,5 +1,8 @@
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RankNTypes #-}
 
 -- |
 -- Module                  : Lowarn.Linker
@@ -17,10 +20,16 @@ module Lowarn.Linker
     -- * Actions
     load,
     updatePackageDatabase,
+
+    -- * Entity getting
+    GetEntityProgram,
+    getEntity,
+    Entity (..),
   )
 where
 
 import Control.Exception (bracket)
+import Control.Monad.Free (Free, foldFree, liftF)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.State.Strict (StateT, evalStateT, get, put)
@@ -36,7 +45,6 @@ import Foreign
     deRefStablePtr,
     freeStablePtr,
   )
-import Foreign.C (CInt (CInt))
 import GHC hiding (load, moduleName)
 import GHC.Data.FastString
 import GHC.Data.ShortText (unpack)
@@ -44,13 +52,12 @@ import GHC.Driver.Env (HscEnv (..))
 import GHC.Driver.Monad
 import GHC.Driver.Session
 import GHC.Paths (libdir)
-import GHC.Runtime.Interpreter
 import GHC.Unit hiding (moduleName)
 import GHC.Unit.Env (UnitEnv (..))
 import GHC.Unit.State
+import GHCi.ObjLink
 import System.Environment (lookupEnv)
 import System.FilePath.Glob (CompOptions (..), compileWith, globDir1)
-import System.Mem (performGC)
 import Text.Printf (printf)
 
 foreign import ccall "dynamic"
@@ -59,16 +66,18 @@ foreign import ccall "dynamic"
 data Linkable = Object FilePath | Archive FilePath
   deriving (Eq, Ord, Show)
 
-foreign import ccall unsafe "initLinker_" c_initLinker_ :: CInt -> IO ()
-
 linkable :: (FilePath -> a) -> (FilePath -> a) -> Linkable -> a
 linkable f _ (Object objectFile) = f objectFile
 linkable _ f (Archive archiveFile) = f archiveFile
 
+newtype LinkerState = LinkerState
+  { _currentLinkables :: Set Linkable
+  }
+
 -- | Monad for linking modules from the package database and accessing their
 -- exported entities.
 newtype Linker a = Linker
-  { unLinker :: StateT (Set Linkable) Ghc a
+  { unLinker :: StateT LinkerState Ghc a
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
@@ -77,7 +86,6 @@ runLinker :: Linker a -> IO a
 runLinker linker =
   defaultErrorHandler defaultFatalMessager defaultFlushOut $
     runGhc (Just libdir) $ do
-      liftIO performGC
       flags <- getSessionDynFlags
       session <- getSession
       flags' <-
@@ -90,8 +98,21 @@ runLinker linker =
                 interpretPackageEnv (hsc_logger session) $
                   flags {packageEnv = Just lowarnPackageEnv}
       setSessionDynFlags flags' {ghcLink = LinkStaticLib}
-      liftIO $ c_initLinker_ 0
-      evalStateT (unLinker linker) Set.empty
+      liftIO $ initObjLinker RetainCAFs
+      evalStateT (unLinker linker) $ LinkerState Set.empty
+
+data GetEntity a = GetEntity
+  { _entityName :: String,
+    _continuation :: forall b. Maybe b -> a
+  }
+  deriving (Functor)
+
+type GetEntityProgram = Free GetEntity
+
+data Entity = forall a. Entity a
+
+getEntity :: String -> GetEntityProgram (Maybe Entity)
+getEntity entityName = liftF (GetEntity entityName (fmap Entity))
 
 -- | Action that gives an entity exported by a module in a package in the
 -- package database. The module is linked if it hasn't already been. @Nothing@
@@ -102,10 +123,9 @@ load ::
   -- | The name of the module to find.
   String ->
   -- | The name of the entity to take from the module.
-  String ->
+  GetEntityProgram (Maybe a) ->
   Linker (Maybe a)
-load packageName' moduleName' symbol = Linker $ do
-  liftIO performGC
+load packageName' moduleName' getEntityProgram = Linker $ do
   session <- lift getSession
 
   let moduleName = mkModuleName moduleName'
@@ -115,7 +135,8 @@ load packageName' moduleName' symbol = Linker $ do
     >>= maybe
       (return Nothing)
       ( \unitInfo -> do
-          previousLinkables <- get
+          previousLinkables <- _currentLinkables <$> get
+
           nextLinkables <-
             Set.fromList . catMaybes
               <$> sequence
@@ -125,38 +146,39 @@ load packageName' moduleName' symbol = Linker $ do
                     unitId dependencyUnitInfo /= rtsUnitId
                 ]
 
-          -- put nextLinkables
-          put $ Set.union nextLinkables previousLinkables
-
-          let unloadLinkables =
-                Set.empty
-              -- Set.difference previousLinkables nextLinkables
-              loadLinkables =
-                Set.difference nextLinkables previousLinkables
-
-          let interp = hscInterp session
+          put $ LinkerState nextLinkables
 
           liftIO $ do
             mapM_
-              (linkable (unloadObj interp) (unloadObj interp))
-              unloadLinkables
-            mapM_
-              (linkable (loadObj interp) (loadArchive interp))
-              loadLinkables
+              (linkable loadObj loadArchive)
+              (Set.difference nextLinkables previousLinkables)
 
-            resolveObjs interp >>= \case
-              Failed -> return Nothing
-              Succeeded ->
-                lookupSymbol interp (mkFastString symbol)
-                  >>= maybe
-                    (return Nothing)
-                    ( \symbolPtr ->
-                        Just
-                          <$> bracket
-                            (mkStablePtr $ castPtrToFunPtr symbolPtr)
-                            freeStablePtr
-                            deRefStablePtr
+            output <-
+              resolveObjs >>= \case
+                False -> return Nothing
+                True -> do
+                  foldFree
+                    ( \(GetEntity entityName continuation) -> do
+                        mx <-
+                          lookupSymbol entityName
+                            >>= maybe
+                              (return Nothing)
+                              ( \symbolPtr ->
+                                  Just
+                                    <$> bracket
+                                      (mkStablePtr $ castPtrToFunPtr symbolPtr)
+                                      freeStablePtr
+                                      deRefStablePtr
+                              )
+                        return $ continuation mx
                     )
+                    getEntityProgram
+
+            mapM_
+              (linkable unloadObj unloadObj)
+              (Set.difference previousLinkables nextLinkables)
+
+            return output
       )
 
 -- | Action that updates the package database. This uses the package environment
