@@ -80,42 +80,22 @@ liftLinker :: Linker a -> Runtime a
 liftLinker = Runtime . lift
 
 withLinkedEntity ::
-  String -> String -> String -> (a -> IO b) -> Runtime b
-withLinkedEntity packageName moduleName entityName f =
+  String ->
+  String ->
+  GetEntityProgram (Maybe a) ->
+  (a -> IO b) ->
+  Runtime b
+withLinkedEntity packageName moduleName getEntityProgram f =
   liftLinker $
     load packageName moduleName getEntityProgram
       >>= maybe
         ( error $
             printf
-              "Could not find entity %s in module %s in package %s"
-              entityName
+              "Could not find entities in module %s in package %s"
               moduleName
               packageName
         )
         (liftIO . f)
-  where
-    getEntityProgram :: GetEntityProgram (Maybe a)
-    getEntityProgram = getEntity entityName
-
-withLinkedEntity' ::
-  String -> String -> String -> String -> ((a, b) -> IO c) -> Runtime c
-withLinkedEntity' packageName moduleName entityName1 entityName2 f =
-  liftLinker $
-    load packageName moduleName getEntityProgram
-      >>= maybe
-        ( error $
-            printf
-              "Could not find entities %s and %s in module %s in package %s"
-              entityName1
-              entityName2
-              moduleName
-              packageName
-        )
-        (liftIO . f)
-  where
-    getEntityProgram :: GetEntityProgram (Maybe (a, b))
-    getEntityProgram =
-      liftA2 (liftA2 (,)) (getEntity entityName1) (getEntity entityName2)
 
 -- | Action that loads and runs a given version of a program, producing the
 -- final state of the program when it finishes.
@@ -133,14 +113,15 @@ loadVersion versionId mPreviousState = do
   withLinkedEntity
     packageName
     moduleName
-    (showEntryPointExport $ _versionNumber versionId)
+    getEntityProgram
     $ \entryPoint ->
       unEntryPoint entryPoint $
         RuntimeData updateSignalRegister (UpdateInfo <$> mPreviousState)
   where
-    moduleName =
-      showEntryPointModuleName . VersionId._programName $ versionId
+    moduleName = showEntryPointModuleName $ VersionId._programName versionId
     packageName = showVersionPackageName versionId
+    getEntityProgram =
+      getEntity $ showEntryPointExport $ _versionNumber versionId
 
 -- | Action that loads and runs a given state transformer, producing the state
 -- for the next version of a program.
@@ -152,14 +133,10 @@ loadTransformerAndVersion ::
   Runtime b
 loadTransformerAndVersion transformerId previousState = do
   updateSignalRegister <- Runtime ask
-  withLinkedEntity'
+  withLinkedEntity
     packageName
     moduleName
-    ( showTransformerExport
-        (_previousVersionNumber transformerId)
-        (_nextVersionNumber transformerId)
-    )
-    (showEntryPointExport $ _versionNumber $ nextVersionId transformerId)
+    getEntityProgram
     ( \(transformer, entryPoint) -> do
         previousState' <-
           evaluate =<< unTransformer transformer previousState
@@ -170,6 +147,17 @@ loadTransformerAndVersion transformerId previousState = do
     moduleName =
       showTransformerModuleName . TransformerId._programName $ transformerId
     packageName = showTransformerPackageName transformerId
+    transformerEntity =
+      showTransformerExport
+        (_previousVersionNumber transformerId)
+        (_nextVersionNumber transformerId)
+    versionEntity =
+      showEntryPointExport $ _versionNumber $ nextVersionId transformerId
+    getEntityProgram =
+      liftA2
+        (liftA2 (,))
+        (getEntity transformerEntity)
+        (getEntity versionEntity)
 
 -- | Action that updates the package database, using
 -- 'Linker.updatePackageDatabase'.
