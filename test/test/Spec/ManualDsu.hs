@@ -4,12 +4,9 @@ module Spec.ManualDsu (manualDsuTests) where
 
 import Control.Monad (void)
 import Lowarn.ExampleProgram.Following.TransformerId
-import Lowarn.ExampleProgram.Following.VersionId
 import Lowarn.ExampleProgram.ManualFollowing.TransformerId
-import Lowarn.ExampleProgram.ManualFollowing.VersionId
 import Lowarn.Runtime (Runtime, loadTransformerAndVersion)
 import Lowarn.TransformerId (TransformerId)
-import Lowarn.VersionId (VersionId)
 import System.IO (Handle)
 import Test.Lowarn.Story
   ( Story,
@@ -24,45 +21,33 @@ import Test.Tasty (TestTree, testGroup)
 
 getExampleRuntime ::
   TransformerId ->
-  VersionId ->
   TransformerId ->
-  VersionId ->
   TransformerId ->
-  VersionId ->
   (Handle, Handle) ->
   Runtime ()
 getExampleRuntime
   transformerId_0_1
-  versionId_1
   transformerId_1_2
-  versionId_2
   transformerId_2_3
-  versionId_3
   handles =
     void $
-      loadTransformerAndVersion transformerId_0_1 versionId_1 handles
-        >>= loadTransformerAndVersion transformerId_1_2 versionId_2
-        >>= loadTransformerAndVersion transformerId_2_3 versionId_3
+      loadTransformerAndVersion transformerId_0_1 handles
+        >>= loadTransformerAndVersion transformerId_1_2
+        >>= loadTransformerAndVersion transformerId_2_3
 
 getExampleManualFollowingRuntime :: (Handle, Handle) -> Runtime ()
 getExampleManualFollowingRuntime =
   getExampleRuntime
     manualFollowingTransformerId_0_1
-    manualFollowingVersionId_1
     manualFollowingTransformerId_1_2
-    manualFollowingVersionId_2
     manualFollowingTransformerId_2_3
-    manualFollowingVersionId_3
 
 getExampleFollowingRuntime :: (Handle, Handle) -> Runtime ()
 getExampleFollowingRuntime =
   getExampleRuntime
     followingTransformerId_0_1
-    followingVersionId_1
     followingTransformerId_1_2
-    followingVersionId_2
     followingTransformerId_2_3
-    followingVersionId_3
 
 getExampleRuntimes :: [(String, (Handle, Handle) -> Runtime ())]
 getExampleRuntimes =

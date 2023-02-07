@@ -6,9 +6,6 @@ import Control.Monad (void)
 import Lowarn.ExampleProgram.ManualFollowing.TransformerId
   ( manualFollowingTransformerId_0_1,
   )
-import Lowarn.ExampleProgram.ManualFollowing.VersionId
-  ( manualFollowingVersionId_1,
-  )
 import Lowarn.Runtime (Runtime, loadTransformerAndVersion)
 import System.IO (Handle)
 import Test.Lowarn.Story
@@ -22,11 +19,7 @@ import Test.Tasty (TestTree, testGroup)
 
 getExampleRuntime :: (Handle, Handle) -> Runtime ()
 getExampleRuntime handles =
-  void $
-    loadTransformerAndVersion
-      manualFollowingTransformerId_0_1
-      manualFollowingVersionId_1
-      handles
+  void $ loadTransformerAndVersion manualFollowingTransformerId_0_1 handles
 
 timeout :: Int
 timeout = 40000000

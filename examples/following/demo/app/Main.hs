@@ -13,19 +13,10 @@ import Lowarn.Runtime
 main :: IO ()
 main =
   runRuntime $ do
-    state1 <-
-      loadVersion followingVersionId_1 Nothing
+    state1 <- loadVersion followingVersionId_1 Nothing
 
     updatePackageDatabase
-    state2 <-
-      loadTransformerAndVersion
-        followingTransformerId_1_2
-        followingVersionId_2
-        state1
+    state2 <- loadTransformerAndVersion followingTransformerId_1_2 state1
 
     updatePackageDatabase
-    void $
-      loadTransformerAndVersion
-        followingTransformerId_2_3
-        followingVersionId_3
-        state2
+    void $ loadTransformerAndVersion followingTransformerId_2_3 state2

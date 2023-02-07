@@ -44,7 +44,8 @@ import Lowarn.Linker
 import qualified Lowarn.Linker as Linker (updatePackageDatabase)
 import Lowarn.ProgramName (showEntryPointModuleName, showTransformerModuleName)
 import Lowarn.TransformerId
-  ( TransformerId (_nextVersionNumber, _previousVersionNumber),
+  ( TransformerId (..),
+    nextVersionId,
     showTransformerPackageName,
   )
 import qualified Lowarn.TransformerId as TransformerId (_programName)
@@ -146,12 +147,10 @@ loadVersion versionId mPreviousState = do
 loadTransformerAndVersion ::
   -- | The ID corresponding to the transformer.
   TransformerId ->
-  -- | The ID corresponding to the version.
-  VersionId ->
   -- | State from the previous version of the program.
   a ->
   Runtime b
-loadTransformerAndVersion transformerId versionId previousState = do
+loadTransformerAndVersion transformerId previousState = do
   updateSignalRegister <- Runtime ask
   withLinkedEntity'
     packageName
@@ -160,7 +159,7 @@ loadTransformerAndVersion transformerId versionId previousState = do
         (_previousVersionNumber transformerId)
         (_nextVersionNumber transformerId)
     )
-    (showEntryPointExport $ _versionNumber versionId)
+    (showEntryPointExport $ _versionNumber $ nextVersionId transformerId)
     ( \(transformer, entryPoint) -> do
         previousState' <-
           evaluate =<< unTransformer transformer previousState
