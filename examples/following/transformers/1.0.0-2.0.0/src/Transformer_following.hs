@@ -11,12 +11,12 @@ import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 import Foreign (StablePtr, newStablePtr)
 import Lowarn (Transformer)
-import qualified "lowarn-version-following-v1v0v0" Lowarn.ExampleProgram.Following as PreviousVersion
-import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Following as NextVersion
 import Lowarn.Transformer (Transformable (transform))
 import Lowarn.Transformer.Strict (StrictTransformable (transformer'))
 import System.Random (mkStdGen, randomR)
 import System.Random.Stateful (applyIOGen, newIOGenM)
+import qualified "lowarn-version-following-v1v0v0" Lowarn.ExampleProgram.Following as PreviousVersion
+import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Following as NextVersion
 
 instance Transformable [PreviousVersion.User] (Seq NextVersion.User) where
   transform :: [PreviousVersion.User] -> IO (Maybe (Seq NextVersion.User))
