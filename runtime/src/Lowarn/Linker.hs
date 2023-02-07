@@ -123,7 +123,7 @@ load ::
   -- | The name of the entity to take from the module.
   EntityReader (Maybe a) ->
   Linker (Maybe a)
-load packageName' moduleName' getEntityProgram = Linker $ do
+load packageName' moduleName' entityReader = Linker $ do
   session <- lift getSession
 
   let moduleName = mkModuleName moduleName'
@@ -170,7 +170,7 @@ load packageName' moduleName' getEntityProgram = Linker $ do
                               )
                         return $ continuation mx
                     )
-                    getEntityProgram
+                    entityReader
 
             mapM_
               (linkable unloadObj unloadObj)
