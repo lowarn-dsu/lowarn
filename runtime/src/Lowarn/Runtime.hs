@@ -34,9 +34,9 @@ import Lowarn
     mkUpdateSignalRegister,
   )
 import Lowarn.Linker
-  ( GetEntityProgram,
+  ( EntityReader,
     Linker,
-    getEntity,
+    askEntity,
     liftIO,
     load,
     runLinker,
@@ -82,12 +82,12 @@ liftLinker = Runtime . lift
 withLinkedEntity ::
   String ->
   String ->
-  GetEntityProgram (Maybe a) ->
+  EntityReader (Maybe a) ->
   (a -> IO b) ->
   Runtime b
-withLinkedEntity packageName moduleName getEntityProgram f =
+withLinkedEntity packageName moduleName entityReader f =
   liftLinker $
-    load packageName moduleName getEntityProgram
+    load packageName moduleName entityReader
       >>= maybe
         ( error $
             printf
@@ -113,15 +113,15 @@ loadVersion versionId mPreviousState = do
   withLinkedEntity
     packageName
     moduleName
-    getEntityProgram
+    entityReader
     $ \entryPoint ->
       unEntryPoint entryPoint $
         RuntimeData updateSignalRegister (UpdateInfo <$> mPreviousState)
   where
     moduleName = showEntryPointModuleName $ VersionId._programName versionId
     packageName = showVersionPackageName versionId
-    getEntityProgram =
-      getEntity $ showEntryPointExport $ _versionNumber versionId
+    entityReader =
+      askEntity $ showEntryPointExport $ _versionNumber versionId
 
 -- | Action that loads and runs a given state transformer, producing the state
 -- for the next version of a program.
@@ -136,7 +136,7 @@ loadTransformerAndVersion transformerId previousState = do
   withLinkedEntity
     packageName
     moduleName
-    getEntityProgram
+    entityReader
     ( \(transformer, entryPoint) -> do
         previousState' <-
           evaluate =<< unTransformer transformer previousState
@@ -153,11 +153,11 @@ loadTransformerAndVersion transformerId previousState = do
         (_nextVersionNumber transformerId)
     versionEntity =
       showEntryPointExport $ _versionNumber $ nextVersionId transformerId
-    getEntityProgram =
+    entityReader =
       liftA2
         (liftA2 (,))
-        (getEntity transformerEntity)
-        (getEntity versionEntity)
+        (askEntity transformerEntity)
+        (askEntity versionEntity)
 
 -- | Action that updates the package database, using
 -- 'Linker.updatePackageDatabase'.

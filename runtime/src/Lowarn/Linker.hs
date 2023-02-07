@@ -21,9 +21,9 @@ module Lowarn.Linker
     load,
     updatePackageDatabase,
 
-    -- * Entity getting
-    GetEntityProgram,
-    getEntity,
+    -- * Entity reader
+    EntityReader,
+    askEntity,
   )
 where
 
@@ -101,16 +101,16 @@ runLinker linker =
       liftIO $ initObjLinker RetainCAFs
       evalStateT (unLinker linker) $ LinkerState Set.empty
 
-data GetEntity a = GetEntity
+data EntityReaderF a = EntityReaderF
   { _entityName :: String,
     _continuation :: forall b. Maybe b -> a
   }
   deriving (Functor)
 
-type GetEntityProgram = Free GetEntity
+type EntityReader = Free EntityReaderF
 
-getEntity :: String -> GetEntityProgram (Maybe a)
-getEntity entityName = liftF (GetEntity entityName (fmap unsafeCoerce))
+askEntity :: String -> EntityReader (Maybe a)
+askEntity entityName = liftF (EntityReaderF entityName (fmap unsafeCoerce))
 
 -- | Action that gives an entity exported by a module in a package in the
 -- package database. The module is linked if it hasn't already been. @Nothing@
@@ -121,7 +121,7 @@ load ::
   -- | The name of the module to find.
   String ->
   -- | The name of the entity to take from the module.
-  GetEntityProgram (Maybe a) ->
+  EntityReader (Maybe a) ->
   Linker (Maybe a)
 load packageName' moduleName' getEntityProgram = Linker $ do
   session <- lift getSession
@@ -156,7 +156,7 @@ load packageName' moduleName' getEntityProgram = Linker $ do
                 False -> return Nothing
                 True -> do
                   foldFree
-                    ( \(GetEntity entityName continuation) -> do
+                    ( \(EntityReaderF entityName continuation) -> do
                         mx <-
                           lookupSymbol entityName
                             >>= maybe
