@@ -24,7 +24,6 @@ module Lowarn.Linker
     -- * Entity getting
     GetEntityProgram,
     getEntity,
-    Entity (..),
   )
 where
 
@@ -59,6 +58,7 @@ import GHCi.ObjLink
 import System.Environment (lookupEnv)
 import System.FilePath.Glob (CompOptions (..), compileWith, globDir1)
 import Text.Printf (printf)
+import Unsafe.Coerce (unsafeCoerce)
 
 foreign import ccall "dynamic"
   mkStablePtr :: FunPtr (IO (StablePtr a)) -> IO (StablePtr a)
@@ -109,10 +109,8 @@ data GetEntity a = GetEntity
 
 type GetEntityProgram = Free GetEntity
 
-data Entity = forall a. Entity a
-
-getEntity :: String -> GetEntityProgram (Maybe Entity)
-getEntity entityName = liftF (GetEntity entityName (fmap Entity))
+getEntity :: String -> GetEntityProgram (Maybe a)
+getEntity entityName = liftF (GetEntity entityName (fmap unsafeCoerce))
 
 -- | Action that gives an entity exported by a module in a package in the
 -- package database. The module is linked if it hasn't already been. @Nothing@

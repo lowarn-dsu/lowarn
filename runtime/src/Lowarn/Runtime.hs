@@ -19,6 +19,7 @@ module Lowarn.Runtime
   )
 where
 
+import Control.Applicative
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
@@ -34,8 +35,7 @@ import Lowarn
     mkUpdateSignalRegister,
   )
 import Lowarn.Linker
-  ( Entity (..),
-    GetEntityProgram,
+  ( GetEntityProgram,
     Linker,
     getEntity,
     liftIO,
@@ -54,7 +54,6 @@ import qualified Lowarn.VersionId as VersionId (_programName)
 import Lowarn.VersionNumber (showEntryPointExport, showTransformerExport)
 import System.Posix.Signals (Handler (Catch), installHandler, sigUSR2)
 import Text.Printf (printf)
-import Unsafe.Coerce (unsafeCoerce)
 
 -- | Monad for loading versions of programs while handling signals and
 -- transferring state.
@@ -96,9 +95,7 @@ withLinkedEntity packageName moduleName entityName f =
         (liftIO . f)
   where
     getEntityProgram :: GetEntityProgram (Maybe a)
-    getEntityProgram =
-      getEntity entityName
-        <&> maybe Nothing (\(Entity a) -> Just $ unsafeCoerce a)
+    getEntityProgram = getEntity entityName
 
 withLinkedEntity' ::
   String -> String -> String -> String -> ((a, b) -> IO c) -> Runtime c
@@ -118,13 +115,7 @@ withLinkedEntity' packageName moduleName entityName1 entityName2 f =
   where
     getEntityProgram :: GetEntityProgram (Maybe (a, b))
     getEntityProgram =
-      getEntity entityName1
-        >>= maybe
-          (return Nothing)
-          ( \(Entity a) ->
-              getEntity entityName2
-                <&> maybe Nothing (\(Entity b) -> Just $ unsafeCoerce (a, b))
-          )
+      liftA2 (liftA2 (,)) (getEntity entityName1) (getEntity entityName2)
 
 -- | Action that loads and runs a given version of a program, producing the
 -- final state of the program when it finishes.
