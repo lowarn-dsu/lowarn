@@ -21,7 +21,7 @@ module Lowarn.Linker
     load,
     updatePackageDatabase,
 
-    -- * Entity reader
+    -- * Entity reader monad
     EntityReader,
     askEntity,
   )
@@ -107,20 +107,24 @@ data EntityReaderF a = EntityReaderF
   }
   deriving (Functor)
 
+-- | Monad for getting entities from object files just loaded by the linker.
 type EntityReader = Free EntityReaderF
 
+-- | Action that gives an entity with a given name from the 'EntityReader'\'s
+-- environment if it exists.
 askEntity :: String -> EntityReader (Maybe a)
 askEntity entityName = liftF (EntityReaderF entityName (fmap unsafeCoerce))
 
--- | Action that gives an entity exported by a module in a package in the
--- package database. The module is linked if it hasn't already been. @Nothing@
--- is given if the module or package cannot be found.
+-- | Action that gives entities exported by object files corresponding to a
+-- module in a package in the package database. The object files are only linked
+-- if they haven't already been. @Nothing@  is given if the module, package, or
+-- entities cannot be found.
 load ::
   -- | The name of the package to find the module in.
   String ->
   -- | The name of the module to find.
   String ->
-  -- | The name of the entity to take from the module.
+  -- | A computation in the 'EntityReader' monad that can give entities.
   EntityReader (Maybe a) ->
   Linker (Maybe a)
 load packageName' moduleName' entityReader = Linker $ do

@@ -124,7 +124,8 @@ loadVersion versionId mPreviousState = do
       askEntity $ showEntryPointExport $ _versionNumber versionId
 
 -- | Action that loads and runs a given state transformer, producing the state
--- for the next version of a program.
+-- for the next version of a program, then runs the next version of the program
+-- with this state.
 loadTransformerAndVersion ::
   -- | The ID corresponding to the transformer.
   TransformerId ->
