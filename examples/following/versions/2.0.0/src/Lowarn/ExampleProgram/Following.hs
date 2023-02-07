@@ -38,7 +38,7 @@ data State = State
   deriving (GHC.Generic, Generic, HasDatatypeInfo)
 
 instance NFData State where
-  rnf state = state `seq` rnf (_users state)
+  rnf state = rnf $ _users state
 
 showUser :: User -> String
 showUser (User nickname userId) = printf "%s#%04d" nickname userId
