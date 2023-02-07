@@ -12,6 +12,7 @@ where
 
 import Control.DeepSeq
 import Control.Exception (evaluate)
+import Control.Monad
 import Lowarn (Transformer (..))
 import Lowarn.Transformer (Transformable (..))
 
@@ -31,19 +32,11 @@ class NFData b => StrictTransformable a b where
 instance (Transformable a b, NFData b) => StrictTransformable a b where
   transformer' :: Transformer a b
   transformer' =
-    Transformer
-      ( \x -> do
-          y <- transform $! x
-          case y of
-            Nothing -> return Nothing
-            Just y' -> (unTransformer $! forceTransformer) $! y'
-      )
+    Transformer $
+      transform
+        >=> maybe
+          (return Nothing)
+          ((unTransformer $! forceTransformer) $!)
 
 forceTransformer :: (NFData a) => Transformer a a
-forceTransformer =
-  Transformer
-    ( \x ->
-        do
-          x' <- evaluate $ force x
-          evaluate $ force $ Just x'
-    )
+forceTransformer = Transformer $ evaluate . force . Just
