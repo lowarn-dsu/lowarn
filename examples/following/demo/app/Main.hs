@@ -18,8 +18,14 @@ main =
 
     updatePackageDatabase
     state2 <-
-      loadTransformerAndVersion followingTransformerId_1_2 followingVersionId_2 state1
+      loadTransformerAndVersion
+        followingTransformerId_1_2
+        followingVersionId_2
+        state1
 
     updatePackageDatabase
     void $
-      loadTransformerAndVersion followingTransformerId_2_3 followingVersionId_3 state2
+      loadTransformerAndVersion
+        followingTransformerId_2_3
+        followingVersionId_3
+        state2

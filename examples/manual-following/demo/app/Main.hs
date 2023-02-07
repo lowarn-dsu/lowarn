@@ -4,7 +4,7 @@ import Control.Monad (void)
 import Lowarn.ExampleProgram.ManualFollowing.TransformerId
 import Lowarn.ExampleProgram.ManualFollowing.VersionId
 import Lowarn.Runtime
-  ( loadTransformer,
+  ( loadTransformerAndVersion,
     loadVersion,
     runRuntime,
     updatePackageDatabase,
@@ -18,10 +18,14 @@ main =
 
     updatePackageDatabase
     state2 <-
-      loadVersion manualFollowingVersionId_2
-        =<< loadTransformer manualFollowingTransformerId_1_2 state1
+      loadTransformerAndVersion
+        manualFollowingTransformerId_1_2
+        manualFollowingVersionId_2
+        state1
 
     updatePackageDatabase
     void $
-      loadVersion manualFollowingVersionId_3
-        =<< loadTransformer manualFollowingTransformerId_2_3 state2
+      loadTransformerAndVersion
+        manualFollowingTransformerId_2_3
+        manualFollowingVersionId_3
+        state2

@@ -7,7 +7,7 @@ import Lowarn.ExampleProgram.Following.TransformerId
 import Lowarn.ExampleProgram.Following.VersionId
 import Lowarn.ExampleProgram.ManualFollowing.TransformerId
 import Lowarn.ExampleProgram.ManualFollowing.VersionId
-import Lowarn.Runtime (Runtime, loadTransformer, loadVersion)
+import Lowarn.Runtime (Runtime, loadTransformerAndVersion)
 import Lowarn.TransformerId (TransformerId)
 import Lowarn.VersionId (VersionId)
 import System.IO (Handle)
@@ -40,12 +40,9 @@ getExampleRuntime
   versionId_3
   handles =
     void $
-      loadTransformer transformerId_0_1 handles
-        >>= loadVersion versionId_1
-        >>= loadTransformer transformerId_1_2
-        >>= loadVersion versionId_2
-        >>= loadTransformer transformerId_2_3
-        >>= loadVersion versionId_3
+      loadTransformerAndVersion transformerId_0_1 versionId_1 handles
+        >>= loadTransformerAndVersion transformerId_1_2 versionId_2
+        >>= loadTransformerAndVersion transformerId_2_3 versionId_3
 
 getExampleManualFollowingRuntime :: (Handle, Handle) -> Runtime ()
 getExampleManualFollowingRuntime =
