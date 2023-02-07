@@ -11,7 +11,6 @@ module Lowarn.Runtime
   ( Runtime,
     runRuntime,
     loadVersion,
-    loadTransformer,
     loadTransformerAndVersion,
     updatePackageDatabase,
     liftLinker,
@@ -141,28 +140,6 @@ loadVersion versionId mPreviousState = do
     moduleName =
       showEntryPointModuleName . VersionId._programName $ versionId
     packageName = showVersionPackageName versionId
-
--- | Action that loads and runs a given state transformer, producing the state
--- for the next version of a program.
-loadTransformer ::
-  -- | The ID corresponding to the transformer.
-  TransformerId ->
-  -- | State from the previous version of the program.
-  a ->
-  Runtime (Maybe b)
-loadTransformer transformerId previousState =
-  withLinkedEntity
-    packageName
-    moduleName
-    ( showTransformerExport
-        (_previousVersionNumber transformerId)
-        (_nextVersionNumber transformerId)
-    )
-    (`unTransformer` previousState)
-  where
-    moduleName =
-      showTransformerModuleName . TransformerId._programName $ transformerId
-    packageName = showTransformerPackageName transformerId
 
 -- | Action that loads and runs a given state transformer, producing the state
 -- for the next version of a program.
