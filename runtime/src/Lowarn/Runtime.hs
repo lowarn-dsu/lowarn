@@ -82,14 +82,14 @@ withLinkedEntity ::
   Runtime b
 withLinkedEntity packageName entityReader f =
   liftLinker $
-    load packageName entityReader f
+    load packageName entityReader
       >>= maybe
         ( error $
             printf
               "Could not find entities in package %s"
               packageName
         )
-        return
+        (liftIO . f)
 
 -- | Action that loads and runs a given version of a program, producing the
 -- final state of the program when it finishes.

@@ -120,10 +120,8 @@ load ::
   String ->
   -- | The name of a symbol that exports an entity.
   String ->
-  -- | A function to run with the linked entity.
-  (a -> IO b) ->
-  Linker (Maybe b)
-load packageName' entityName f = Linker $ do
+  Linker (Maybe a)
+load packageName' entityName = Linker $ do
   session <- lift $ lift getSession
 
   case lookupUnitInfo session (PackageName $ mkFastString packageName') of
@@ -156,7 +154,7 @@ load packageName' entityName f = Linker $ do
           (linkable loadObj loadArchive)
           (Set.difference nextLinkables previousLinkables)
 
-        output <-
+        entity <-
           resolveObjs >>= \case
             False -> return Nothing
             True -> do
@@ -168,12 +166,12 @@ load packageName' entityName f = Linker $ do
                         <$> bracket
                           (mkStablePtr $ castPtrToFunPtr symbolPtr)
                           freeStablePtr
-                          (deRefStablePtr >=> f)
+                          deRefStablePtr
                   )
 
         mapM_ (linkable unloadObj unloadObj) unloadLinkables
 
-        return output
+        return entity
 
 -- | Action that updates the package database. This uses the package environment
 -- if it is specified. This can be set with the @LOWARN_PACKAGE_ENV@ environment
