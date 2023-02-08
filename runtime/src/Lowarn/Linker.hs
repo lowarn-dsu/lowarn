@@ -105,8 +105,7 @@ runLinker linker shouldUnload =
       setSessionDynFlags flags' {ghcLink = LinkStaticLib}
       liftIO $
         initObjLinker $
-          -- TODO: Replace RetainCAFs with DontRetainCAFs when unloading.
-          if shouldUnload then RetainCAFs else RetainCAFs
+          if shouldUnload then DontRetainCAFs else RetainCAFs
       runReaderT
         ( evalStateT (unLinker linker) $ CurrentLinkables Set.empty
         )
