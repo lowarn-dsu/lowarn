@@ -3,10 +3,10 @@
 module Update_manual_following () where
 
 import Data.Foldable (toList)
-import "lowarn-version-manual-following-v3v0v0" EntryPoint_manual_following (entryPoint)
 import Foreign (StablePtr, newStablePtr)
 import Lowarn (Transformer (Transformer), Update (Update))
 import qualified "lowarn-version-manual-following-v2v0v0" Lowarn.ExampleProgram.ManualFollowing as PreviousVersion
+import "lowarn-version-manual-following-v3v0v0" EntryPoint_manual_following (entryPoint)
 import qualified "lowarn-version-manual-following-v3v0v0" Lowarn.ExampleProgram.ManualFollowing as NextVersion
 
 transformer :: Transformer PreviousVersion.State NextVersion.State

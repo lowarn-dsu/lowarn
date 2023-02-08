@@ -8,13 +8,13 @@ module Update_following () where
 
 import Control.Arrow
 import Data.Foldable (toList)
-import "lowarn-version-following-v3v0v0" EntryPoint_following (entryPoint)
 import Foreign (StablePtr, newStablePtr)
 import Lowarn (Transformer, Update (Update))
-import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Following as PreviousVersion
-import qualified "lowarn-version-following-v3v0v0" Lowarn.ExampleProgram.Following as NextVersion
 import Lowarn.Transformer (Transformable (transformer))
 import Lowarn.Transformer.Strict (StrictTransformable (transformer'))
+import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Following as PreviousVersion
+import "lowarn-version-following-v3v0v0" EntryPoint_following (entryPoint)
+import qualified "lowarn-version-following-v3v0v0" Lowarn.ExampleProgram.Following as NextVersion
 
 instance
   (Traversable t) =>

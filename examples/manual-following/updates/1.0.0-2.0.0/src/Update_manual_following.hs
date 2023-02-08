@@ -4,13 +4,13 @@ module Update_manual_following () where
 
 import Control.Arrow (first)
 import qualified Data.Sequence as Seq
-import "lowarn-version-manual-following-v2v0v0" EntryPoint_manual_following (entryPoint)
 import Foreign (StablePtr, newStablePtr)
 import Lowarn (Transformer (Transformer), Update (Update))
-import qualified "lowarn-version-manual-following-v1v0v0" Lowarn.ExampleProgram.ManualFollowing as PreviousVersion
-import qualified "lowarn-version-manual-following-v2v0v0" Lowarn.ExampleProgram.ManualFollowing as NextVersion
 import System.Random (mkStdGen, randomR)
 import System.Random.Stateful (applyIOGen, newIOGenM)
+import qualified "lowarn-version-manual-following-v1v0v0" Lowarn.ExampleProgram.ManualFollowing as PreviousVersion
+import "lowarn-version-manual-following-v2v0v0" EntryPoint_manual_following (entryPoint)
+import qualified "lowarn-version-manual-following-v2v0v0" Lowarn.ExampleProgram.ManualFollowing as NextVersion
 
 transformer :: Transformer PreviousVersion.State NextVersion.State
 transformer = Transformer $
