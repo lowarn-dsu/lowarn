@@ -1,4 +1,4 @@
-module EntryPoint_following () where
+module EntryPoint_following (entryPoint) where
 
 import Data.Maybe (fromMaybe)
 import qualified Data.Sequence as Seq
@@ -9,10 +9,12 @@ import System.IO
   ( stdin,
     stdout,
   )
+import System.Mem (performGC)
 
 entryPoint :: EntryPoint State
 entryPoint = EntryPoint $
-  \runtimeData ->
+  \runtimeData -> do
+    performGC
     eventLoop runtimeData $
       fromMaybe (State Seq.empty stdin stdout) (lastState runtimeData)
 

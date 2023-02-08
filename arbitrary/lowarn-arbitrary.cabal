@@ -26,7 +26,7 @@ source-repository head
 library
   exposed-modules:
       Lowarn.ProgramName.Arbitrary
-      Lowarn.TransformerId.Arbitrary
+      Lowarn.UpdateId.Arbitrary
       Lowarn.VersionId.Arbitrary
       Lowarn.VersionNumber.Arbitrary
   other-modules:

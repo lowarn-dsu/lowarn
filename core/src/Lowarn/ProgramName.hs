@@ -14,9 +14,9 @@ module Lowarn.ProgramName
 
     -- * Module names
     showEntryPointModuleName,
-    showTransformerModuleName,
+    showUpdateModuleName,
     parseEntryPointModuleName,
-    parseTransformerModuleName,
+    parseUpdateModuleName,
   )
 where
 
@@ -110,17 +110,16 @@ showModuleNameWithPrefix prefix =
 showEntryPointModuleName :: ProgramName -> String
 showEntryPointModuleName = showModuleNameWithPrefix "EntryPoint"
 
--- | Give the name of the module that contains a state transformer for the
--- program with the given name. The module name is of the form
--- @Transformer_foo_bar@, where @foo_bar@ is the program name with hyphens
--- replaced with underscores.
+-- | Give the name of the module that contains an update for the program with
+-- the given name. The module name is of the form @Update_foo_bar@, where
+-- @foo_bar@ is the program name with hyphens replaced with underscores.
 --
 -- ==== __Examples__
 --
--- >>> showTransformerModuleName (fromJust $ mkProgramName "foo-bar")
--- "Transformer_foo_bar"
-showTransformerModuleName :: ProgramName -> String
-showTransformerModuleName = showModuleNameWithPrefix "Transformer"
+-- >>> showUpdateModuleName (fromJust $ mkProgramName "foo-bar")
+-- "Update_foo_bar"
+showUpdateModuleName :: ProgramName -> String
+showUpdateModuleName = showModuleNameWithPrefix "Update"
 
 parseModuleNameWithPrefix :: String -> ReadP ProgramName
 parseModuleNameWithPrefix prefix = do
@@ -169,46 +168,46 @@ parseModuleNameWithPrefix prefix = do
 parseEntryPointModuleName :: ReadP ProgramName
 parseEntryPointModuleName = parseModuleNameWithPrefix "EntryPoint"
 
--- | A parser for program names given a corresponding state transformer module
--- name. The module name must be of the form @Transformer_foo_bar@, where
--- @foo_bar@ is the program name with hyphens replaced with underscores.
+-- | A parser for program names given a corresponding update module name. The
+-- module name must be of the form @Update_foo_bar@, where @foo_bar@ is the
+-- program name with hyphens replaced with underscores.
 --
 -- ==== __Examples__
 --
--- >>> readP_to_S parseTransformerModuleName "Transformer_foo_bar"
+-- >>> readP_to_S parseUpdateModuleName "Update_foo_bar"
 -- [(ProgramName {unProgramName = "foo"},"_bar"),(ProgramName {unProgramName = "foo-bar"},"")]
 --
--- >>> readWithParser parseTransformerModuleName "Transformer_foo_bar"
+-- >>> readWithParser parseUpdateModuleName "Update_foo_bar"
 -- Just (ProgramName {unProgramName = "foo-bar"})
 --
--- >>> readWithParser parseTransformerModuleName "Transformer_foo__bar"
+-- >>> readWithParser parseUpdateModuleName "Update_foo__bar"
 -- Nothing
 --
--- >>> readWithParser parseTransformerModuleName "Transformer_foo_bar_"
+-- >>> readWithParser parseUpdateModuleName "Update_foo_bar_"
 -- Nothing
 --
--- >>> readWithParser parseTransformerModuleName "Transformer_foo-bar"
+-- >>> readWithParser parseUpdateModuleName "Update_foo-bar"
 -- Nothing
 --
--- >>> readWithParser parseTransformerModuleName "Transformer_Foo_bar"
+-- >>> readWithParser parseUpdateModuleName "Update_Foo_bar"
 -- Nothing
 --
--- >>> readWithParser parseTransformerModuleName "Transformer_foo1_1bar"
+-- >>> readWithParser parseUpdateModuleName "Update_foo1_1bar"
 -- Just (ProgramName {unProgramName = "foo1-1bar"})
 --
--- >>> readWithParser parseTransformerModuleName "Transformer_foo_1"
+-- >>> readWithParser parseUpdateModuleName "Update_foo_1"
 -- Nothing
 --
--- >>> readWithParser parseTransformerModuleName "Transformer_fóo_bar"
+-- >>> readWithParser parseUpdateModuleName "Update_fóo_bar"
 -- Nothing
 --
--- >>> readWithParser parseTransformerModuleName "Transformer_"
+-- >>> readWithParser parseUpdateModuleName "Update_"
 -- Nothing
 --
--- >>> readWithParser parseTransformerModuleName "Transformer"
+-- >>> readWithParser parseUpdateModuleName "Update"
 -- Nothing
 --
--- >>> readWithParser parseTransformerModuleName ""
+-- >>> readWithParser parseUpdateModuleName ""
 -- Nothing
-parseTransformerModuleName :: ReadP ProgramName
-parseTransformerModuleName = parseModuleNameWithPrefix "Transformer"
+parseUpdateModuleName :: ReadP ProgramName
+parseUpdateModuleName = parseModuleNameWithPrefix "Update"

@@ -19,7 +19,7 @@ module Lowarn.VersionNumber
 
     -- * Exports
     showEntryPointExport,
-    showTransformerExport,
+    showUpdateExport,
   )
 where
 
@@ -99,16 +99,16 @@ showWithLetters = ("v" <>) . showWithSeparator "v"
 showEntryPointExport :: VersionNumber -> String
 showEntryPointExport = ("hs_entryPoint_" <>) . showWithLetters
 
--- | Show the identifier that is used to export a state transformer from one
--- version of a program to another, with the version's version numbers given.
+-- | Show the identifier that is used to export an update from one version of a
+-- program to another, given the version's corresponding version numbers.
 --
 -- ==== __Examples__
 --
--- >>> showTransformerExport (fromJust $ mkVersionNumber (1 :| [2, 3])) (fromJust $ mkVersionNumber (1 :| [2, 4]))
--- "hs_transformer_v1v2v3_v1v2v4"
-showTransformerExport :: VersionNumber -> VersionNumber -> String
-showTransformerExport previousVersionNumber nextVersionNUmber =
-  "hs_transformer_"
+-- >>> showUpdateExport (fromJust $ mkVersionNumber (1 :| [2, 3])) (fromJust $ mkVersionNumber (1 :| [2, 4]))
+-- "hs_update_v1v2v3_v1v2v4"
+showUpdateExport :: VersionNumber -> VersionNumber -> String
+showUpdateExport previousVersionNumber nextVersionNUmber =
+  "hs_update_"
     <> showWithLetters previousVersionNumber
     <> "_"
     <> showWithLetters nextVersionNUmber

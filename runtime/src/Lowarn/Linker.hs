@@ -1,5 +1,8 @@
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RankNTypes #-}
 
 -- |
 -- Module                  : Lowarn.Linker
@@ -21,8 +24,10 @@ module Lowarn.Linker
 where
 
 import Control.Exception (bracket)
+import Control.Monad
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Control.Monad.Trans.State.Strict (StateT, evalStateT, get, put)
 import Data.List (minimumBy)
 import Data.Maybe (catMaybes, mapMaybe)
@@ -43,10 +48,10 @@ import GHC.Driver.Env (HscEnv (..))
 import GHC.Driver.Monad
 import GHC.Driver.Session
 import GHC.Paths (libdir)
-import GHC.Runtime.Interpreter
 import GHC.Unit hiding (moduleName)
 import GHC.Unit.Env (UnitEnv (..))
 import GHC.Unit.State
+import GHCi.ObjLink
 import System.Environment (lookupEnv)
 import System.FilePath.Glob (CompOptions (..), compileWith, globDir1)
 import Text.Printf (printf)
@@ -61,16 +66,29 @@ linkable :: (FilePath -> a) -> (FilePath -> a) -> Linkable -> a
 linkable f _ (Object objectFile) = f objectFile
 linkable _ f (Archive archiveFile) = f archiveFile
 
--- | Monad for linking modules from the package database and accessing their
+newtype CurrentLinkables = CurrentLinkables
+  { _currentLinkables :: Set Linkable
+  }
+
+newtype ShouldUnload = ShouldUnload
+  { _shouldUnload :: Bool
+  }
+
+-- | Monad for linking packages from the package database and accessing their
 -- exported entities.
 newtype Linker a = Linker
-  { unLinker :: StateT (Set Linkable) Ghc a
+  { unLinker :: StateT CurrentLinkables (ReaderT ShouldUnload Ghc) a
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
--- | Run a linker.
-runLinker :: Linker a -> IO a
-runLinker linker =
+-- | Run a linker, optionally unloading code.
+runLinker ::
+  -- | A linker.
+  Linker a ->
+  -- | Whether or not to unload code (may result in segmentation faults).
+  Bool ->
+  IO a
+runLinker linker shouldUnload =
   defaultErrorHandler defaultFatalMessager defaultFlushOut $
     runGhc (Just libdir) $ do
       flags <- getSessionDynFlags
@@ -85,80 +103,85 @@ runLinker linker =
                 interpretPackageEnv (hsc_logger session) $
                   flags {packageEnv = Just lowarnPackageEnv}
       setSessionDynFlags flags' {ghcLink = LinkStaticLib}
-      liftIO . initObjLinker . hscInterp =<< getSession
-      evalStateT (unLinker linker) Set.empty
+      liftIO $
+        initObjLinker $
+          -- TODO: Replace RetainCAFs with DontRetainCAFs when unloading.
+          if shouldUnload then RetainCAFs else RetainCAFs
+      runReaderT
+        ( evalStateT (unLinker linker) $ CurrentLinkables Set.empty
+        )
+        $ ShouldUnload shouldUnload
 
--- | Action that gives an entity exported by a module in a package in the
--- package database. The module is linked if it hasn't already been. @Nothing@
--- is given if the module or package cannot be found.
+-- | Action that gives an entity exported by object files corresponding to a
+-- given package (and its dependencies) in the package database. The object
+-- files are only linked if they haven't already been. @Nothing@ is given if the
+-- module, package, or entities cannot be found.
 load ::
-  -- | The name of the package to find the module in.
+  -- | The name of the package to load.
   String ->
-  -- | The name of the module to find.
+  -- | The name of a symbol that exports an entity.
   String ->
-  -- | The name of the entity to take from the module.
-  String ->
-  Linker (Maybe a)
-load packageName' moduleName' symbol = Linker $ do
-  session <- lift getSession
+  -- | A function to run with the linked entity.
+  (a -> IO b) ->
+  Linker (Maybe b)
+load packageName' entityName f = Linker $ do
+  session <- lift $ lift getSession
 
-  let moduleName = mkModuleName moduleName'
-      packageName = PackageName $ mkFastString packageName'
+  case lookupUnitInfo session (PackageName $ mkFastString packageName') of
+    Nothing -> return Nothing
+    Just unitInfo -> do
+      previousLinkables <- _currentLinkables <$> get
+      shouldUnload <- _shouldUnload <$> lift ask
 
-  liftIO (lookupUnitInfo session packageName moduleName)
-    >>= maybe
-      (return Nothing)
-      ( \unitInfo -> do
-          previousLinkables <- get
-          nextLinkables <-
-            Set.fromList . catMaybes
-              <$> sequence
-                [ liftIO $ findLinkable dependencyUnitInfo
-                  | dependencyUnitInfo <-
-                      findDependencyUnitInfo session unitInfo,
-                    unitId dependencyUnitInfo /= rtsUnitId
-                ]
+      nextLinkables <-
+        Set.fromList . catMaybes
+          <$> sequence
+            [ liftIO $ findLinkable dependencyUnitInfo
+              | dependencyUnitInfo <-
+                  findDependencyUnitInfo session unitInfo,
+                unitId dependencyUnitInfo /= rtsUnitId
+            ]
 
-          -- put nextLinkables
-          put $ Set.union nextLinkables previousLinkables
+      let (currentLinkables, unloadLinkables) =
+            if shouldUnload
+              then
+                ( nextLinkables,
+                  Set.difference previousLinkables nextLinkables
+                )
+              else (Set.union nextLinkables previousLinkables, Set.empty)
 
-          let unloadLinkables =
-                Set.empty
-              -- Set.difference previousLinkables nextLinkables
-              loadLinkables =
-                Set.difference nextLinkables previousLinkables
+      put $ CurrentLinkables currentLinkables
 
-          let interp = hscInterp session
+      liftIO $ do
+        mapM_
+          (linkable loadObj loadArchive)
+          (Set.difference nextLinkables previousLinkables)
 
-          liftIO $ do
-            mapM_
-              (linkable (unloadObj interp) (unloadObj interp))
-              unloadLinkables
-            mapM_
-              (linkable (loadObj interp) (loadArchive interp))
-              loadLinkables
+        output <-
+          resolveObjs >>= \case
+            False -> return Nothing
+            True -> do
+              lookupSymbol entityName
+                >>= maybe
+                  (return Nothing)
+                  ( \symbolPtr ->
+                      Just
+                        <$> bracket
+                          (mkStablePtr $ castPtrToFunPtr symbolPtr)
+                          freeStablePtr
+                          (deRefStablePtr >=> f)
+                  )
 
-            resolveObjs interp >>= \case
-              Failed -> return Nothing
-              Succeeded ->
-                lookupSymbol interp (mkFastString symbol)
-                  >>= maybe
-                    (return Nothing)
-                    ( \symbolPtr ->
-                        Just
-                          <$> bracket
-                            (mkStablePtr $ castPtrToFunPtr symbolPtr)
-                            freeStablePtr
-                            deRefStablePtr
-                    )
-      )
+        mapM_ (linkable unloadObj unloadObj) unloadLinkables
+
+        return output
 
 -- | Action that updates the package database. This uses the package environment
 -- if it is specified. This can be set with the @LOWARN_PACKAGE_ENV@ environment
 -- variable. If the package environment is not set, the package database is
 -- instead updated by resetting the unit state and unit databases.
 updatePackageDatabase :: Linker ()
-updatePackageDatabase = Linker $ lift $ do
+updatePackageDatabase = Linker $ lift $ lift $ do
   flags <- getSessionDynFlags
   session <- getSession
   case packageEnv flags of
@@ -186,22 +209,15 @@ updatePackageDatabase = Linker $ lift $ do
         hsc_unit_dbs = Just unitDbs
       }
 
-lookupUnitInfo :: HscEnv -> PackageName -> ModuleName -> IO (Maybe UnitInfo)
-lookupUnitInfo session packageName moduleName = do
-  case exposedModulesAndPackages of
-    [] -> do
-      putStrLn $ "Can't find module " <> moduleNameString moduleName
-      return Nothing
-    (_, unitInfo) : _ -> return $ Just unitInfo
+lookupUnitInfo :: HscEnv -> PackageName -> Maybe UnitInfo
+lookupUnitInfo session packageName = do
+  unitInfo <-
+    lookupUnitId unitState . indefUnit
+      =<< lookupPackageName unitState packageName
+  unless (unitIsExposed unitInfo) Nothing
+  return unitInfo
   where
-    modulesAndPackages =
-      lookupModuleInAllUnits (ue_units $ hsc_unit_env session) moduleName
-    exposedModulesAndPackages =
-      filter
-        ( \(_, unitInfo) ->
-            unitIsExposed unitInfo && unitPackageName unitInfo == packageName
-        )
-        modulesAndPackages
+    unitState = ue_units $ hsc_unit_env session
 
 findLinkable :: UnitInfo -> IO (Maybe Linkable)
 findLinkable unitInfo = do

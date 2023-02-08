@@ -28,7 +28,7 @@ library
       Lowarn
       Lowarn.ParserCombinators
       Lowarn.ProgramName
-      Lowarn.TransformerId
+      Lowarn.UpdateId
       Lowarn.VersionId
       Lowarn.VersionNumber
   other-modules:

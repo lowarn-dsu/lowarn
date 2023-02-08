@@ -11,21 +11,23 @@ module Lowarn.Runtime
   ( Runtime,
     runRuntime,
     loadVersion,
-    loadTransformer,
+    loadUpdate,
     updatePackageDatabase,
     liftLinker,
     liftIO,
   )
 where
 
-import Control.Monad (void)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
+import Data.Functor
+import GHC.IO (evaluate)
 import Lowarn
   ( EntryPoint (unEntryPoint),
     RuntimeData (RuntimeData),
     Transformer (unTransformer),
+    Update (_entryPoint, _transformer),
     UpdateInfo (UpdateInfo),
     UpdateSignalRegister,
     fillUpdateSignalRegister,
@@ -33,15 +35,12 @@ import Lowarn
   )
 import Lowarn.Linker (Linker, liftIO, load, runLinker)
 import qualified Lowarn.Linker as Linker (updatePackageDatabase)
-import Lowarn.ProgramName (showEntryPointModuleName, showTransformerModuleName)
-import Lowarn.TransformerId
-  ( TransformerId (_nextVersionNumber, _previousVersionNumber),
-    showTransformerPackageName,
+import Lowarn.UpdateId
+  ( UpdateId (..),
+    showUpdatePackageName,
   )
-import qualified Lowarn.TransformerId as TransformerId (_programName)
 import Lowarn.VersionId (VersionId (_versionNumber), showVersionPackageName)
-import qualified Lowarn.VersionId as VersionId (_programName)
-import Lowarn.VersionNumber (showEntryPointExport, showTransformerExport)
+import Lowarn.VersionNumber (showEntryPointExport, showUpdateExport)
 import System.Posix.Signals (Handler (Catch), installHandler, sigUSR2)
 import Text.Printf (printf)
 
@@ -52,16 +51,23 @@ newtype Runtime a = Runtime
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
--- | Run a runtime.
-runRuntime :: Runtime a -> IO a
-runRuntime runtime = do
+-- | Run a runtime, optionally unloading code.
+runRuntime ::
+  -- | A runtime.
+  Runtime a ->
+  -- | Whether or not to unload code (may result in segmentation faults for lazy
+  -- state transformations).
+  Bool ->
+  IO a
+runRuntime runtime shouldUnload = do
   updateSignalRegister <- mkUpdateSignalRegister
   previousSignalHandler <-
     installHandler
       sigUSR2
       (Catch (void $ fillUpdateSignalRegister updateSignalRegister))
       Nothing
-  output <- runLinker $ runReaderT (unRuntime runtime) updateSignalRegister
+  output <-
+    runLinker (runReaderT (unRuntime runtime) updateSignalRegister) shouldUnload
   liftIO $ void $ installHandler sigUSR2 previousSignalHandler Nothing
   return output
 
@@ -69,19 +75,21 @@ runRuntime runtime = do
 liftLinker :: Linker a -> Runtime a
 liftLinker = Runtime . lift
 
-withLinkedEntity :: String -> String -> String -> (a -> IO b) -> Runtime b
-withLinkedEntity packageName moduleName entityName f =
+withLinkedEntity ::
+  String ->
+  String ->
+  (a -> IO b) ->
+  Runtime b
+withLinkedEntity packageName entityReader f =
   liftLinker $
-    load packageName moduleName entityName
+    load packageName entityReader f
       >>= maybe
         ( error $
             printf
-              "Could not find entity %s in module %s in package %s"
-              entityName
-              moduleName
+              "Could not find entities in package %s"
               packageName
         )
-        (liftIO . f)
+        return
 
 -- | Action that loads and runs a given version of a program, producing the
 -- final state of the program when it finishes.
@@ -98,37 +106,40 @@ loadVersion versionId mPreviousState = do
   updateSignalRegister <- Runtime ask
   withLinkedEntity
     packageName
-    moduleName
-    (showEntryPointExport $ _versionNumber versionId)
+    entryPointExport
     $ \entryPoint ->
       unEntryPoint entryPoint $
         RuntimeData updateSignalRegister (UpdateInfo <$> mPreviousState)
   where
-    moduleName =
-      showEntryPointModuleName . VersionId._programName $ versionId
     packageName = showVersionPackageName versionId
+    entryPointExport = showEntryPointExport $ _versionNumber versionId
 
--- | Action that loads and runs a given state transformer, producing the state
--- for the next version of a program.
-loadTransformer ::
-  -- | The ID corresponding to the transformer.
-  TransformerId ->
+-- | Action that performs an given update by running its state transformer,
+-- producing the state for the next version of a program, then running the next
+-- version of the program with this state.
+loadUpdate ::
+  -- | The ID corresponding to the update.
+  UpdateId ->
   -- | State from the previous version of the program.
   a ->
-  Runtime (Maybe a)
-loadTransformer transformerId previousState =
+  Runtime b
+loadUpdate updateId previousState = do
+  updateSignalRegister <- Runtime ask
   withLinkedEntity
     packageName
-    moduleName
-    ( showTransformerExport
-        (_previousVersionNumber transformerId)
-        (_nextVersionNumber transformerId)
+    updateExport
+    ( \update -> do
+        previousState' <-
+          evaluate =<< unTransformer (_transformer update) previousState
+        unEntryPoint (_entryPoint update) $
+          RuntimeData updateSignalRegister (UpdateInfo <$> previousState')
     )
-    (`unTransformer` previousState)
   where
-    moduleName =
-      showTransformerModuleName . TransformerId._programName $ transformerId
-    packageName = showTransformerPackageName transformerId
+    packageName = showUpdatePackageName updateId
+    updateExport =
+      showUpdateExport
+        (_previousVersionNumber updateId)
+        (_nextVersionNumber updateId)
 
 -- | Action that updates the package database, using
 -- 'Linker.updatePackageDatabase'.

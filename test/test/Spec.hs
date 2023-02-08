@@ -2,7 +2,7 @@ import Spec.ManualDsu (manualDsuTests)
 import Spec.ProgramName (programNameTests)
 import Spec.Story (storyTests)
 import Spec.Transformer (transformerTests)
-import Spec.TransformerId (transformerIdTests)
+import Spec.UpdateId (updateIdTests)
 import Spec.VersionId (versionIdTests)
 import Spec.VersionNumber (versionNumberTests)
 import Test.Lowarn.Tasty (withBinarySemaphore)
@@ -26,7 +26,7 @@ main =
             <$> [ versionNumberTests,
                   programNameTests,
                   versionIdTests,
-                  transformerIdTests,
+                  updateIdTests,
                   transformerTests
                 ]
         )

@@ -52,6 +52,7 @@ module Lowarn.Transformer
 
     -- * Re-exports from generic-sop
     Generic,
+    HasDatatypeInfo,
     deriveGeneric,
   )
 where
