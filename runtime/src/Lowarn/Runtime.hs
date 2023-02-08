@@ -59,16 +59,23 @@ newtype Runtime a = Runtime
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
--- | Run a runtime.
-runRuntime :: Runtime a -> IO a
-runRuntime runtime = do
+-- | Run a runtime, optionally unloading code.
+runRuntime ::
+  -- | A runtime.
+  Runtime a ->
+  -- | Whether or not to unload code (may result in segmentation faults for lazy
+  -- state transformations).
+  Bool ->
+  IO a
+runRuntime runtime shouldUnload = do
   updateSignalRegister <- mkUpdateSignalRegister
   previousSignalHandler <-
     installHandler
       sigUSR2
       (Catch (void $ fillUpdateSignalRegister updateSignalRegister))
       Nothing
-  output <- runLinker $ runReaderT (unRuntime runtime) updateSignalRegister
+  output <-
+    runLinker (runReaderT (unRuntime runtime) updateSignalRegister) shouldUnload
   liftIO $ void $ installHandler sigUSR2 previousSignalHandler Nothing
   return output
 

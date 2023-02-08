@@ -118,8 +118,10 @@ runStory story getRuntime outputPath timeout = do
       forkProcessWithUnmask $ \unmask ->
         catch
           ( unmask $
-              runRuntime $
-                getRuntime (inputReadHandle, outputWriteHandle)
+              runRuntime
+                ( getRuntime (inputReadHandle, outputWriteHandle)
+                )
+                False
           )
           ( \exception -> do
               shouldWriteExceptions <- readIORef shouldWriteExceptionsRef

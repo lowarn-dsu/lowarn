@@ -32,6 +32,7 @@ import Control.Monad
 import Control.Monad.Free (Free, foldFree, liftF)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Control.Monad.Trans.State.Strict (StateT, evalStateT, get, put)
 import Data.List (minimumBy)
 import Data.Maybe (catMaybes, mapMaybe)
@@ -71,20 +72,29 @@ linkable :: (FilePath -> a) -> (FilePath -> a) -> Linkable -> a
 linkable f _ (Object objectFile) = f objectFile
 linkable _ f (Archive archiveFile) = f archiveFile
 
-newtype LinkerState = LinkerState
+newtype CurrentLinkables = CurrentLinkables
   { _currentLinkables :: Set Linkable
+  }
+
+newtype ShouldUnload = ShouldUnload
+  { _shouldUnload :: Bool
   }
 
 -- | Monad for linking packages from the package database and accessing their
 -- exported entities.
 newtype Linker a = Linker
-  { unLinker :: StateT LinkerState Ghc a
+  { unLinker :: StateT CurrentLinkables (ReaderT ShouldUnload Ghc) a
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
--- | Run a linker.
-runLinker :: Linker a -> IO a
-runLinker linker =
+-- | Run a linker, optionally unloading code.
+runLinker ::
+  -- | A linker.
+  Linker a ->
+  -- | Whether or not to unload code (may result in segmentation faults).
+  Bool ->
+  IO a
+runLinker linker shouldUnload =
   defaultErrorHandler defaultFatalMessager defaultFlushOut $
     runGhc (Just libdir) $ do
       flags <- getSessionDynFlags
@@ -99,8 +109,13 @@ runLinker linker =
                 interpretPackageEnv (hsc_logger session) $
                   flags {packageEnv = Just lowarnPackageEnv}
       setSessionDynFlags flags' {ghcLink = LinkStaticLib}
-      liftIO $ initObjLinker RetainCAFs
-      evalStateT (unLinker linker) $ LinkerState Set.empty
+      liftIO $
+        initObjLinker $
+          if shouldUnload then DontRetainCAFs else RetainCAFs
+      runReaderT
+        ( evalStateT (unLinker linker) $ CurrentLinkables Set.empty
+        )
+        $ ShouldUnload shouldUnload
 
 data EntityReaderF a = EntityReaderF
   { _entityName :: String,
@@ -128,12 +143,13 @@ load ::
   EntityReader (Maybe a) ->
   Linker (Maybe a)
 load packageName' entityReader = Linker $ do
-  session <- lift getSession
+  session <- lift $ lift getSession
 
   case lookupUnitInfo session (PackageName $ mkFastString packageName') of
     Nothing -> return Nothing
     Just unitInfo -> do
       previousLinkables <- _currentLinkables <$> get
+      shouldUnload <- _shouldUnload <$> lift ask
 
       nextLinkables <-
         Set.fromList . catMaybes
@@ -144,7 +160,15 @@ load packageName' entityReader = Linker $ do
                 unitId dependencyUnitInfo /= rtsUnitId
             ]
 
-      put $ LinkerState nextLinkables
+      let (currentLinkables, unloadLinkables) =
+            if shouldUnload
+              then
+                ( nextLinkables,
+                  Set.difference previousLinkables nextLinkables
+                )
+              else (Set.union nextLinkables previousLinkables, Set.empty)
+
+      put $ CurrentLinkables currentLinkables
 
       liftIO $ do
         mapM_
@@ -172,9 +196,7 @@ load packageName' entityReader = Linker $ do
                 )
                 entityReader
 
-        mapM_
-          (linkable unloadObj unloadObj)
-          (Set.difference previousLinkables nextLinkables)
+        mapM_ (linkable unloadObj unloadObj) unloadLinkables
 
         return output
 
@@ -183,7 +205,7 @@ load packageName' entityReader = Linker $ do
 -- variable. If the package environment is not set, the package database is
 -- instead updated by resetting the unit state and unit databases.
 updatePackageDatabase :: Linker ()
-updatePackageDatabase = Linker $ lift $ do
+updatePackageDatabase = Linker $ lift $ lift $ do
   flags <- getSessionDynFlags
   session <- getSession
   case packageEnv flags of
