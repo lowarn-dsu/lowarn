@@ -1,0 +1,31 @@
+name:                lowarn-update-manual-following-v1v0v0-v2v0v0
+version:             1.0.0
+github:              "jonathanjameswatson/lowarn"
+license:             MIT
+author:              "Jonathan Watson"
+maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
+copyright:           "2022 Jonathan Watson"
+
+description:         Lowarn demo program update from version 1.0.0 to 2.0.0
+
+dependencies:
+- base >= 4.7 && < 5
+- containers
+- lowarn
+- lowarn-version-manual-following-v1v0v0
+- lowarn-version-manual-following-v2v0v0
+- random
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+
+library:
+  source-dirs: src

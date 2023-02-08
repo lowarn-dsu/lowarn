@@ -11,14 +11,13 @@ module Lowarn.Runtime
   ( Runtime,
     runRuntime,
     loadVersion,
-    loadTransformerAndVersion,
+    loadUpdate,
     updatePackageDatabase,
     liftLinker,
     liftIO,
   )
 where
 
-import Control.Applicative
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
@@ -28,27 +27,20 @@ import Lowarn
   ( EntryPoint (unEntryPoint),
     RuntimeData (RuntimeData),
     Transformer (unTransformer),
+    Update (_entryPoint, _transformer),
     UpdateInfo (UpdateInfo),
     UpdateSignalRegister,
     fillUpdateSignalRegister,
     mkUpdateSignalRegister,
   )
-import Lowarn.Linker
-  ( EntityReader,
-    Linker,
-    askEntity,
-    liftIO,
-    load,
-    runLinker,
-  )
+import Lowarn.Linker (Linker, liftIO, load, runLinker)
 import qualified Lowarn.Linker as Linker (updatePackageDatabase)
-import Lowarn.TransformerId
-  ( TransformerId (..),
-    nextVersionId,
-    showTransformerPackageName,
+import Lowarn.UpdateId
+  ( UpdateId (..),
+    showUpdatePackageName,
   )
 import Lowarn.VersionId (VersionId (_versionNumber), showVersionPackageName)
-import Lowarn.VersionNumber (showEntryPointExport, showTransformerExport)
+import Lowarn.VersionNumber (showEntryPointExport, showUpdateExport)
 import System.Posix.Signals (Handler (Catch), installHandler, sigUSR2)
 import Text.Printf (printf)
 
@@ -85,19 +77,19 @@ liftLinker = Runtime . lift
 
 withLinkedEntity ::
   String ->
-  EntityReader (Maybe a) ->
+  String ->
   (a -> IO b) ->
   Runtime b
 withLinkedEntity packageName entityReader f =
   liftLinker $
-    load packageName entityReader
+    load packageName entityReader f
       >>= maybe
         ( error $
             printf
               "Could not find entities in package %s"
               packageName
         )
-        (liftIO . f)
+        return
 
 -- | Action that loads and runs a given version of a program, producing the
 -- final state of the program when it finishes.
@@ -114,48 +106,40 @@ loadVersion versionId mPreviousState = do
   updateSignalRegister <- Runtime ask
   withLinkedEntity
     packageName
-    entityReader
+    entryPointExport
     $ \entryPoint ->
       unEntryPoint entryPoint $
         RuntimeData updateSignalRegister (UpdateInfo <$> mPreviousState)
   where
     packageName = showVersionPackageName versionId
-    entityReader =
-      askEntity $ showEntryPointExport $ _versionNumber versionId
+    entryPointExport = showEntryPointExport $ _versionNumber versionId
 
--- | Action that loads and runs a given state transformer, producing the state
--- for the next version of a program, then runs the next version of the program
--- with this state.
-loadTransformerAndVersion ::
-  -- | The ID corresponding to the transformer.
-  TransformerId ->
+-- | Action that performs an given update by running its state transformer,
+-- producing the state for the next version of a program, then running the next
+-- version of the program with this state.
+loadUpdate ::
+  -- | The ID corresponding to the update.
+  UpdateId ->
   -- | State from the previous version of the program.
   a ->
   Runtime b
-loadTransformerAndVersion transformerId previousState = do
+loadUpdate updateId previousState = do
   updateSignalRegister <- Runtime ask
   withLinkedEntity
     packageName
-    entityReader
-    ( \(transformer, entryPoint) -> do
+    updateExport
+    ( \update -> do
         previousState' <-
-          evaluate =<< unTransformer transformer previousState
-        unEntryPoint entryPoint $
+          evaluate =<< unTransformer (_transformer update) previousState
+        unEntryPoint (_entryPoint update) $
           RuntimeData updateSignalRegister (UpdateInfo <$> previousState')
     )
   where
-    packageName = showTransformerPackageName transformerId
-    transformerEntity =
-      showTransformerExport
-        (_previousVersionNumber transformerId)
-        (_nextVersionNumber transformerId)
-    versionEntity =
-      showEntryPointExport $ _versionNumber $ nextVersionId transformerId
-    entityReader =
-      liftA2
-        (liftA2 (,))
-        (askEntity transformerEntity)
-        (askEntity versionEntity)
+    packageName = showUpdatePackageName updateId
+    updateExport =
+      showUpdateExport
+        (_previousVersionNumber updateId)
+        (_nextVersionNumber updateId)
 
 -- | Action that updates the package database, using
 -- 'Linker.updatePackageDatabase'.

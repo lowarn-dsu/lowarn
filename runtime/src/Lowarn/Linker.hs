@@ -20,16 +20,11 @@ module Lowarn.Linker
     -- * Actions
     load,
     updatePackageDatabase,
-
-    -- * Entity reader monad
-    EntityReader,
-    askEntity,
   )
 where
 
 import Control.Exception (bracket)
 import Control.Monad
-import Control.Monad.Free (Free, foldFree, liftF)
 import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
@@ -60,7 +55,6 @@ import GHCi.ObjLink
 import System.Environment (lookupEnv)
 import System.FilePath.Glob (CompOptions (..), compileWith, globDir1)
 import Text.Printf (printf)
-import Unsafe.Coerce (unsafeCoerce)
 
 foreign import ccall "dynamic"
   mkStablePtr :: FunPtr (IO (StablePtr a)) -> IO (StablePtr a)
@@ -111,38 +105,26 @@ runLinker linker shouldUnload =
       setSessionDynFlags flags' {ghcLink = LinkStaticLib}
       liftIO $
         initObjLinker $
-          if shouldUnload then DontRetainCAFs else RetainCAFs
+          -- TODO: Replace RetainCAFs with DontRetainCAFs when unloading.
+          if shouldUnload then RetainCAFs else RetainCAFs
       runReaderT
         ( evalStateT (unLinker linker) $ CurrentLinkables Set.empty
         )
         $ ShouldUnload shouldUnload
 
-data EntityReaderF a = EntityReaderF
-  { _entityName :: String,
-    _continuation :: forall b. Maybe b -> a
-  }
-  deriving (Functor)
-
--- | Monad for getting entities from object files just loaded by the linker.
-type EntityReader = Free EntityReaderF
-
--- | Action that gives an entity with a given name (if it exists) from the
--- 'EntityReader'\'s environment.
-askEntity :: String -> EntityReader (Maybe a)
-askEntity entityName = liftF (EntityReaderF entityName (fmap unsafeCoerce))
-
--- | Action that gives entities exported by object files corresponding to a
+-- | Action that gives an entity exported by object files corresponding to a
 -- given package (and its dependencies) in the package database. The object
 -- files are only linked if they haven't already been. @Nothing@ is given if the
 -- module, package, or entities cannot be found.
 load ::
   -- | The name of the package to load.
   String ->
-  -- | A computation in the 'EntityReader' monad that gives entities from the
-  -- loaded object files.
-  EntityReader (Maybe a) ->
-  Linker (Maybe a)
-load packageName' entityReader = Linker $ do
+  -- | The name of a symbol that exports an entity.
+  String ->
+  -- | A function to run with the linked entity.
+  (a -> IO b) ->
+  Linker (Maybe b)
+load packageName' entityName f = Linker $ do
   session <- lift $ lift getSession
 
   case lookupUnitInfo session (PackageName $ mkFastString packageName') of
@@ -178,23 +160,17 @@ load packageName' entityReader = Linker $ do
         output <-
           resolveObjs >>= \case
             False -> return Nothing
-            True ->
-              foldFree
-                ( \(EntityReaderF entityName continuation) -> do
-                    mx <-
-                      lookupSymbol entityName
-                        >>= maybe
-                          (return Nothing)
-                          ( \symbolPtr ->
-                              Just
-                                <$> bracket
-                                  (mkStablePtr $ castPtrToFunPtr symbolPtr)
-                                  freeStablePtr
-                                  deRefStablePtr
-                          )
-                    return $ continuation mx
-                )
-                entityReader
+            True -> do
+              lookupSymbol entityName
+                >>= maybe
+                  (return Nothing)
+                  ( \symbolPtr ->
+                      Just
+                        <$> bracket
+                          (mkStablePtr $ castPtrToFunPtr symbolPtr)
+                          freeStablePtr
+                          (deRefStablePtr >=> f)
+                  )
 
         mapM_ (linkable unloadObj unloadObj) unloadLinkables
 

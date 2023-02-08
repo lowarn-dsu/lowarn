@@ -21,7 +21,7 @@ source-repository head
 
 library
   exposed-modules:
-      Lowarn.ExampleProgram.Following.TransformerId
+      Lowarn.ExampleProgram.Following.UpdateId
       Lowarn.ExampleProgram.Following.VersionId
   other-modules:
       Paths_following

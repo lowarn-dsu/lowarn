@@ -118,7 +118,7 @@ test-suite lowarn-test
       Spec.ProgramName
       Spec.Story
       Spec.Transformer
-      Spec.TransformerId
+      Spec.UpdateId
       Spec.VersionId
       Spec.VersionNumber
       Paths_lowarn_test
@@ -138,12 +138,12 @@ test-suite lowarn-test
     , lowarn-test
     , lowarn-test-types
     , lowarn-transformer
-    , lowarn-transformer-following-v0-v1v0v0
-    , lowarn-transformer-following-v1v0v0-v2v0v0
-    , lowarn-transformer-following-v2v0v0-v3v0v0
-    , lowarn-transformer-manual-following-v0-v1v0v0
-    , lowarn-transformer-manual-following-v1v0v0-v2v0v0
-    , lowarn-transformer-manual-following-v2v0v0-v3v0v0
+    , lowarn-update-following-v0-v1v0v0
+    , lowarn-update-following-v1v0v0-v2v0v0
+    , lowarn-update-following-v2v0v0-v3v0v0
+    , lowarn-update-manual-following-v0-v1v0v0
+    , lowarn-update-manual-following-v1v0v0-v2v0v0
+    , lowarn-update-manual-following-v2v0v0-v3v0v0
     , lowarn-version-following-v1v0v0
     , lowarn-version-following-v2v0v0
     , lowarn-version-following-v3v0v0

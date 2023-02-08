@@ -1,4 +1,4 @@
-module EntryPoint_manual_following () where
+module EntryPoint_manual_following (entryPoint) where
 
 import Data.Maybe (fromMaybe)
 import Foreign (StablePtr, newStablePtr)

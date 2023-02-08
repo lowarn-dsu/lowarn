@@ -17,6 +17,11 @@ module Lowarn
     signalUpdate,
     lastState,
 
+    -- * Updates
+
+    -- | Types and functions used in updates.
+    Update (..),
+
     -- * Transformers
 
     -- | Types and functions used in state transformers.
@@ -139,6 +144,13 @@ instance ArrowChoice Transformer where
 instance ArrowApply Transformer where
   app :: Transformer (Transformer a b, a) b
   app = Transformer $ uncurry unTransformer
+
+-- | Type for functions that transform state from one version of a program
+-- into state for another.
+data Update a b = Update
+  { _transformer :: Transformer a b,
+    _entryPoint :: EntryPoint b
+  }
 
 -- | Create an update signal register.
 mkUpdateSignalRegister :: IO UpdateSignalRegister

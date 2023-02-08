@@ -1,10 +1,10 @@
 module Main (main) where
 
 import Control.Monad (void)
-import Lowarn.ExampleProgram.Following.TransformerId
+import Lowarn.ExampleProgram.Following.UpdateId
 import Lowarn.ExampleProgram.Following.VersionId
 import Lowarn.Runtime
-  ( loadTransformerAndVersion,
+  ( loadUpdate,
     loadVersion,
     runRuntime,
     updatePackageDatabase,
@@ -18,7 +18,7 @@ main =
       state1 <- loadVersion followingVersionId_1 Nothing
 
       updatePackageDatabase
-      state2 <- loadTransformerAndVersion followingTransformerId_1_2 state1
+      state2 <- loadUpdate followingUpdateId_1_2 state1
 
       updatePackageDatabase
-      void $ loadTransformerAndVersion followingTransformerId_2_3 state2
+      void $ loadUpdate followingUpdateId_2_3 state2

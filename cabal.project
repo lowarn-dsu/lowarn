@@ -4,4 +4,4 @@ packages:
     */*.cabal
   , examples/*/demo/*.cabal
   , examples/*/versions/*/*.cabal
-  , examples/*/transformers/*/*.cabal
+  , examples/*/updates/*/*.cabal
