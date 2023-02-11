@@ -22,6 +22,7 @@ import Control.Monad.IO.Class (MonadIO)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
 import Data.Functor
+import Debug.Trace (traceMarkerIO)
 import GHC.IO (evaluate)
 import Lowarn
   ( EntryPoint (unEntryPoint),
@@ -37,9 +38,15 @@ import Lowarn.Linker (Linker, liftIO, load, runLinker)
 import qualified Lowarn.Linker as Linker (updatePackageDatabase)
 import Lowarn.UpdateId
   ( UpdateId (..),
+    nextVersionId,
+    showUpdateId,
     showUpdatePackageName,
   )
-import Lowarn.VersionId (VersionId (_versionNumber), showVersionPackageName)
+import Lowarn.VersionId
+  ( VersionId (_versionNumber),
+    showVersionId,
+    showVersionPackageName,
+  )
 import Lowarn.VersionNumber (showEntryPointExport, showUpdateExport)
 import System.Posix.Signals (Handler (Catch), installHandler, sigUSR2)
 import Text.Printf (printf)
@@ -107,7 +114,11 @@ loadVersion versionId mPreviousState = do
   withLinkedEntity
     packageName
     entryPointExport
-    $ \entryPoint ->
+    $ \entryPoint -> do
+      traceMarkerIO $
+        printf
+          "Version %s begin."
+          (showVersionId versionId)
       unEntryPoint entryPoint $
         RuntimeData updateSignalRegister (UpdateInfo <$> mPreviousState)
   where
@@ -129,8 +140,16 @@ loadUpdate updateId previousState = do
     packageName
     updateExport
     ( \update -> do
+        traceMarkerIO $
+          printf
+            "Update %s begin."
+            (showUpdateId updateId)
         previousState' <-
           evaluate =<< unTransformer (_transformer update) previousState
+        traceMarkerIO $
+          printf
+            "Version %s begin."
+            (showVersionId $ nextVersionId updateId)
         unEntryPoint (_entryPoint update) $
           RuntimeData updateSignalRegister (UpdateInfo <$> previousState')
     )
