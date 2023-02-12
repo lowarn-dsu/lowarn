@@ -17,6 +17,7 @@ description:         Please see the README on GitHub at <https://github.com/jona
 dependencies:
 - base >= 4.7 && < 5
 - ghc == 9.2.5
+- lowarn
 
 ghc-options:
 - -Wall

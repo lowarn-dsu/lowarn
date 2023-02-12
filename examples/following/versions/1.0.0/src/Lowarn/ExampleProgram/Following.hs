@@ -11,9 +11,9 @@ module Lowarn.ExampleProgram.Following
   )
 where
 
-import Control.Concurrent (readMVar)
 import GlobalRuntimeData_following (globalRuntimeData)
 import Lowarn (isUpdateAvailable)
+import Lowarn.GlobalRuntimeData (readGlobalRuntimeData)
 import Lowarn.Transformer (deriveGeneric)
 import System.IO
   ( Handle,
@@ -41,7 +41,7 @@ showUser = _username
 
 eventLoop :: State -> IO State
 eventLoop state@(State users in_ out) = do
-  continue <- isUpdateAvailable =<< readMVar globalRuntimeData
+  continue <- isUpdateAvailable =<< readGlobalRuntimeData globalRuntimeData
   if not continue
     then do
       hPutStrLn out "Following:"
