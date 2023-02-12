@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           lowarn-plugin
+name:           lowarn-inject
 version:        0.1.0.0
-synopsis:       Plugins for Lowarn
-description:    Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/plugin#readme>
+synopsis:       Runtime data injection for Lowarn
+description:    Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/inject#readme>
 category:       System
 homepage:       https://github.com/jonathanjameswatson/lowarn#readme
 bug-reports:    https://github.com/jonathanjameswatson/lowarn/issues
@@ -25,10 +25,10 @@ source-repository head
 
 library
   exposed-modules:
-      Lowarn.GlobalRuntimeData
-      Lowarn.Plugin
+      Lowarn.Inject.Plugin
+      Lowarn.Inject.RuntimeDataVar
   other-modules:
-      Paths_lowarn_plugin
+      Paths_lowarn_inject
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints

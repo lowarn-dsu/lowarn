@@ -26,11 +26,11 @@ library
       Paths_lowarn_update_following_v2v0v0_v3v0v0
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -fplugin Lowarn.Plugin
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -fplugin Lowarn.Inject.Plugin
   build-depends:
       base >=4.7 && <5
     , lowarn
-    , lowarn-plugin
+    , lowarn-inject
     , lowarn-transformer
     , lowarn-version-following-v2v0v0
     , lowarn-version-following-v3v0v0

@@ -21,7 +21,7 @@ packages:
 - examples/manual-following/versions/1.0.0
 - examples/manual-following/versions/2.0.0
 - examples/manual-following/versions/3.0.0
-- plugin
+- inject
 - runtime
 - test
 - test-types

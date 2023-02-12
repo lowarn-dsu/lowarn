@@ -1,4 +1,4 @@
-name:                lowarn-plugin
+name:                lowarn-inject
 version:             0.1.0.0
 github:              "jonathanjameswatson/lowarn"
 license:             MIT
@@ -9,10 +9,10 @@ copyright:           "2022 Jonathan Watson"
 extra-source-files:
 - README.md
 
-synopsis:            Plugins for Lowarn
+synopsis:            Runtime data injection for Lowarn
 category:            System
 
-description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/plugin#readme>
+description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/inject#readme>
 
 dependencies:
 - base >= 4.7 && < 5
