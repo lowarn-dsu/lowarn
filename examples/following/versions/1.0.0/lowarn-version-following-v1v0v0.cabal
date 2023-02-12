@@ -22,6 +22,7 @@ source-repository head
 library
   exposed-modules:
       EntryPoint_following
+      GlobalRuntimeData_following
       Lowarn.ExampleProgram.Following
   other-modules:
       Paths_lowarn_version_following_v1v0v0
