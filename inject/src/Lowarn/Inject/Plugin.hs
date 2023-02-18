@@ -7,16 +7,46 @@
 -- Module for a plugin used to inject runtime data.
 module Lowarn.Inject.Plugin (plugin) where
 
-import GHC.Plugins
+import Control.Applicative
+import GHC.Core.Class
+import GHC.Plugins hiding (TcPlugin)
+import GHC.Tc.Plugin
+import GHC.Tc.Types
+import GHC.Tc.Types.Constraint
 
 plugin :: Plugin
 plugin =
   defaultPlugin
-    { installCoreToDos = install,
+    { tcPlugin = const (Just injectTcPlugin),
       pluginRecompile = purePlugin
     }
 
-install :: [CommandLineOption] -> [CoreToDo] -> CoreM [CoreToDo]
-install _ todo = do
-  putMsgS "Lowarn inject plugin enabled."
-  return todo
+data Classes = Classes
+  { _injectedRuntimeDataClass :: Class,
+    _injectRuntimeDataClass :: Class
+  }
+
+injectTcPlugin :: TcPlugin
+injectTcPlugin =
+  TcPlugin
+    { tcPluginInit = lookupClasses,
+      tcPluginSolve = solve,
+      tcPluginStop = const (return ())
+    }
+
+lookupClasses :: TcPluginM Classes
+lookupClasses = do
+  Found _ injectModule <-
+    findImportedModule (mkModuleName "Lowarn.Inject") Nothing
+  injectedRuntimeDataClassName <-
+    lookupOrig injectModule (mkTcOcc "InjectedRuntimeData")
+  injectRuntimeDataClassName <-
+    lookupOrig injectModule (mkTcOcc "InjectRuntimeData")
+  liftA2
+    Classes
+    (tcLookupClass injectedRuntimeDataClassName)
+    (tcLookupClass injectRuntimeDataClassName)
+
+solve :: Classes -> [Ct] -> [Ct] -> [Ct] -> TcPluginM TcPluginResult
+solve classes _ _ wanteds =
+  return $! TcPluginOk [] []
