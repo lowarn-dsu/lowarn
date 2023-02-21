@@ -83,19 +83,19 @@ getClasses = do
         _programName
           <$> (readWithParser parseVersionPackageName =<< mPackageName)
 
-  case liftA2 (,) mModuleProgramName mPackageProgramName of
-    Just (moduleProgramName, packageProgramName)
-      | moduleProgramName == packageProgramName -> do
-          injectModule <- findModule "Lowarn.Inject" $ Just "lowarn-inject"
-          runtimeDataVarModule <-
-            findModule "Lowarn.Inject.RuntimeDataVar" $ Just "lowarn-inject"
-          Just
-            <$> liftM4
-              ResolvedNames
-              (getClass injectModule "InjectedRuntimeData")
-              (getClass injectModule "InjectRuntimeData")
-              (getId runtimeDataVarModule "putRuntimeDataVar")
-              (getId currentModule "runtimeDataVar")
+  case Nothing of -- liftA2 (,) mModuleProgramName mPackageProgramName of
+    Just (moduleProgramName, packageProgramName) -> do
+      -- \| moduleProgramName == packageProgramName -> do
+      injectModule <- findModule "Lowarn.Inject" $ Just "lowarn-inject"
+      runtimeDataVarModule <-
+        findModule "Lowarn.Inject.RuntimeDataVar" $ Just "lowarn-inject"
+      Just
+        <$> liftM4
+          ResolvedNames
+          (getClass injectModule "InjectedRuntimeData")
+          (getClass injectModule "InjectRuntimeData")
+          (getId runtimeDataVarModule "putRuntimeDataVar")
+          (getId currentModule "runtimeDataVar")
     _ -> return Nothing
   where
     findModule :: String -> Maybe String -> TcPluginM 'Init Module

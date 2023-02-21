@@ -23,6 +23,7 @@ library
   exposed-modules:
       EntryPoint_following
       Lowarn.ExampleProgram.Following
+      RuntimeDataVar_following
   other-modules:
       Paths_lowarn_version_following_v1v0v0
   hs-source-dirs:

@@ -11,10 +11,10 @@ module Lowarn.ExampleProgram.Following
   )
 where
 
-import EntryPoint_following (runtimeDataVar)
 import Lowarn (isUpdateAvailable)
 import Lowarn.Inject.RuntimeDataVar (readRuntimeDataVar)
 import Lowarn.Transformer (deriveGeneric)
+import RuntimeDataVar_following (runtimeDataVar)
 import System.IO
   ( Handle,
     hFlush,
