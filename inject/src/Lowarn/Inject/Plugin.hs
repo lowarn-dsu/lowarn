@@ -10,7 +10,6 @@
 -- Module for a plugin used to inject runtime data.
 module Lowarn.Inject.Plugin (plugin) where
 
-import Control.Applicative
 import Control.Monad (guard, liftM4)
 import Data.Foldable (maximumBy)
 import Data.Maybe (mapMaybe)
@@ -20,7 +19,7 @@ import GHC.Plugins hiding (TcPlugin)
 import GHC.Tc.Types (tcg_mod)
 import GHC.TcPlugin.API
 import Lowarn.ParserCombinators (parsePackageName, readWithParser)
-import Lowarn.ProgramName (parseEntryPointModuleName)
+import Lowarn.ProgramName (showPrefixModuleName)
 import Lowarn.VersionId (parseVersionPackageName, _programName)
 import Text.ParserCombinators.ReadP (readP_to_S)
 import Text.Printf (printf)
@@ -42,11 +41,64 @@ data ResolvedNames = ResolvedNames
 injectTcPlugin :: TcPlugin
 injectTcPlugin =
   TcPlugin
-    { tcPluginInit = getClasses,
+    { tcPluginInit = resolveNames,
       tcPluginSolve = solve,
       tcPluginRewrite = const emptyUFM,
       tcPluginStop = const (return ())
     }
+
+resolveNames :: TcPluginM 'Init ResolvedNames
+resolveNames = do
+  currentModule <- tcg_mod . fst <$> getEnvs
+  let currentUnitId = moduleUnit currentModule
+      mPackageName =
+        case map fst $ readP_to_S parsePackageName $ unitString currentUnitId of
+          [] -> Nothing
+          possiblePackageNames ->
+            Just $ maximumBy (comparing length) possiblePackageNames
+      mPackageProgramName =
+        _programName
+          <$> (readWithParser parseVersionPackageName =<< mPackageName)
+
+  case mPackageProgramName of
+    Just packageProgramName -> do
+      injectModule <-
+        findModule "Lowarn.Inject" (OtherPkg $ stringToUnitId "lowarn-inject")
+      runtimeDataVarModule <-
+        findModule
+          "Lowarn.Inject.RuntimeDataVar"
+          (OtherPkg $ stringToUnitId "lowarn-inject")
+      localModule <-
+        findModule
+          (showPrefixModuleName "RuntimeDataVar" packageProgramName)
+          (ThisPkg $ UnitId $ fsLit "this")
+      liftM4
+        ResolvedNames
+        (getClass injectModule "InjectedRuntimeData")
+        (getClass injectModule "InjectRuntimeData")
+        (getId runtimeDataVarModule "putRuntimeDataVar")
+        (getId localModule "runtimeDataVar")
+    _ ->
+      panic
+        "Lowarn.Inject.Plugin used in non-Lowarn version package %s."
+        (unitString currentUnitId)
+  where
+    findModule :: String -> PkgQual -> TcPluginM 'Init Module
+    findModule moduleNameToFind pkgQual =
+      findImportedModule
+        (mkModuleName moduleNameToFind)
+        pkgQual
+        >>= \case
+          Found _ m -> return m
+          _ -> panic $ printf "Cannot find module %s." moduleNameToFind
+
+    getClass :: Module -> String -> TcPluginM 'Init Class
+    getClass classModule classString =
+      tcLookupClass =<< lookupOrig classModule (mkTcOcc classString)
+
+    getId :: Module -> String -> TcPluginM 'Init Id
+    getId idModule idString =
+      tcLookupId =<< lookupOrig idModule (mkVarOcc idString)
 
 findClassConstraint :: Class -> Ct -> Maybe (Ct, Type)
 findClassConstraint cls ct = do
@@ -54,8 +106,8 @@ findClassConstraint cls ct = do
   guard (cls' == cls)
   return (ct, t)
 
-solveClassConstraint :: ResolvedNames -> (Ct, Type) -> Maybe (EvTerm, Ct)
-solveClassConstraint resolvedNames (ct, t) =
+solveInjectClassConstraint :: ResolvedNames -> (Ct, Type) -> Maybe (EvTerm, Ct)
+solveInjectClassConstraint resolvedNames (ct, t) =
   Just
     ( evDataConApp
         (classDataCon $ _injectRuntimeDataClass resolvedNames)
@@ -67,67 +119,13 @@ solveClassConstraint resolvedNames (ct, t) =
       ct
     )
 
-getClasses :: TcPluginM 'Init (Maybe ResolvedNames)
-getClasses = do
-  currentModule <- tcg_mod . fst <$> getEnvs
-  let mModuleProgramName =
-        readWithParser
-          parseEntryPointModuleName
-          (moduleNameString $ moduleName currentModule)
-      currentUnitId = unitString $ moduleUnit currentModule
-      mPackageName = case map fst $ readP_to_S parsePackageName currentUnitId of
-        [] -> Nothing
-        possiblePackageNames ->
-          Just $ maximumBy (comparing length) possiblePackageNames
-      mPackageProgramName =
-        _programName
-          <$> (readWithParser parseVersionPackageName =<< mPackageName)
-
-  case Nothing of -- liftA2 (,) mModuleProgramName mPackageProgramName of
-    Just (moduleProgramName, packageProgramName) -> do
-      -- \| moduleProgramName == packageProgramName -> do
-      injectModule <- findModule "Lowarn.Inject" $ Just "lowarn-inject"
-      runtimeDataVarModule <-
-        findModule "Lowarn.Inject.RuntimeDataVar" $ Just "lowarn-inject"
-      Just
-        <$> liftM4
-          ResolvedNames
-          (getClass injectModule "InjectedRuntimeData")
-          (getClass injectModule "InjectRuntimeData")
-          (getId runtimeDataVarModule "putRuntimeDataVar")
-          (getId currentModule "runtimeDataVar")
-    _ -> return Nothing
+solve :: ResolvedNames -> TcPluginSolver
+solve resolvedNames _ wanteds =
+  return $! TcPluginOk solutions []
   where
-    findModule :: String -> Maybe String -> TcPluginM 'Init Module
-    findModule moduleNameToFind mPackageNameToFind =
-      findImportedModule
-        (mkModuleName moduleNameToFind)
-        (maybe NoPkgQual (OtherPkg . stringToUnitId) mPackageNameToFind)
-        >>= \case
-          Found _ m -> return m
-          _ ->
-            panic $
-              printf
-                "Cannot find module %s in package %s."
-                moduleNameToFind
-                (show mPackageNameToFind)
-
-    getClass :: Module -> String -> TcPluginM 'Init Class
-    getClass classModule classString =
-      tcLookupClass =<< lookupOrig classModule (mkTcOcc classString)
-
-    getId :: Module -> String -> TcPluginM 'Init Id
-    getId idModule idString =
-      tcLookupId =<< lookupOrig idModule (mkVarOcc idString)
-
-solve :: Maybe ResolvedNames -> TcPluginSolver
-solve mResolvedNames _ wanteds = do
-  case mResolvedNames of
-    Just resolvedNames -> do
-      let our_wanteds =
-            mapMaybe
-              (findClassConstraint $ _injectRuntimeDataClass resolvedNames)
-              wanteds
-      let solutions = mapMaybe (solveClassConstraint resolvedNames) our_wanteds
-      return $! TcPluginOk solutions []
-    Nothing -> return $! TcPluginOk [] []
+    our_wanteds =
+      mapMaybe
+        (findClassConstraint $ _injectRuntimeDataClass resolvedNames)
+        wanteds
+    solutions =
+      mapMaybe (solveInjectClassConstraint resolvedNames) our_wanteds
