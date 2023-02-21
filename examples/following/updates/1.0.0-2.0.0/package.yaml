@@ -12,7 +12,6 @@ dependencies:
 - base >= 4.7 && < 5
 - containers
 - lowarn
-- lowarn-inject
 - lowarn-transformer
 - lowarn-version-following-v1v0v0
 - lowarn-version-following-v2v0v0
@@ -28,7 +27,6 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
-- -fplugin Lowarn.Inject.Plugin
 
 library:
   source-dirs: src

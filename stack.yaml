@@ -3,6 +3,7 @@ resolver: lts-20.9
 extra-deps:
 - combinat-0.2.10.0@sha256:adc1dbb532b048e419374e9e89dc4f92c47758300ffe8534a54849266706e53b,5318
 - compact-word-vectors-0.2.0.2@sha256:49cf00f224000f149306e7043c228fa33e3dba87f10589e8326388c3278ba594,2709
+- ghc-tcplugin-api-0.9.0.0
 
 packages:
 - arbitrary

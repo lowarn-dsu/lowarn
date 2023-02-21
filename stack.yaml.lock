@@ -18,6 +18,13 @@ packages:
       size: 744
   original:
     hackage: compact-word-vectors-0.2.0.2@sha256:49cf00f224000f149306e7043c228fa33e3dba87f10589e8326388c3278ba594,2709
+- completed:
+    hackage: ghc-tcplugin-api-0.9.0.0@sha256:36301d3175153aa1fa9c3dab5f70692293f09f1f26ef907f42d0f54ef9d3ce6a,4597
+    pantry-tree:
+      sha256: a3f8d371dfaf9612e84e1d2aa30b08176c91f7247b07a0616885855cb1d132b6
+      size: 498
+  original:
+    hackage: ghc-tcplugin-api-0.9.0.0
 snapshots:
 - completed:
     sha256: c11fcbeb1aa12761044755b1109d16952ede2cb6147ebde777dd5cb38f784501
