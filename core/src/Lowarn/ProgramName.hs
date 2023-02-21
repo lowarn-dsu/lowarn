@@ -113,37 +113,37 @@ showPrefixModuleName prefix =
 --
 -- ==== __Examples__
 --
--- >>> readP_to_S parsePrefixModuleName "EntryPoint" "EntryPoint_foo_bar"
+-- >>> readP_to_S (parsePrefixModuleName "EntryPoint") "EntryPoint_foo_bar"
 -- [(ProgramName {unProgramName = "foo"},"_bar"),(ProgramName {unProgramName = "foo-bar"},"")]
 --
--- >>> readWithParser parsePrefixModuleName "EntryPoint" "EntryPoint_foo_bar"
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_foo_bar"
 -- Just (ProgramName {unProgramName = "foo-bar"})
 --
--- >>> readWithParser parsePrefixModuleName "EntryPoint" "EntryPoint_foo__bar"
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_foo__bar"
 -- Nothing
 --
--- >>> readWithParser parsePrefixModuleName "EntryPoint" "EntryPoint_foo_bar_"
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_foo_bar_"
 -- Nothing
 --
--- >>> readWithParser parsePrefixModuleName "EntryPoint" "EntryPoint_foo-bar"
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_foo-bar"
 -- Nothing
 --
--- >>> readWithParser parsePrefixModuleName "EntryPoint" "EntryPoint_Foo_bar"
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_Foo_bar"
 -- Nothing
 --
--- >>> readWithParser parsePrefixModuleName "EntryPoint" "EntryPoint_foo1_1bar"
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_foo1_1bar"
 -- Just (ProgramName {unProgramName = "foo1-1bar"})
 --
--- >>> readWithParser parsePrefixModuleName "EntryPoint" "EntryPoint_foo_1"
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_foo_1"
 -- Nothing
 --
--- >>> readWithParser parsePrefixModuleName "EntryPoint" "EntryPoint_fóo_bar"
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_fóo_bar"
 -- Nothing
 --
--- >>> readWithParser parsePrefixModuleName "EntryPoint" "EntryPoint_"
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_"
 -- Nothing
 --
--- >>> readWithParser parsePrefixModuleName "EntryPoint" "EntryPoint"
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint"
 -- Nothing
 parsePrefixModuleName :: String -> ReadP ProgramName
 parsePrefixModuleName prefix = do
