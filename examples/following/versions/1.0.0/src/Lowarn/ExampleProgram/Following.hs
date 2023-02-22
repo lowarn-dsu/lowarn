@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# OPTIONS_GHC -dcore-lint -fplugin Lowarn.Inject.Plugin #-}
 
 module Lowarn.ExampleProgram.Following
   ( User (..),
@@ -12,9 +13,9 @@ module Lowarn.ExampleProgram.Following
 where
 
 import Lowarn (isUpdateAvailable)
-import Lowarn.Inject.RuntimeDataVar (readRuntimeDataVar)
+import Lowarn.Inject
 import Lowarn.Transformer (deriveGeneric)
-import RuntimeDataVar_following (runtimeDataVar)
+import RuntimeDataVar_following ()
 import System.IO
   ( Handle,
     hFlush,
@@ -41,7 +42,7 @@ showUser = _username
 
 eventLoop :: State -> IO State
 eventLoop state@(State users in_ out) = do
-  continue <- isUpdateAvailable =<< readRuntimeDataVar runtimeDataVar
+  continue <- isUpdateAvailable =<< injectedRuntimeData
   if not continue
     then do
       hPutStrLn out "Following:"

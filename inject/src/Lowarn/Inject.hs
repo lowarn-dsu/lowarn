@@ -22,7 +22,7 @@ injectRuntimeData :: InjectRuntimeData a => RuntimeData a -> IO ()
 injectRuntimeData = injectRuntimeData'
 
 class InjectedRuntimeData a where
-  injectedRuntimeData' :: RuntimeData a
+  injectedRuntimeData' :: IO (RuntimeData a)
 
-injectedRuntimeData :: InjectedRuntimeData a => RuntimeData a
+injectedRuntimeData :: InjectedRuntimeData a => IO (RuntimeData a)
 injectedRuntimeData = injectedRuntimeData'
