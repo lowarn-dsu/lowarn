@@ -146,7 +146,7 @@ solveInjectedClassConstraint resolvedNames (ct, t) = do
         CtWanted
           (mkPrimEqPred t runtimeDataType)
           (HoleDest hole)
-          WDeriv
+          WOnly
           (ctLoc ct)
     )
   where
