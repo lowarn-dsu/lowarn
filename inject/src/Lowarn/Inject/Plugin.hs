@@ -155,9 +155,9 @@ solveInjectedClassConstraint resolvedNames (ct, t) = do
 
 solve :: ResolvedNames -> TcPluginSolver
 solve resolvedNames _ wanteds = do
-  (injectedSolutions, injectedWanteds) <-
+  (injectedSolutions, newInjectedWanteds) <-
     mapAndUnzipM (solveInjectedClassConstraint resolvedNames) injectedWanteds
-  return $! TcPluginOk (injectSolutions <> injectedSolutions) injectedWanteds
+  return $! TcPluginOk (injectSolutions <> injectedSolutions) newInjectedWanteds
   where
     injectWanteds =
       mapMaybe
