@@ -28,7 +28,7 @@ import Text.Printf (printf)
 plugin :: Plugin
 plugin =
   defaultPlugin
-    { tcPlugin = const (Just $ mkTcPlugin injectTcPlugin),
+    { tcPlugin = const $ Just $ mkTcPlugin injectTcPlugin,
       pluginRecompile = purePlugin
     }
 
@@ -46,7 +46,7 @@ injectTcPlugin =
     { tcPluginInit = resolveNames,
       tcPluginSolve = solve,
       tcPluginRewrite = const emptyUFM,
-      tcPluginStop = const (return ())
+      tcPluginStop = const $ return ()
     }
 
 resolveNames :: TcPluginM 'Init ResolvedNames
@@ -65,11 +65,9 @@ resolveNames = do
   case mPackageProgramName of
     Just packageProgramName -> do
       injectModule <-
-        findModule "Lowarn.Inject" (OtherPkg $ stringToUnitId "lowarn-inject")
+        findModule "Lowarn.Inject" lowarnInjectQualifier
       runtimeDataVarModule <-
-        findModule
-          "Lowarn.Inject.RuntimeDataVar"
-          (OtherPkg $ stringToUnitId "lowarn-inject")
+        findModule "Lowarn.Inject.RuntimeDataVar" lowarnInjectQualifier
       localModule <-
         findModule
           (showPrefixModuleName "RuntimeDataVar" packageProgramName)
@@ -103,21 +101,23 @@ resolveNames = do
     getId idModule idString =
       tcLookupId =<< lookupOrig idModule (mkVarOcc idString)
 
-findClassConstraint :: Class -> Ct -> Maybe (Ct, Type)
-findClassConstraint cls ct = do
-  (cls', [t]) <- getClassPredTys_maybe (ctPred ct)
-  guard (cls' == cls)
-  return (ct, t)
+    lowarnInjectQualifier :: PkgQual
+    lowarnInjectQualifier = OtherPkg $ stringToUnitId "lowarn-inject"
+
+runtimeDataEvidence :: Class -> Id -> Id -> Type -> EvTerm
+runtimeDataEvidence runtimeDataClass runtimeDataFunction runtimeDataVar t =
+  evDataConApp
+    (classDataCon runtimeDataClass)
+    [t]
+    [mkCoreApps (Var runtimeDataFunction) [Type t, Var runtimeDataVar]]
 
 solveInjectClassConstraint :: ResolvedNames -> (Ct, Type) -> (EvTerm, Ct)
 solveInjectClassConstraint resolvedNames (ct, t) =
-  ( evDataConApp
-      (classDataCon $ _injectRuntimeDataClass resolvedNames)
-      [t]
-      [ mkCoreApps
-          (Var $ _putRuntimeDataVarId resolvedNames)
-          [Type t, Var $ _runtimeDataVarId resolvedNames]
-      ],
+  ( runtimeDataEvidence
+      (_injectRuntimeDataClass resolvedNames)
+      (_putRuntimeDataVarId resolvedNames)
+      (_runtimeDataVarId resolvedNames)
+      t,
     ct
   )
 
@@ -126,13 +126,11 @@ solveInjectedClassConstraint ::
 solveInjectedClassConstraint resolvedNames (ct, t) = do
   hole <- newCoercionHole liftedTypeKind
   return
-    ( ( case evDataConApp
-          (classDataCon $ _injectedRuntimeDataClass resolvedNames)
-          [runtimeDataType]
-          [ mkCoreApps
-              (Var $ _readRuntimeDataVarId resolvedNames)
-              [Type runtimeDataType, Var $ _runtimeDataVarId resolvedNames]
-          ] of
+    ( ( case runtimeDataEvidence
+          (_injectedRuntimeDataClass resolvedNames)
+          (_readRuntimeDataVarId resolvedNames)
+          (_runtimeDataVarId resolvedNames)
+          runtimeDataType of
           EvExpr evExpr ->
             evCast evExpr $
               mkTyConAppCo
@@ -153,6 +151,15 @@ solveInjectedClassConstraint resolvedNames (ct, t) = do
     runtimeDataType =
       snd $ splitAppTy $ varType $ _runtimeDataVarId resolvedNames
 
+findClassConstraint :: Class -> Ct -> Maybe (Ct, Type)
+findClassConstraint constraintClass ct = do
+  (constraintClassPred, [t]) <- getClassPredTys_maybe (ctPred ct)
+  guard (constraintClassPred == constraintClass)
+  return (ct, t)
+
+runtimeDataWanteds :: Class -> [Ct] -> [(Ct, Type)]
+runtimeDataWanteds = mapMaybe . findClassConstraint
+
 solve :: ResolvedNames -> TcPluginSolver
 solve resolvedNames _ wanteds = do
   (injectedSolutions, newInjectedWanteds) <-
@@ -160,12 +167,8 @@ solve resolvedNames _ wanteds = do
   return $! TcPluginOk (injectSolutions <> injectedSolutions) newInjectedWanteds
   where
     injectWanteds =
-      mapMaybe
-        (findClassConstraint $ _injectRuntimeDataClass resolvedNames)
-        wanteds
+      runtimeDataWanteds (_injectRuntimeDataClass resolvedNames) wanteds
     injectSolutions =
       map (solveInjectClassConstraint resolvedNames) injectWanteds
     injectedWanteds =
-      mapMaybe
-        (findClassConstraint $ _injectedRuntimeDataClass resolvedNames)
-        wanteds
+      runtimeDataWanteds (_injectedRuntimeDataClass resolvedNames) wanteds
