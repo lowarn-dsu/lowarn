@@ -15,6 +15,9 @@ dependencies:
 - lowarn-transformer
 - regex-tdfa ^>= 1.3.2
 
+build-tools:
+- lowarn-inject:lowarn-inject
+
 ghc-options:
 - -Wall
 - -Wcompat
