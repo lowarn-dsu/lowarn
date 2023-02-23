@@ -1,5 +1,12 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
+-- |
+-- Module                  : Lowarn.Inject.Preprocessor
+-- SPDX-License-Identifier : MIT
+-- Stability               : experimental
+-- Portability             : non-portable (GHC)
+--
+-- Module for the Lowarn injection pre-processor.
 module Lowarn.Inject.Preprocessor (processFile) where
 
 import Control.Monad
