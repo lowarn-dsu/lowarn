@@ -43,3 +43,4 @@ executable:
   - -with-rtsopts=-N
   dependencies:
   - lowarn-inject
+  - optparse-applicative >= 0.17 && < 0.18

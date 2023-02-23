@@ -54,4 +54,5 @@ executable lowarn-inject
     , ghc-tcplugin-api ==0.9.0.0
     , lowarn
     , lowarn-inject
+    , optparse-applicative ==0.17.*
   default-language: Haskell2010
