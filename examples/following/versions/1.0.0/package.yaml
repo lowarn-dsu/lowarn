@@ -26,6 +26,9 @@ ghc-options:
 - -Wpartial-fields
 - -Wredundant-constraints
 # - -fplugin Lowarn.Inject.Plugin
+- -F
+- -pgmF=lowarn-inject
+- -optF=following
 
 library:
   source-dirs: src

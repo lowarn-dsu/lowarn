@@ -27,6 +27,7 @@ library
   exposed-modules:
       Lowarn.Inject
       Lowarn.Inject.Plugin
+      Lowarn.Inject.Preprocessor
       Lowarn.Inject.RuntimeDataVar
   other-modules:
       Paths_lowarn_inject
@@ -38,4 +39,19 @@ library
     , ghc ==9.2.5
     , ghc-tcplugin-api ==0.9.0.0
     , lowarn
+  default-language: Haskell2010
+
+executable lowarn-inject
+  main-is: Main.hs
+  other-modules:
+      Paths_lowarn_inject
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , ghc ==9.2.5
+    , ghc-tcplugin-api ==0.9.0.0
+    , lowarn
+    , lowarn-inject
   default-language: Haskell2010

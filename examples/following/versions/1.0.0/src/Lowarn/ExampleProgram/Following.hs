@@ -15,7 +15,6 @@ where
 import Lowarn (isUpdateAvailable)
 import Lowarn.Inject
 import Lowarn.Transformer (deriveGeneric)
-import RuntimeDataVar_following ()
 import System.IO
   ( Handle,
     hFlush,
