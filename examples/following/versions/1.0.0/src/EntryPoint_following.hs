@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -dcore-lint -fplugin Lowarn.Inject.Plugin #-}
-
 module EntryPoint_following (entryPoint, runtimeDataVar) where
 
 import Data.Maybe (fromMaybe)

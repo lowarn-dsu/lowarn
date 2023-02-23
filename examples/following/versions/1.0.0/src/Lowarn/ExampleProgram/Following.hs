@@ -2,7 +2,6 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# OPTIONS_GHC -dcore-lint -fplugin Lowarn.Inject.Plugin #-}
 
 module Lowarn.ExampleProgram.Following
   ( User (..),

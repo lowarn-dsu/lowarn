@@ -27,7 +27,8 @@ processFile originalPath programName inputModule =
             Just parsedProgramName
               | parsedProgramName == programName -> inputModule
             _ ->
-              before
+              "{-# OPTIONS_GHC -fplugin=Lowarn.Inject.Plugin #-}\n"
+                <> before
                 <> printf
                   "\nimport %s ()\n"
                   (showPrefixModuleName "RuntimeDataVar" programName)

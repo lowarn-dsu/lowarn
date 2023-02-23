@@ -28,7 +28,6 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
-# - -fplugin Lowarn.Inject.Plugin
 - -F
 - -pgmF=lowarn-inject
 - -optF=following
