@@ -25,6 +25,9 @@ import Lowarn.VersionId (parseVersionPackageName, _programName)
 import Text.ParserCombinators.ReadP (readP_to_S)
 import Text.Printf (printf)
 
+-- | A type-checking plugin that provides instances of
+-- @'Lowarn.Inject.InjectRuntimeData' a@ and
+-- and @'Lowarn.Inject.InjectedRuntimeData' a@.
 plugin :: Plugin
 plugin =
   defaultPlugin

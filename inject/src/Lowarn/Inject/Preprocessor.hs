@@ -21,6 +21,16 @@ import Lowarn.ProgramName
 import Text.ParserCombinators.ReadP
 import Text.Printf (printf)
 
+-- | Pre-process the source of a Haskell module to support runtime data
+-- injection.
+--
+-- The resulting code will reference the original code. For @.hs-boot@ files,
+-- nothing more will happen. For @RuntimeDataVar_program-name@ modules, where
+-- @program-name@ is a given program name, the output will be Haskell code that
+-- exports a @'RuntimeDataVar' t@, where @t@ is a type specified in the module.
+-- For other modules, the injection plugin will be enabled and the
+-- @RuntimeDataVar_program-name@ module will be referenced such that modules are
+-- compiled in the correct order.
 processFile :: FilePath -> ProgramName -> String -> String
 processFile originalPath programName inputModule =
   printf "{-# LINE 1 \"%s\" #-}\n" originalPath
