@@ -14,6 +14,7 @@ where
 
 import Control.Monad
 import Data.Char (isSpace)
+import Lowarn.ParserCombinators (manyTill1)
 import Lowarn.ProgramName (ProgramName, showPrefixModuleName)
 import Text.ParserCombinators.ReadP
 import Text.Printf (printf)
@@ -115,6 +116,9 @@ generateRuntimeDataVarModule
 --
 -- >>> readP_to_S (parseRuntimeDataVarModuleInfo (fromJust (mkProgramName "foo-bar"))) "{- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following -}"
 -- []
+--
+-- >>> readP_to_S (parseRuntimeDataVarModuleInfo (fromJust (mkProgramName "foo-bar"))) "{- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following (State) -}\n\n{- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following (State) -}"
+-- [(RuntimeDataVarModuleInfo {_programName = ProgramName {unProgramName = "foo-bar"}, _importModule = "{-# SOURCE #-} Lowarn.ExampleProgram.Following", _importType = "State"},"")]
 parseRuntimeDataVarModuleInfo :: ProgramName -> ReadP RuntimeDataVarModuleInfo
 parseRuntimeDataVarModuleInfo programName = do
   void $ munch isSpace
@@ -123,15 +127,10 @@ parseRuntimeDataVarModuleInfo programName = do
   void $ string "RUNTIME_DATA_VAR"
   void $ munch1 isSpace
   importModule <-
-    liftM2
-      (:)
-      (satisfy $ const True)
-      ( manyTill (satisfy $ const True) $ do
-          skipMany1 (satisfy isSpace)
-          void $ string "("
-      )
-  importType <- many1 (satisfy $ const True)
-  void $ string ")"
+    manyTill1 (satisfy $ const True) $ do
+      skipMany1 (satisfy isSpace)
+      void $ char '('
+  importType <- manyTill1 (satisfy $ const True) (char ')')
   skipMany (satisfy isSpace)
   void $ string "-}"
   void $ munch $ const True

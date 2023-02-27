@@ -10,12 +10,14 @@ module Lowarn.ParserCombinators
     readWithParser,
 
     -- * Parsers
+    manyTill1,
     parsePackageName,
     parseProgramModuleName,
   )
 where
 
 import Control.Applicative (liftA2)
+import Control.Monad
 import Data.Char (isAsciiLower, isDigit)
 import Data.List (intercalate)
 import Data.Maybe (listToMaybe)
@@ -141,3 +143,7 @@ parsePackageName = parsePackageWordSequence '-'
 -- Nothing
 parseProgramModuleName :: ReadP String
 parseProgramModuleName = parsePackageWordSequence '_'
+
+-- | 'Text.ParserCombinators.ReadP.manyTill' but it reads at least one @a@.
+manyTill1 :: ReadP a -> ReadP end -> ReadP [a]
+manyTill1 parser endParser = liftM2 (:) parser (manyTill parser endParser)
