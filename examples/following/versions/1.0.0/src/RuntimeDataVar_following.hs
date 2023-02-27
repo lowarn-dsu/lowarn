@@ -1,9 +1,5 @@
-module RuntimeDataVar_following (runtimeDataVar) where
+{-# LANGUAGE DataKinds #-}
 
-import GHC.IO (unsafePerformIO)
-import {-# SOURCE #-} Lowarn.ExampleProgram.Following (State)
-import Lowarn.Inject.RuntimeDataVar (RuntimeDataVar, newRuntimeDataVar)
+module RuntimeDataVar_following () where
 
-{-# NOINLINE runtimeDataVar #-}
-runtimeDataVar :: RuntimeDataVar State
-runtimeDataVar = unsafePerformIO newRuntimeDataVar
+{- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following (State) -}

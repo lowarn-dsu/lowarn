@@ -12,6 +12,7 @@ module Lowarn.Inject.Preprocessor (processFile) where
 import Control.Monad
 import Data.Char (isSpace)
 import Data.List (isSuffixOf)
+import Lowarn.Inject.Preprocessor.GenerateModule
 import Lowarn.ParserCombinators (readWithParser)
 import Lowarn.ProgramName
   ( ProgramName,
@@ -25,12 +26,12 @@ import Text.Printf (printf)
 -- injection.
 --
 -- The resulting code will reference the original code. For @.hs-boot@ files,
--- nothing more will happen. For @RuntimeDataVar_program-name@ modules, where
+-- nothing more will happen. For @RuntimeDataVar_program_name@ modules, where
 -- @program-name@ is a given program name, the output will be Haskell code that
--- exports a @'RuntimeDataVar' t@, where @t@ is a type specified in the module.
--- For other modules, the injection plugin will be enabled and the
--- @RuntimeDataVar_program-name@ module will be referenced such that modules are
--- compiled in the correct order.
+-- exports a @'Lowarn.Inject.RuntimeDataVar' t@, where @t@ is a type specified
+-- in the module. For other modules, the injection plugin will be enabled and
+-- the @RuntimeDataVar_program_name@ module will be referenced such that modules
+-- are compiled in the correct order.
 processFile :: FilePath -> ProgramName -> String -> String
 processFile originalPath programName inputModule =
   printf "{-# LINE 1 \"%s\" #-}\n" originalPath
@@ -42,14 +43,22 @@ processFile originalPath programName inputModule =
             (parsePrefixModuleName "RuntimeDataVar")
             moduleName of
             Just parsedProgramName
-              | parsedProgramName == programName -> inputModule
+              | parsedProgramName == programName ->
+                  maybe
+                    inputModule
+                    generateRuntimeDataVarModule
+                    $ readWithParser
+                      (parseRuntimeDataVarModuleInfo programName)
+                      after
             _ ->
-              "{-# OPTIONS_GHC -fplugin=Lowarn.Inject.Plugin #-}\n"
-                <> before
-                <> printf
-                  "\nimport %s ()\n"
-                  (showPrefixModuleName "RuntimeDataVar" programName)
-                <> after
+              unlines
+                [ "{-# OPTIONS_GHC -fplugin=Lowarn.Inject.Plugin #-}",
+                  before,
+                  printf
+                    "import %s ()"
+                    (showPrefixModuleName "RuntimeDataVar" programName),
+                  after
+                ]
         _ -> inputModule
 
 parseModuleName :: ReadP String

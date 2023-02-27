@@ -28,6 +28,7 @@ library
       Lowarn.Inject
       Lowarn.Inject.Plugin
       Lowarn.Inject.Preprocessor
+      Lowarn.Inject.Preprocessor.GenerateModule
       Lowarn.Inject.RuntimeDataVar
   other-modules:
       Paths_lowarn_inject
