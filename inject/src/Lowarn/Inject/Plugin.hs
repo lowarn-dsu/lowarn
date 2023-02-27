@@ -12,7 +12,7 @@ module Lowarn.Inject.Plugin (plugin) where
 
 import Control.Monad
 import Data.Foldable (maximumBy)
-import Data.Maybe (mapMaybe)
+import Data.Maybe (isJust, mapMaybe)
 import Data.Ord (comparing)
 import GHC.Core.Predicate
 import GHC.Plugins hiding (TcPlugin, (<>))
@@ -20,7 +20,7 @@ import GHC.Tc.Types (tcg_mod)
 import GHC.Tc.Types.Constraint
 import GHC.TcPlugin.API
 import Lowarn.ParserCombinators (parsePackageName, readWithParser)
-import Lowarn.ProgramName (showPrefixModuleName)
+import Lowarn.ProgramName (parsePrefixModuleName, showPrefixModuleName)
 import Lowarn.VersionId (parseVersionPackageName, _programName)
 import Text.ParserCombinators.ReadP (readP_to_S)
 import Text.Printf (printf)
@@ -36,7 +36,8 @@ plugin =
     }
 
 data ResolvedNames = ResolvedNames
-  { _injectedRuntimeDataClass :: Class,
+  { _isEntrypointModule :: Bool,
+    _injectedRuntimeDataClass :: Class,
     _injectRuntimeDataClass :: Class,
     _putRuntimeDataVarId :: Id,
     _readRuntimeDataVarId :: Id,
@@ -64,6 +65,11 @@ resolveNames = do
       mPackageProgramName =
         _programName
           <$> (readWithParser parseVersionPackageName =<< mPackageName)
+      isEntryPointModule =
+        isJust $
+          readWithParser
+            (parsePrefixModuleName "EntryPoint")
+            (moduleNameString $ moduleName currentModule)
 
   case mPackageProgramName of
     Just packageProgramName -> do
@@ -76,7 +82,7 @@ resolveNames = do
           (showPrefixModuleName "RuntimeDataVar" packageProgramName)
           (ThisPkg $ UnitId $ fsLit "this")
       liftM5
-        ResolvedNames
+        (ResolvedNames isEntryPointModule)
         (getClass injectModule "InjectedRuntimeData")
         (getClass injectModule "InjectRuntimeData")
         (getId runtimeDataVarModule "putRuntimeDataVar")
@@ -170,7 +176,9 @@ solve resolvedNames _ wanteds = do
   return $! TcPluginOk (injectSolutions <> injectedSolutions) newInjectedWanteds
   where
     injectWanteds =
-      runtimeDataWanteds (_injectRuntimeDataClass resolvedNames) wanteds
+      if _isEntrypointModule resolvedNames
+        then runtimeDataWanteds (_injectRuntimeDataClass resolvedNames) wanteds
+        else []
     injectSolutions =
       map (solveInjectClassConstraint resolvedNames) injectWanteds
     injectedWanteds =
