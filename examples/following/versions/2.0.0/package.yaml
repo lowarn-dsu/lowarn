@@ -34,5 +34,16 @@ ghc-options:
 - -pgmF=lowarn-inject
 - -optF=following
 
+flags:
+  cabal:
+    description: "The build system is Cabal if this flag is true."
+    default: False
+    manual: True
+
+when:
+  - condition: flag(cabal)
+    ghc-options:
+    - -plugin-package=lowarn-inject-0.1.0.0
+
 library:
   source-dirs: src

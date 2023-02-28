@@ -19,6 +19,11 @@ source-repository head
   type: git
   location: https://github.com/jonathanjameswatson/lowarn
 
+flag cabal
+  description: The build system is Cabal if this flag is true.
+  manual: True
+  default: False
+
 library
   exposed-modules:
       EntryPoint_following
@@ -39,3 +44,5 @@ library
     , lowarn-transformer
     , regex-tdfa >=1.3.2 && <1.4
   default-language: Haskell2010
+  if flag(cabal)
+    ghc-options: -plugin-package=lowarn-inject-0.1.0.0
