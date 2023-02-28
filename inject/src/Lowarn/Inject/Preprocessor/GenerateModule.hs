@@ -42,7 +42,7 @@ data RuntimeDataVarModuleInfo = RuntimeDataVarModuleInfo
 --
 -- ==== __Examples__
 --
--- >>> putStrLn $ generateRuntimeDataVarModule (RuntimeDataVarModuleInfo (fromJust (mkProgramName "foo-bar")) "Lowarn.ExampleProgram.Following" "State")
+-- >>> putStr $ generateRuntimeDataVarModule (RuntimeDataVarModuleInfo (fromJust (mkProgramName "foo-bar")) "Lowarn.ExampleProgram.Following" "State")
 -- module RuntimeDataVar_foo_bar (runtimeDataVar) where
 -- <BLANKLINE>
 -- import GHC.IO (unsafePerformIO)
@@ -52,9 +52,8 @@ data RuntimeDataVarModuleInfo = RuntimeDataVarModuleInfo
 -- {-# NOINLINE runtimeDataVar #-}
 -- runtimeDataVar :: RuntimeDataVar State
 -- runtimeDataVar = unsafePerformIO newRuntimeDataVar
--- <BLANKLINE>
 --
--- >>> putStrLn $ generateRuntimeDataVarModule (RuntimeDataVarModuleInfo (fromJust (mkProgramName "foo-bar")) "{-# SOURCE #-} Lowarn.ExampleProgram.Following" "State")
+-- >>> putStr $ generateRuntimeDataVarModule (RuntimeDataVarModuleInfo (fromJust (mkProgramName "foo-bar")) "{-# SOURCE #-} Lowarn.ExampleProgram.Following" "State")
 -- module RuntimeDataVar_foo_bar (runtimeDataVar) where
 -- <BLANKLINE>
 -- import GHC.IO (unsafePerformIO)
@@ -64,7 +63,6 @@ data RuntimeDataVarModuleInfo = RuntimeDataVarModuleInfo
 -- {-# NOINLINE runtimeDataVar #-}
 -- runtimeDataVar :: RuntimeDataVar State
 -- runtimeDataVar = unsafePerformIO newRuntimeDataVar
--- <BLANKLINE>
 generateRuntimeDataVarModule :: RuntimeDataVarModuleInfo -> String
 generateRuntimeDataVarModule
   RuntimeDataVarModuleInfo
