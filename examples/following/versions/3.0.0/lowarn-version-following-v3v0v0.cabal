@@ -23,11 +23,14 @@ library
   exposed-modules:
       EntryPoint_following
       Lowarn.ExampleProgram.Following
+      RuntimeDataVar_following
   other-modules:
       Paths_lowarn_version_following_v3v0v0
   hs-source-dirs:
       src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -F -pgmF=lowarn-inject -optF=following
+  build-tool-depends:
+      lowarn-inject:lowarn-inject
   build-depends:
       base >=4.7 && <5
     , deepseq >=1.4

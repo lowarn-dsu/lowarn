@@ -11,7 +11,8 @@ where
 
 import Control.DeepSeq
 import qualified GHC.Generics as GHC (Generic)
-import Lowarn (RuntimeData, isUpdateAvailable)
+import Lowarn (isUpdateAvailable)
+import Lowarn.Inject
 import Lowarn.Transformer (Generic, HasDatatypeInfo)
 import System.IO
   ( Handle,
@@ -39,16 +40,16 @@ instance NFData State where
 showUser :: User -> String
 showUser = _tag
 
-eventLoop :: RuntimeData a -> State -> IO State
-eventLoop runtimeData state@(State users in_ out) = do
-  continue <- isUpdateAvailable runtimeData
+eventLoop :: State -> IO State
+eventLoop state@(State users in_ out) = do
+  continue <- isUpdateAvailable =<< injectedRuntimeData
   if not continue
     then do
       hPutStrLn out "Following:"
       mapM_ (hPutStrLn out . showUser) $ reverse users
       hPutStrLn out "------"
       tag <- User <$> getTag
-      eventLoop runtimeData $ state {_users = tag : users}
+      eventLoop $ state {_users = tag : users}
     else return state
   where
     getTag :: IO String

@@ -16,6 +16,9 @@ dependencies:
 - lowarn-transformer
 - regex-tdfa ^>= 1.3.2
 
+build-tools:
+- lowarn-inject:lowarn-inject
+
 ghc-options:
 - -Wall
 - -Wcompat
@@ -26,7 +29,9 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
-# - -fplugin Lowarn.Inject.Plugin
+- -F
+- -pgmF=lowarn-inject
+- -optF=following
 
 library:
   source-dirs: src
