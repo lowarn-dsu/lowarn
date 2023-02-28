@@ -89,9 +89,10 @@ resolveNames = do
         (getId runtimeDataVarModule "readRuntimeDataVar")
         (getId localModule "runtimeDataVar")
     _ ->
-      panic
-        "Lowarn.Inject.Plugin used in non-Lowarn version package %s."
-        (unitString currentUnitId)
+      panic $
+        printf
+          "Lowarn.Inject.Plugin used in non-Lowarn version package %s."
+          (unitString currentUnitId)
   where
     findModule :: String -> PkgQual -> TcPluginM 'Init Module
     findModule moduleNameToFind pkgQual =
