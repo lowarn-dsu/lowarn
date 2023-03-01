@@ -32,6 +32,7 @@ plugin :: Plugin
 plugin =
   defaultPlugin
     { tcPlugin = Just . mkTcPlugin . injectTcPlugin,
+      installCoreToDos = showNoArgumentWarning,
       pluginRecompile = purePlugin
     }
 
@@ -51,14 +52,15 @@ injectTcPlugin args =
         case args of
           [programNameString] -> do
             case readWithParser parseProgramName programNameString of
-              Just programName -> resolveNames programName
+              Just programName -> Just <$> resolveNames programName
               Nothing ->
                 panic $
                   printf "Argument %s is not a program name." programNameString
-          [] -> panic "Not enough arguments given to lowarn-inject plugin."
+          [] -> return Nothing
+          -- panic "Not enough arguments given to lowarn-inject plugin."
           _ : _ : _ ->
             panic "Too many arguments given to lowarn-inject plugin.",
-      tcPluginSolve = solve,
+      tcPluginSolve = maybe (const $ const $ return $ TcPluginOk [] []) solve,
       tcPluginRewrite = const emptyUFM,
       tcPluginStop = const $ return ()
     }
@@ -209,3 +211,9 @@ solve resolvedNames _ wanteds = do
       map (solveInjectClassConstraint resolvedNames) injectWanteds
     injectedWanteds =
       runtimeDataWanteds (_injectedRuntimeDataClass resolvedNames) wanteds
+
+showNoArgumentWarning :: [String] -> [CoreToDo] -> CoreM [CoreToDo]
+showNoArgumentWarning [] todo = do
+  putMsgS "Program name argument not given to lowarn-inject plugin. This is expected when using HLS."
+  return todo
+showNoArgumentWarning (_ : _) todo = return todo

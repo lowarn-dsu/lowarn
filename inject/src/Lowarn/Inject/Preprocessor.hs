@@ -50,7 +50,7 @@ import Text.Printf (printf)
 --
 -- >>> putStr $ processFile "path/file.hs" (fromJust (mkProgramName "foo-bar")) "module NotRuntimeDataVar_foo_bar () where\n\n{- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following (State) -}\n"
 -- {-# LINE 1 "path/file.hs" #-}
--- {-# OPTIONS_GHC -fplugin=Lowarn.Inject.Plugin #-}
+-- {-# OPTIONS_GHC -fplugin=Lowarn.Inject.Plugin -fplugin-opt=Lowarn.Inject.Plugin:foo-bar #-}
 -- module NotRuntimeDataVar_foo_bar () where
 -- <BLANKLINE>
 -- <BLANKLINE>
@@ -59,7 +59,7 @@ import Text.Printf (printf)
 --
 -- >>> putStr $ processFile "path/file.hs" (fromJust (mkProgramName "foo-bar")) "module RuntimeDataVar_other_program () where\n\n{- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following (State) -}\n"
 -- {-# LINE 1 "path/file.hs" #-}
--- {-# OPTIONS_GHC -fplugin=Lowarn.Inject.Plugin #-}
+-- {-# OPTIONS_GHC -fplugin=Lowarn.Inject.Plugin -fplugin-opt=Lowarn.Inject.Plugin:foo-bar #-}
 -- module RuntimeDataVar_other_program () where
 -- <BLANKLINE>
 -- <BLANKLINE>
@@ -98,9 +98,8 @@ processFile originalPath programName inputModule =
             _ ->
               intercalate
                 "\n"
-                [ "{-# OPTIONS_GHC -fplugin=Lowarn.Inject.Plugin #-}",
-                  printf
-                    "{-# OPTIONS_GHC -fplugin-opt=Lowarn.Inject.Plugin:%s #-}"
+                [ printf
+                    "{-# OPTIONS_GHC -fplugin=Lowarn.Inject.Plugin -fplugin-opt=Lowarn.Inject.Plugin:%s #-}"
                     $ unProgramName programName,
                   before,
                   printf
