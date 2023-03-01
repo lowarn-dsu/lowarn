@@ -13,7 +13,8 @@ import Control.DeepSeq
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 import qualified GHC.Generics as GHC (Generic)
-import Lowarn (RuntimeData, isUpdateAvailable)
+import Lowarn (isUpdateAvailable)
+import Lowarn.Inject
 import Lowarn.Transformer (Generic, HasDatatypeInfo)
 import System.IO
   ( Handle,
@@ -43,9 +44,9 @@ instance NFData State where
 showUser :: User -> String
 showUser (User nickname userId) = printf "%s#%04d" nickname userId
 
-eventLoop :: RuntimeData a -> State -> IO State
-eventLoop runtimeData state@(State users in_ out) = do
-  continue <- isUpdateAvailable runtimeData
+eventLoop :: State -> IO State
+eventLoop state@(State users in_ out) = do
+  continue <- isUpdateAvailable =<< injectedRuntimeData
   if not continue
     then do
       hPutStrLn out "Following:"
@@ -54,7 +55,7 @@ eventLoop runtimeData state@(State users in_ out) = do
       nickname <- getNickname
       userId <- getUserId
       let user = User nickname userId
-      eventLoop runtimeData $ state {_users = users Seq.|> user}
+      eventLoop $ state {_users = users Seq.|> user}
     else return state
   where
     getInput :: String -> IO String

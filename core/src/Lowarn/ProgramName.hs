@@ -13,10 +13,8 @@ module Lowarn.ProgramName
     parseProgramName,
 
     -- * Module names
-    showEntryPointModuleName,
-    showUpdateModuleName,
-    parseEntryPointModuleName,
-    parseUpdateModuleName,
+    showPrefixModuleName,
+    parsePrefixModuleName,
   )
 where
 
@@ -93,121 +91,62 @@ replaceUnderscoresWithHyphens = replace '_' '-'
 replaceHyphensWithUnderscores :: String -> String
 replaceHyphensWithUnderscores = replace '-' '_'
 
-showModuleNameWithPrefix :: String -> ProgramName -> String
-showModuleNameWithPrefix prefix =
+-- | Give the name of a module consisting of a given prefix and the program
+-- name. The module name is of the form @Module_foo_bar@, where @Module@ is the
+-- prefix and @foo_bar@ is the program name with hyphens replaced with
+-- underscores.
+--
+-- ==== __Examples__
+--
+-- >>> showPrefixModuleName "EntryPoint" (fromJust $ mkProgramName "foo-bar")
+-- "EntryPoint_foo_bar"
+showPrefixModuleName :: String -> ProgramName -> String
+showPrefixModuleName prefix =
   ((prefix <> "_") <>)
     . replaceHyphensWithUnderscores
     . unProgramName
 
--- | Give the name of the module that contains an entry point for the program
--- with the given name. The module name is of the form @EntryPoint_foo_bar@,
--- where @foo_bar@ is the program name with hyphens replaced with underscores.
+-- | A parser for program names given a module name that consists of a given
+-- prefix and the program name. The module name must be of the form
+-- @Module_foo_bar@, where @Module@ is the prefix and @foo_bar@ is the program
+-- name with hyphens replaced with underscores.
 --
 -- ==== __Examples__
 --
--- >>> showEntryPointModuleName (fromJust $ mkProgramName "foo-bar")
--- "EntryPoint_foo_bar"
-showEntryPointModuleName :: ProgramName -> String
-showEntryPointModuleName = showModuleNameWithPrefix "EntryPoint"
-
--- | Give the name of the module that contains an update for the program with
--- the given name. The module name is of the form @Update_foo_bar@, where
--- @foo_bar@ is the program name with hyphens replaced with underscores.
+-- >>> readP_to_S (parsePrefixModuleName "EntryPoint") "EntryPoint_foo_bar"
+-- [(ProgramName {unProgramName = "foo"},"_bar"),(ProgramName {unProgramName = "foo-bar"},"")]
 --
--- ==== __Examples__
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_foo_bar"
+-- Just (ProgramName {unProgramName = "foo-bar"})
 --
--- >>> showUpdateModuleName (fromJust $ mkProgramName "foo-bar")
--- "Update_foo_bar"
-showUpdateModuleName :: ProgramName -> String
-showUpdateModuleName = showModuleNameWithPrefix "Update"
-
-parseModuleNameWithPrefix :: String -> ReadP ProgramName
-parseModuleNameWithPrefix prefix = do
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_foo__bar"
+-- Nothing
+--
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_foo_bar_"
+-- Nothing
+--
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_foo-bar"
+-- Nothing
+--
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_Foo_bar"
+-- Nothing
+--
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_foo1_1bar"
+-- Just (ProgramName {unProgramName = "foo1-1bar"})
+--
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_foo_1"
+-- Nothing
+--
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_fóo_bar"
+-- Nothing
+--
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint_"
+-- Nothing
+--
+-- >>> readWithParser (parsePrefixModuleName "EntryPoint") "EntryPoint"
+-- Nothing
+parsePrefixModuleName :: String -> ReadP ProgramName
+parsePrefixModuleName prefix = do
   void $ string prefix
   void $ char '_'
   ProgramName . replaceUnderscoresWithHyphens <$> parseProgramModuleName
-
--- | A parser for program names given a corresponding entry point module name.
--- The module name must be of the form @EntryPoint_foo_bar@, where @foo_bar@ is
--- the program name with hyphens replaced with underscores.
---
--- ==== __Examples__
---
--- >>> readP_to_S parseEntryPointModuleName "EntryPoint_foo_bar"
--- [(ProgramName {unProgramName = "foo"},"_bar"),(ProgramName {unProgramName = "foo-bar"},"")]
---
--- >>> readWithParser parseEntryPointModuleName "EntryPoint_foo_bar"
--- Just (ProgramName {unProgramName = "foo-bar"})
---
--- >>> readWithParser parseEntryPointModuleName "EntryPoint_foo__bar"
--- Nothing
---
--- >>> readWithParser parseEntryPointModuleName "EntryPoint_foo_bar_"
--- Nothing
---
--- >>> readWithParser parseEntryPointModuleName "EntryPoint_foo-bar"
--- Nothing
---
--- >>> readWithParser parseEntryPointModuleName "EntryPoint_Foo_bar"
--- Nothing
---
--- >>> readWithParser parseEntryPointModuleName "EntryPoint_foo1_1bar"
--- Just (ProgramName {unProgramName = "foo1-1bar"})
---
--- >>> readWithParser parseEntryPointModuleName "EntryPoint_foo_1"
--- Nothing
---
--- >>> readWithParser parseEntryPointModuleName "EntryPoint_fóo_bar"
--- Nothing
---
--- >>> readWithParser parseEntryPointModuleName "EntryPoint_"
--- Nothing
---
--- >>> readWithParser parseEntryPointModuleName "EntryPoint"
--- Nothing
-parseEntryPointModuleName :: ReadP ProgramName
-parseEntryPointModuleName = parseModuleNameWithPrefix "EntryPoint"
-
--- | A parser for program names given a corresponding update module name. The
--- module name must be of the form @Update_foo_bar@, where @foo_bar@ is the
--- program name with hyphens replaced with underscores.
---
--- ==== __Examples__
---
--- >>> readP_to_S parseUpdateModuleName "Update_foo_bar"
--- [(ProgramName {unProgramName = "foo"},"_bar"),(ProgramName {unProgramName = "foo-bar"},"")]
---
--- >>> readWithParser parseUpdateModuleName "Update_foo_bar"
--- Just (ProgramName {unProgramName = "foo-bar"})
---
--- >>> readWithParser parseUpdateModuleName "Update_foo__bar"
--- Nothing
---
--- >>> readWithParser parseUpdateModuleName "Update_foo_bar_"
--- Nothing
---
--- >>> readWithParser parseUpdateModuleName "Update_foo-bar"
--- Nothing
---
--- >>> readWithParser parseUpdateModuleName "Update_Foo_bar"
--- Nothing
---
--- >>> readWithParser parseUpdateModuleName "Update_foo1_1bar"
--- Just (ProgramName {unProgramName = "foo1-1bar"})
---
--- >>> readWithParser parseUpdateModuleName "Update_foo_1"
--- Nothing
---
--- >>> readWithParser parseUpdateModuleName "Update_fóo_bar"
--- Nothing
---
--- >>> readWithParser parseUpdateModuleName "Update_"
--- Nothing
---
--- >>> readWithParser parseUpdateModuleName "Update"
--- Nothing
---
--- >>> readWithParser parseUpdateModuleName ""
--- Nothing
-parseUpdateModuleName :: ReadP ProgramName
-parseUpdateModuleName = parseModuleNameWithPrefix "Update"

@@ -3,11 +3,9 @@
 module Spec.ProgramName (programNameTests) where
 
 import Lowarn.ProgramName
-  ( parseEntryPointModuleName,
+  ( parsePrefixModuleName,
     parseProgramName,
-    parseUpdateModuleName,
-    showEntryPointModuleName,
-    showUpdateModuleName,
+    showPrefixModuleName,
     unProgramName,
   )
 import Lowarn.ProgramName.Arbitrary ()
@@ -20,21 +18,17 @@ programNameRoundTrip =
   testProperty (show 'programNameRoundTrip) $
     roundTripProperty unProgramName parseProgramName
 
-entryPointModuleNameRoundTrip :: TestTree
-entryPointModuleNameRoundTrip =
-  testProperty (show 'entryPointModuleNameRoundTrip) $
-    roundTripProperty showEntryPointModuleName parseEntryPointModuleName
-
-updateModuleNameRoundTrip :: TestTree
-updateModuleNameRoundTrip =
-  testProperty (show 'updateModuleNameRoundTrip) $
-    roundTripProperty showUpdateModuleName parseUpdateModuleName
+prefixModuleNameRoundTrip :: TestTree
+prefixModuleNameRoundTrip =
+  testProperty (show 'prefixModuleNameRoundTrip) $
+    roundTripProperty
+      (showPrefixModuleName "EntryPoint")
+      (parsePrefixModuleName "EntryPoint")
 
 programNameTests :: TestTree
 programNameTests =
   testGroup
     "Program name"
     [ programNameRoundTrip,
-      entryPointModuleNameRoundTrip,
-      updateModuleNameRoundTrip
+      prefixModuleNameRoundTrip
     ]
