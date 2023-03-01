@@ -15,12 +15,12 @@ import Data.Foldable (maximumBy)
 import Data.Maybe (isJust, mapMaybe)
 import Data.Ord (comparing)
 import GHC.Core.Predicate
-import GHC.Plugins hiding (TcPlugin, (<>))
+import GHC.Plugins hiding (TcPlugin, programName, (<>))
 import GHC.Tc.Types (tcg_mod)
 import GHC.Tc.Types.Constraint
 import GHC.TcPlugin.API
 import Lowarn.ParserCombinators (parsePackageName, readWithParser)
-import Lowarn.ProgramName (parsePrefixModuleName, showPrefixModuleName)
+import Lowarn.ProgramName
 import Lowarn.VersionId (parseVersionPackageName, _programName)
 import Text.ParserCombinators.ReadP (readP_to_S)
 import Text.Printf (printf)
@@ -31,7 +31,7 @@ import Text.Printf (printf)
 plugin :: Plugin
 plugin =
   defaultPlugin
-    { tcPlugin = const $ Just $ mkTcPlugin injectTcPlugin,
+    { tcPlugin = Just . mkTcPlugin . injectTcPlugin,
       pluginRecompile = purePlugin
     }
 
@@ -44,17 +44,27 @@ data ResolvedNames = ResolvedNames
     _runtimeDataVarId :: Id
   }
 
-injectTcPlugin :: TcPlugin
-injectTcPlugin =
+injectTcPlugin :: [String] -> TcPlugin
+injectTcPlugin args =
   TcPlugin
-    { tcPluginInit = resolveNames,
+    { tcPluginInit = do
+        case args of
+          [programNameString] -> do
+            case readWithParser parseProgramName programNameString of
+              Just programName -> resolveNames programName
+              Nothing ->
+                panic $
+                  printf "Argument %s is not a program name." programNameString
+          [] -> panic "Not enough arguments given to lowarn-inject plugin."
+          _ : _ : _ ->
+            panic "Too many arguments given to lowarn-inject plugin.",
       tcPluginSolve = solve,
       tcPluginRewrite = const emptyUFM,
       tcPluginStop = const $ return ()
     }
 
-resolveNames :: TcPluginM 'Init ResolvedNames
-resolveNames = do
+resolveNames :: ProgramName -> TcPluginM 'Init ResolvedNames
+resolveNames programName = do
   currentModule <- tcg_mod . fst <$> getEnvs
   let currentUnitId = moduleUnit currentModule
       mPackageName =
@@ -72,27 +82,22 @@ resolveNames = do
             (moduleNameString $ moduleName currentModule)
 
   case mPackageProgramName of
-    Just packageProgramName -> do
-      injectModule <-
-        findModule "Lowarn.Inject" lowarnInjectQualifier
-      runtimeDataVarModule <-
-        findModule "Lowarn.Inject.RuntimeDataVar" lowarnInjectQualifier
-      localModule <-
-        findModule
-          (showPrefixModuleName "RuntimeDataVar" packageProgramName)
-          (ThisPkg $ UnitId $ fsLit "this")
-      liftM5
-        (ResolvedNames isEntryPointModule)
-        (getClass injectModule "InjectedRuntimeData")
-        (getClass injectModule "InjectRuntimeData")
-        (getId runtimeDataVarModule "putRuntimeDataVar")
-        (getId runtimeDataVarModule "readRuntimeDataVar")
-        (getId localModule "runtimeDataVar")
-    _ ->
-      panic $
-        printf
-          "Lowarn.Inject.Plugin used in non-Lowarn version package %s."
-          (unitString currentUnitId)
+    Just packageProgramName
+      | packageProgramName == programName -> innerResolve isEntryPointModule
+      | otherwise ->
+          panic $
+            printf
+              "lowarn-inject plugin given program name %s, which does not match package program name %s."
+              (unProgramName programName)
+              (unProgramName packageProgramName)
+    _
+      | unitString currentUnitId == "main" ->
+          innerResolve isEntryPointModule
+      | otherwise ->
+          panic $
+            printf
+              "Lowarn.Inject.Plugin used in non-Lowarn version package %s."
+              (unitString currentUnitId)
   where
     findModule :: String -> PkgQual -> TcPluginM 'Init Module
     findModule moduleNameToFind pkgQual =
@@ -113,6 +118,24 @@ resolveNames = do
 
     lowarnInjectQualifier :: PkgQual
     lowarnInjectQualifier = OtherPkg $ stringToUnitId "lowarn-inject"
+
+    innerResolve :: Bool -> TcPluginM 'Init ResolvedNames
+    innerResolve isEntryPointModule = do
+      injectModule <-
+        findModule "Lowarn.Inject" lowarnInjectQualifier
+      runtimeDataVarModule <-
+        findModule "Lowarn.Inject.RuntimeDataVar" lowarnInjectQualifier
+      localModule <-
+        findModule
+          (showPrefixModuleName "RuntimeDataVar" programName)
+          (ThisPkg $ UnitId $ fsLit "this")
+      liftM5
+        (ResolvedNames isEntryPointModule)
+        (getClass injectModule "InjectedRuntimeData")
+        (getClass injectModule "InjectRuntimeData")
+        (getId runtimeDataVarModule "putRuntimeDataVar")
+        (getId runtimeDataVarModule "readRuntimeDataVar")
+        (getId localModule "runtimeDataVar")
 
 runtimeDataEvidence :: Class -> Id -> Id -> Type -> EvTerm
 runtimeDataEvidence runtimeDataClass runtimeDataFunction runtimeDataVar t =
@@ -147,7 +170,9 @@ solveInjectedClassConstraint resolvedNames (ct, t) = do
                 Representational
                 (classTyCon $ _injectedRuntimeDataClass resolvedNames)
                 [mkHoleCo hole]
-          _ -> panic "Application of InjectRuntimeData data constructor did not give an expression.",
+          _ ->
+            panic
+              "Application of InjectRuntimeData data constructor did not give an expression.",
         ct
       ),
       mkNonCanonical $

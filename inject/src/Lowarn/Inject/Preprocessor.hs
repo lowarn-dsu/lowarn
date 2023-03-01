@@ -15,10 +15,6 @@ import Data.List (intercalate, isSuffixOf)
 import Lowarn.Inject.Preprocessor.GenerateModule
 import Lowarn.ParserCombinators (readWithParser)
 import Lowarn.ProgramName
-  ( ProgramName,
-    parsePrefixModuleName,
-    showPrefixModuleName,
-  )
 import Text.ParserCombinators.ReadP
 import Text.Printf (printf)
 
@@ -103,6 +99,9 @@ processFile originalPath programName inputModule =
               intercalate
                 "\n"
                 [ "{-# OPTIONS_GHC -fplugin=Lowarn.Inject.Plugin #-}",
+                  printf
+                    "{-# OPTIONS_GHC -fplugin-opt=Lowarn.Inject.Plugin:%s #-}"
+                    $ unProgramName programName,
                   before,
                   printf
                     "import %s ()"
