@@ -51,19 +51,21 @@ import Text.Printf (printf)
 -- >>> putStr $ processFile "path/file.hs" (fromJust (mkProgramName "foo-bar")) "module NotRuntimeDataVar_foo_bar () where\n\n{- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following (State) -}\n"
 -- {-# LINE 1 "path/file.hs" #-}
 -- {-# OPTIONS_GHC -fplugin=Lowarn.Inject.Plugin -fplugin-opt=Lowarn.Inject.Plugin:foo-bar #-}
+-- {-# LINE 1 "path/file.hs" #-}
 -- module NotRuntimeDataVar_foo_bar () where
 -- <BLANKLINE>
--- <BLANKLINE>
 -- import RuntimeDataVar_foo_bar ()
+-- {-# LINE 3 "path/file.hs" #-}
 -- {- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following (State) -}
 --
 -- >>> putStr $ processFile "path/file.hs" (fromJust (mkProgramName "foo-bar")) "module RuntimeDataVar_other_program () where\n\n{- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following (State) -}\n"
 -- {-# LINE 1 "path/file.hs" #-}
 -- {-# OPTIONS_GHC -fplugin=Lowarn.Inject.Plugin -fplugin-opt=Lowarn.Inject.Plugin:foo-bar #-}
+-- {-# LINE 1 "path/file.hs" #-}
 -- module RuntimeDataVar_other_program () where
 -- <BLANKLINE>
--- <BLANKLINE>
 -- import RuntimeDataVar_foo_bar ()
+-- {-# LINE 3 "path/file.hs" #-}
 -- {- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following (State) -}
 --
 -- >>> putStr $ processFile "path/file.hs-boot" (fromJust (mkProgramName "foo-bar")) "module RuntimeDataVar_foo_bar () where\n\n{- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following (State) -}\n"
@@ -79,7 +81,8 @@ import Text.Printf (printf)
 -- {- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following (State) -}
 processFile :: FilePath -> ProgramName -> String -> String
 processFile originalPath programName inputModule =
-  printf "{-# LINE 1 \"%s\" #-}\n" originalPath
+  linePragma 1
+    <> "\n"
     <> if ".hs-boot" `isSuffixOf` originalPath
       then inputModule
       else case readP_to_S (gather parseModuleName) inputModule of
@@ -101,13 +104,18 @@ processFile originalPath programName inputModule =
                 [ printf
                     "{-# OPTIONS_GHC -fplugin=Lowarn.Inject.Plugin -fplugin-opt=Lowarn.Inject.Plugin:%s #-}"
                     $ unProgramName programName,
-                  before,
-                  printf
-                    "import %s ()"
-                    (showPrefixModuleName "RuntimeDataVar" programName),
+                  linePragma 1,
+                  before
+                    <> printf
+                      "import %s ()"
+                      (showPrefixModuleName "RuntimeDataVar" programName),
+                  linePragma $ length (lines before) + 1,
                   after
                 ]
         _ -> inputModule
+  where
+    linePragma :: Int -> String
+    linePragma line = printf "{-# LINE %d \"%s\" #-}" line originalPath
 
 -- | Parse up to the module header of the source of a Haskell module and return
 -- the parsed name of the module.
