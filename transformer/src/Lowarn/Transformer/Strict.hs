@@ -4,6 +4,13 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+-- |
+-- Module                  : Lowarn.Transformer.Strict
+-- SPDX-License-Identifier : MIT
+-- Stability               : experimental
+-- Portability             : non-portable (GHC)
+--
+-- Module for utilities for defining strict Lowarn state transformers.
 module Lowarn.Transformer.Strict
   ( StrictTransformable (..),
     forceTransformer,
