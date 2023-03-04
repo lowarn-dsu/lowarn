@@ -1,5 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RecordWildCards #-}
 
 -- |
 -- Module                  : Lowarn.Inject.Plugin
@@ -11,24 +12,23 @@
 module Lowarn.Inject.Plugin (plugin) where
 
 import Control.Monad
-import Data.Foldable (maximumBy)
+import Data.Foldable
 import Data.Functor
-import Data.Maybe (isJust, mapMaybe)
-import Data.Ord (comparing)
+import Data.Maybe
+import Data.Ord
 import GHC (Severity (SevWarning))
 import GHC.Core.Predicate
 import GHC.Plugins hiding (TcPlugin, getPrintUnqualified, programName, (<>))
-import GHC.Tc.Types (tcg_mod)
 import GHC.Tc.Types.Constraint
-import GHC.Tc.Utils.Monad (getPrintUnqualified)
+import GHC.Tc.Utils.Monad (getPrintUnqualified, tcg_mod)
 import GHC.TcPlugin.API
 import GHC.TcPlugin.API.Internal
 import GHC.Utils.Logger
-import Lowarn.ParserCombinators (parsePackageName, readWithParser)
+import Lowarn.ParserCombinators
 import Lowarn.ProgramName
-import Lowarn.VersionId (parseVersionPackageName, _programName)
+import Lowarn.VersionId
 import Text.ParserCombinators.ReadP (readP_to_S)
-import Text.Printf (printf)
+import Text.Printf
 
 -- | A type-checking plugin that provides instances of
 -- @'Lowarn.Inject.InjectRuntimeData' a@ and
@@ -41,12 +41,12 @@ plugin =
     }
 
 data ResolvedNames = ResolvedNames
-  { _isEntrypointModule :: Bool,
-    _injectedRuntimeDataClass :: Class,
-    _injectRuntimeDataClass :: Class,
-    _putRuntimeDataVarId :: Id,
-    _readRuntimeDataVarId :: Id,
-    _runtimeDataVarId :: Id
+  { resolvedNamesIsEntrypointModule :: Bool,
+    resolvedNamesInjectedRuntimeDataClass :: Class,
+    resolvedNamesInjectRuntimeDataClass :: Class,
+    resolvedNamesPutRuntimeDataVarId :: Id,
+    resolvedNamesReadRuntimeDataVarId :: Id,
+    resolvedNamesRuntimeDataVarId :: Id
   }
 
 injectTcPlugin :: [String] -> TcPlugin
@@ -172,30 +172,30 @@ runtimeDataEvidence runtimeDataClass runtimeDataFunction runtimeDataVar t =
     [mkCoreApps (Var runtimeDataFunction) [Type t, Var runtimeDataVar]]
 
 solveInjectClassConstraint :: ResolvedNames -> (Ct, Type) -> (EvTerm, Ct)
-solveInjectClassConstraint resolvedNames (ct, t) =
+solveInjectClassConstraint ResolvedNames {..} (ct, t) =
   ( runtimeDataEvidence
-      (_injectRuntimeDataClass resolvedNames)
-      (_putRuntimeDataVarId resolvedNames)
-      (_runtimeDataVarId resolvedNames)
+      resolvedNamesInjectRuntimeDataClass
+      resolvedNamesPutRuntimeDataVarId
+      resolvedNamesRuntimeDataVarId
       t,
     ct
   )
 
 solveInjectedClassConstraint ::
   ResolvedNames -> (Ct, Type) -> TcPluginM 'Solve ((EvTerm, Ct), Ct)
-solveInjectedClassConstraint resolvedNames (ct, t) = do
+solveInjectedClassConstraint ResolvedNames {..} (ct, t) = do
   hole <- newCoercionHole liftedTypeKind
   return
     ( ( case runtimeDataEvidence
-          (_injectedRuntimeDataClass resolvedNames)
-          (_readRuntimeDataVarId resolvedNames)
-          (_runtimeDataVarId resolvedNames)
+          resolvedNamesInjectedRuntimeDataClass
+          resolvedNamesReadRuntimeDataVarId
+          resolvedNamesRuntimeDataVarId
           runtimeDataType of
           EvExpr evExpr ->
             evCast evExpr $
               mkTyConAppCo
                 Representational
-                (classTyCon $ _injectedRuntimeDataClass resolvedNames)
+                (classTyCon resolvedNamesInjectedRuntimeDataClass)
                 [mkHoleCo hole]
           _ ->
             panic
@@ -210,8 +210,8 @@ solveInjectedClassConstraint resolvedNames (ct, t) = do
           (ctLoc ct)
     )
   where
-    runtimeDataType =
-      snd $ splitAppTy $ varType $ _runtimeDataVarId resolvedNames
+    runtimeDataType :: Type
+    runtimeDataType = snd $ splitAppTy $ varType resolvedNamesRuntimeDataVarId
 
 findClassConstraint :: Class -> Ct -> Maybe (Ct, Type)
 findClassConstraint constraintClass ct = do
@@ -223,31 +223,31 @@ runtimeDataWanteds :: Class -> [Ct] -> [(Ct, Type)]
 runtimeDataWanteds = mapMaybe . findClassConstraint
 
 solve :: ResolvedNames -> TcPluginSolver
-solve resolvedNames _ wanteds = do
+solve resolvedNames@ResolvedNames {..} _ wanteds = do
   (injectedSolutions, newInjectedWanteds) <-
     mapAndUnzipM (solveInjectedClassConstraint resolvedNames) injectedWanteds
   return $! TcPluginOk (injectSolutions <> injectedSolutions) newInjectedWanteds
   where
     injectWanteds =
-      if _isEntrypointModule resolvedNames
-        then runtimeDataWanteds (_injectRuntimeDataClass resolvedNames) wanteds
+      if resolvedNamesIsEntrypointModule
+        then runtimeDataWanteds resolvedNamesInjectRuntimeDataClass wanteds
         else []
     injectSolutions =
       map (solveInjectClassConstraint resolvedNames) injectWanteds
     injectedWanteds =
-      runtimeDataWanteds (_injectedRuntimeDataClass resolvedNames) wanteds
+      runtimeDataWanteds resolvedNamesInjectedRuntimeDataClass wanteds
 
 addWarning :: String -> TcPluginM 'Init ()
-addWarning message = do
-  unsafeWithRunInTcM $ \_ -> do
-    session <- getDynFlags
+addWarning message =
+  unsafeWithRunInTcM $ const $ do
+    dynFlags <- getDynFlags
     logger <- getLogger
     printUnqualified <- getPrintUnqualified
     void $
       liftIO $
         putLogMsg
           logger
-          session
+          dynFlags
           NoReason
           SevWarning
           noSrcSpan

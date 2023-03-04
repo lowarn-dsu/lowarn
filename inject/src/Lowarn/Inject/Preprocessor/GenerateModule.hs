@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 -- |
 -- Module                  : Lowarn.Inject.Preprocessor.GenerateModule
 -- SPDX-License-Identifier : MIT
@@ -13,11 +15,11 @@ module Lowarn.Inject.Preprocessor.GenerateModule
 where
 
 import Control.Monad
-import Data.Char (isSpace)
-import Lowarn.ParserCombinators (manyTill1)
-import Lowarn.ProgramName (ProgramName, showPrefixModuleName)
+import Data.Char
+import Lowarn.ParserCombinators
+import Lowarn.ProgramName
 import Text.ParserCombinators.ReadP
-import Text.Printf (printf)
+import Text.Printf
 
 -- $setup
 -- >>> import Data.Maybe (fromJust)
@@ -28,12 +30,12 @@ import Text.Printf (printf)
 -- | Type for generating @RuntimeDataVar_program_name@ modules.
 data RuntimeDataVarModuleInfo = RuntimeDataVarModuleInfo
   { -- | The name of the program.
-    _programName :: ProgramName,
+    runtimeDataVarModuleInfoProgramName :: ProgramName,
     -- | The module that the state type is imported from, potentially preceded
     -- by the @{-# SOURCE #-}@ pragma.
-    _importModule :: String,
+    runtimeDataVarModuleInfoImportModule :: String,
     -- | The state type.
-    _importType :: String
+    runtimeDataVarModuleInfoImportType :: String
   }
   deriving (Show)
 
@@ -64,41 +66,43 @@ data RuntimeDataVarModuleInfo = RuntimeDataVarModuleInfo
 -- runtimeDataVar :: RuntimeDataVar State
 -- runtimeDataVar = unsafePerformIO newRuntimeDataVar
 generateRuntimeDataVarModule :: RuntimeDataVarModuleInfo -> String
-generateRuntimeDataVarModule
-  RuntimeDataVarModuleInfo
-    { _programName = programName,
-      _importModule = importModule,
-      _importType = importType
-    } =
-    unlines
-      [ printf
-          "module %s (runtimeDataVar) where"
-          $ showPrefixModuleName "RuntimeDataVar" programName,
-        "",
-        "import GHC.IO (unsafePerformIO)",
-        "import Lowarn.Inject.RuntimeDataVar (RuntimeDataVar, newRuntimeDataVar)",
-        printf "import %s (%s)" importModule importType,
-        "",
-        "{-# NOINLINE runtimeDataVar #-}",
-        printf "runtimeDataVar :: RuntimeDataVar %s" importType,
-        "runtimeDataVar = unsafePerformIO newRuntimeDataVar"
-      ]
+generateRuntimeDataVarModule RuntimeDataVarModuleInfo {..} =
+  unlines
+    [ printf
+        "module %s (runtimeDataVar) where"
+        $ showPrefixModuleName
+          "RuntimeDataVar"
+          runtimeDataVarModuleInfoProgramName,
+      "",
+      "import GHC.IO (unsafePerformIO)",
+      "import Lowarn.Inject.RuntimeDataVar (RuntimeDataVar, newRuntimeDataVar)",
+      printf
+        "import %s (%s)"
+        runtimeDataVarModuleInfoImportModule
+        runtimeDataVarModuleInfoImportType,
+      "",
+      "{-# NOINLINE runtimeDataVar #-}",
+      printf
+        "runtimeDataVar :: RuntimeDataVar %s"
+        runtimeDataVarModuleInfoImportType,
+      "runtimeDataVar = unsafePerformIO newRuntimeDataVar"
+    ]
 
 -- | A parser for 'RuntimeDataVarModuleInfo', given the 'ProgramName'.
 --
 -- ==== __Examples__
 --
 -- >>> readP_to_S (parseRuntimeDataVarModuleInfo (fromJust (mkProgramName "foo-bar"))) "{- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following (State) -}"
--- [(RuntimeDataVarModuleInfo {_programName = ProgramName {unProgramName = "foo-bar"}, _importModule = "{-# SOURCE #-} Lowarn.ExampleProgram.Following", _importType = "State"},"")]
+-- [(RuntimeDataVarModuleInfo {runtimeDataVarModuleInfoProgramName = ProgramName {unProgramName = "foo-bar"}, runtimeDataVarModuleInfoImportModule = "{-# SOURCE #-} Lowarn.ExampleProgram.Following", runtimeDataVarModuleInfoImportType = "State"},"")]
 --
 -- >>> readP_to_S (parseRuntimeDataVarModuleInfo (fromJust (mkProgramName "foo-bar"))) "   {-   RUNTIME_DATA_VAR   {-# SOURCE #-} Lowarn.ExampleProgram.Following   (State)   -}   "
--- [(RuntimeDataVarModuleInfo {_programName = ProgramName {unProgramName = "foo-bar"}, _importModule = "{-# SOURCE #-} Lowarn.ExampleProgram.Following", _importType = "State"},"")]
+-- [(RuntimeDataVarModuleInfo {runtimeDataVarModuleInfoProgramName = ProgramName {unProgramName = "foo-bar"}, runtimeDataVarModuleInfoImportModule = "{-# SOURCE #-} Lowarn.ExampleProgram.Following", runtimeDataVarModuleInfoImportType = "State"},"")]
 --
 -- >>> readP_to_S (parseRuntimeDataVarModuleInfo (fromJust (mkProgramName "foo-bar"))) " \n {-   RUNTIME_DATA_VAR \n {-# SOURCE #-} Lowarn.ExampleProgram.Following \n (State) \n -} \n "
--- [(RuntimeDataVarModuleInfo {_programName = ProgramName {unProgramName = "foo-bar"}, _importModule = "{-# SOURCE #-} Lowarn.ExampleProgram.Following", _importType = "State"},"")]
+-- [(RuntimeDataVarModuleInfo {runtimeDataVarModuleInfoProgramName = ProgramName {unProgramName = "foo-bar"}, runtimeDataVarModuleInfoImportModule = "{-# SOURCE #-} Lowarn.ExampleProgram.Following", runtimeDataVarModuleInfoImportType = "State"},"")]
 --
 -- >>> readP_to_S (parseRuntimeDataVarModuleInfo (fromJust (mkProgramName "foo-bar"))) "{- RUNTIME_DATA_VAR Lowarn.ExampleProgram.Following (State) -}"
--- [(RuntimeDataVarModuleInfo {_programName = ProgramName {unProgramName = "foo-bar"}, _importModule = "Lowarn.ExampleProgram.Following", _importType = "State"},"")]
+-- [(RuntimeDataVarModuleInfo {runtimeDataVarModuleInfoProgramName = ProgramName {unProgramName = "foo-bar"}, runtimeDataVarModuleInfoImportModule = "Lowarn.ExampleProgram.Following", runtimeDataVarModuleInfoImportType = "State"},"")]
 --
 -- >>> readP_to_S (parseRuntimeDataVarModuleInfo (fromJust (mkProgramName "foo-bar"))) "{- RUNTIME_DATA_VAR (State) -}"
 -- []
@@ -107,7 +111,7 @@ generateRuntimeDataVarModule
 -- []
 --
 -- >>> readP_to_S (parseRuntimeDataVarModuleInfo (fromJust (mkProgramName "foo-bar"))) "{- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following (State1, State2) -}"
--- [(RuntimeDataVarModuleInfo {_programName = ProgramName {unProgramName = "foo-bar"}, _importModule = "{-# SOURCE #-} Lowarn.ExampleProgram.Following", _importType = "State1, State2"},"")]
+-- [(RuntimeDataVarModuleInfo {runtimeDataVarModuleInfoProgramName = ProgramName {unProgramName = "foo-bar"}, runtimeDataVarModuleInfoImportModule = "{-# SOURCE #-} Lowarn.ExampleProgram.Following", runtimeDataVarModuleInfoImportType = "State1, State2"},"")]
 --
 -- >>> readP_to_S (parseRuntimeDataVarModuleInfo (fromJust (mkProgramName "foo-bar"))) "{- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following () -}"
 -- []
@@ -116,20 +120,21 @@ generateRuntimeDataVarModule
 -- []
 --
 -- >>> readP_to_S (parseRuntimeDataVarModuleInfo (fromJust (mkProgramName "foo-bar"))) "{- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following (State) -}\n\n{- RUNTIME_DATA_VAR {-# SOURCE #-} Lowarn.ExampleProgram.Following (State) -}"
--- [(RuntimeDataVarModuleInfo {_programName = ProgramName {unProgramName = "foo-bar"}, _importModule = "{-# SOURCE #-} Lowarn.ExampleProgram.Following", _importType = "State"},"")]
+-- [(RuntimeDataVarModuleInfo {runtimeDataVarModuleInfoProgramName = ProgramName {unProgramName = "foo-bar"}, runtimeDataVarModuleInfoImportModule = "{-# SOURCE #-} Lowarn.ExampleProgram.Following", runtimeDataVarModuleInfoImportType = "State"},"")]
 parseRuntimeDataVarModuleInfo :: ProgramName -> ReadP RuntimeDataVarModuleInfo
-parseRuntimeDataVarModuleInfo programName = do
+parseRuntimeDataVarModuleInfo runtimeDataVarModuleInfoProgramName = do
   void $ munch isSpace
   void $ string "{-"
   void $ munch isSpace
   void $ string "RUNTIME_DATA_VAR"
   void $ munch1 isSpace
-  importModule <-
+  runtimeDataVarModuleInfoImportModule <-
     manyTill1 (satisfy $ const True) $ do
       skipMany1 (satisfy isSpace)
       void $ char '('
-  importType <- manyTill1 (satisfy $ const True) (char ')')
+  runtimeDataVarModuleInfoImportType <-
+    manyTill1 (satisfy $ const True) (char ')')
   skipMany (satisfy isSpace)
   void $ string "-}"
   void $ munch $ const True
-  return $ RuntimeDataVarModuleInfo programName importModule importType
+  return RuntimeDataVarModuleInfo {..}

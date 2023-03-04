@@ -10,13 +10,13 @@
 module Lowarn.Inject.Preprocessor (processFile, parseModuleName) where
 
 import Control.Monad
-import Data.Char (isSpace)
-import Data.List (intercalate, isSuffixOf)
+import Data.Char
+import Data.List ( intercalate, isSuffixOf )
 import Lowarn.Inject.Preprocessor.GenerateModule
-import Lowarn.ParserCombinators (readWithParser)
+import Lowarn.ParserCombinators
 import Lowarn.ProgramName
 import Text.ParserCombinators.ReadP
-import Text.Printf (printf)
+import Text.Printf
 
 -- $setup
 -- >>> import Data.Maybe (fromJust)

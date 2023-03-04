@@ -15,7 +15,7 @@ where
 
 import Control.Concurrent.MVar
 import Control.Exception
-import Lowarn (RuntimeData)
+import Lowarn
 
 -- | A variable that stores the runtime data associated with a version of a
 -- program.

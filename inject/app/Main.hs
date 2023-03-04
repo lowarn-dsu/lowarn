@@ -1,4 +1,5 @@
 {-# LANGUAGE ApplicativeDo #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Main (main) where
 
@@ -9,10 +10,10 @@ import Options.Applicative
 import Text.Printf (printf)
 
 data Arguments = Arguments
-  { _originalPath :: FilePath,
-    _inputPath :: FilePath,
-    _outputPath :: FilePath,
-    _programName :: ProgramName
+  { argumentsOriginalPath :: FilePath,
+    argumentsInputPath :: FilePath,
+    argumentsOutputPath :: FilePath,
+    argumentsProgramName :: ProgramName
   }
 
 programNameReader :: ReadM ProgramName
@@ -22,21 +23,20 @@ programNameReader = do
     Just programName -> return programName
     Nothing ->
       readerError $
-        printf
-          "The given program name \"%s\" is invalid."
-          programNameString
+        printf "The given program name \"%s\" is invalid." programNameString
+
+fileVar :: String -> Parser FilePath
+fileVar = argument str . (metavar "FILE" <>) . help
 
 parser :: Parser Arguments
 parser = do
-  originalPath <-
-    argument str $ metavar "FILE" <> help "Path to the original file."
-  inputPath <- argument str $ metavar "FILE" <> help "Path to the input file."
-  outputPath <- argument str $ metavar "FILE" <> help "Path to the output file."
-  programName <-
+  argumentsOriginalPath <- fileVar "Path to the original file."
+  argumentsInputPath <- fileVar "Path to the input file."
+  argumentsOutputPath <- fileVar "Path to the output file."
+  argumentsProgramName <-
     argument programNameReader $
       metavar "PROGRAMNAME" <> help "Name of the program."
-
-  return $ Arguments originalPath inputPath outputPath programName
+  return Arguments {..}
 
 parserInfo :: ParserInfo Arguments
 parserInfo =
@@ -47,8 +47,8 @@ parserInfo =
 
 main :: IO ()
 main = do
-  arguments <- execParser parserInfo
+  Arguments {..} <- execParser parserInfo
   setLocaleEncoding utf8
-  inputString <- readFile $ _inputPath arguments
-  writeFile (_outputPath arguments) $
-    processFile (_originalPath arguments) (_programName arguments) inputString
+  inputString <- readFile argumentsInputPath
+  writeFile argumentsOutputPath $
+    processFile argumentsOriginalPath argumentsProgramName inputString
