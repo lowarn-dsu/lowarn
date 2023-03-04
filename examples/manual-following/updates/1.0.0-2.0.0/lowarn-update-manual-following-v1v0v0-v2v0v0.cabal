@@ -6,12 +6,12 @@ cabal-version: 1.12
 
 name:           lowarn-update-manual-following-v1v0v0-v2v0v0
 version:        1.0.0
-description:    Lowarn demo program update from version 1.0.0 to 2.0.0
+description:    Lowarn manual demo program update from version 1.0.0 to 2.0.0
 homepage:       https://github.com/jonathanjameswatson/lowarn#readme
 bug-reports:    https://github.com/jonathanjameswatson/lowarn/issues
 author:         Jonathan Watson
 maintainer:     23344719+jonathanjameswatson@users.noreply.github.com
-copyright:      2022 Jonathan Watson
+copyright:      2023 Jonathan Watson
 license:        MIT
 build-type:     Simple
 

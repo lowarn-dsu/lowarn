@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Lowarn.ExampleProgram.Following
   ( User (..),
@@ -13,56 +14,50 @@ import Control.DeepSeq
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
 import qualified GHC.Generics as GHC (Generic)
-import Lowarn (isUpdateAvailable)
+import Lowarn
 import Lowarn.Inject
 import Lowarn.Transformer (Generic, HasDatatypeInfo)
 import System.IO
-  ( Handle,
-    hFlush,
-    hGetLine,
-    hPutStrLn,
-  )
-import Text.Printf (printf)
+import Text.Printf
 import Text.Regex.TDFA
 
 data User = User
-  { _nickname :: String,
-    _userId :: Int
+  { userNickname :: String,
+    userId :: Int
   }
   deriving (GHC.Generic, NFData, Generic, HasDatatypeInfo)
 
 data State = State
-  { _users :: Seq User,
-    _in :: Handle,
-    _out :: Handle
+  { stateUsers :: Seq User,
+    stateIn :: Handle,
+    stateOut :: Handle
   }
   deriving (GHC.Generic, Generic, HasDatatypeInfo)
 
 instance NFData State where
-  rnf state = rnf $ _users state
+  rnf state = rnf $ stateUsers state
 
 showUser :: User -> String
 showUser (User nickname userId) = printf "%s#%04d" nickname userId
 
 eventLoop :: State -> IO State
-eventLoop state@(State users in_ out) = do
+eventLoop state@State {..} = do
   continue <- isUpdateAvailable =<< injectedRuntimeData
   if not continue
     then do
-      hPutStrLn out "Following:"
-      mapM_ (hPutStrLn out . showUser) users
-      hPutStrLn out "------"
-      nickname <- getNickname
+      hPutStrLn stateOut "Following:"
+      mapM_ (hPutStrLn stateOut . showUser) stateUsers
+      hPutStrLn stateOut "------"
+      userNickname <- getNickname
       userId <- getUserId
-      let user = User nickname userId
-      eventLoop $ state {_users = users Seq.|> user}
+      eventLoop $ state {stateUsers = stateUsers Seq.|> User {..}}
     else return state
   where
     getInput :: String -> IO String
     getInput field = do
-      hPutStrLn out $ printf "Input %s of user to follow:" field
-      hFlush out
-      hGetLine in_
+      hPutStrLn stateOut $ printf "Input %s of user to follow:" field
+      hFlush stateOut
+      hGetLine stateIn
 
     getNickname :: IO String
     getNickname = do
@@ -70,7 +65,7 @@ eventLoop state@(State users in_ out) = do
       if nickname =~ "\\`[a-zA-Z]+\\'"
         then return nickname
         else do
-          hPutStrLn out "Invalid nickname, try again."
+          hPutStrLn stateOut "Invalid nickname, try again."
           getNickname
 
     getUserId :: IO Int
@@ -79,5 +74,5 @@ eventLoop state@(State users in_ out) = do
       if userId =~ "\\`[0-9]{4}\\'"
         then return $ read userId
         else do
-          hPutStrLn out "Invalid user ID, try again."
+          hPutStrLn stateOut "Invalid user ID, try again."
           getUserId

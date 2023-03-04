@@ -18,12 +18,8 @@ module Lowarn.ProgramName
   )
 where
 
-import Control.Monad (void)
+import Control.Monad
 import Lowarn.ParserCombinators
-  ( parsePackageName,
-    parseProgramModuleName,
-    readWithParser,
-  )
 import Text.ParserCombinators.ReadP
 
 -- $setup

@@ -1,14 +1,11 @@
 module EntryPoint_manual_following (entryPoint) where
 
-import Data.Maybe (fromMaybe)
+import Data.Maybe
 import qualified Data.Sequence as Seq
-import Foreign (StablePtr, newStablePtr)
-import Lowarn (EntryPoint (..), lastState)
-import Lowarn.ExampleProgram.ManualFollowing (State (State), eventLoop)
+import Foreign
+import Lowarn
+import Lowarn.ExampleProgram.ManualFollowing
 import System.IO
-  ( stdin,
-    stdout,
-  )
 
 entryPoint :: EntryPoint State
 entryPoint = EntryPoint $

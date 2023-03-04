@@ -2,22 +2,15 @@
 
 module Spec.ManualDsu (manualDsuTests) where
 
-import Control.Monad (void)
+import Control.Monad
 import Lowarn.ExampleProgram.Following.UpdateId
 import Lowarn.ExampleProgram.ManualFollowing.UpdateId
-import Lowarn.Runtime (Runtime, loadUpdate)
-import Lowarn.UpdateId (UpdateId)
-import System.IO (Handle)
+import Lowarn.Runtime
+import Lowarn.UpdateId
+import System.IO
 import Test.Lowarn.Story
-  ( Story,
-    inputLine,
-    outputLine,
-    outputLines,
-    storyGoldenTest,
-    updateProgram,
-  )
-import Test.Lowarn.Tasty (BinarySemaphore)
-import Test.Tasty (TestTree, testGroup)
+import Test.Lowarn.Tasty
+import Test.Tasty
 
 getExampleRuntime ::
   UpdateId ->
@@ -29,9 +22,9 @@ getExampleRuntime
   updateId_0_1
   updateId_1_2
   updateId_2_3
-  handles =
+  fileHandles =
     void $
-      loadUpdate updateId_0_1 handles
+      loadUpdate updateId_0_1 fileHandles
         >>= loadUpdate updateId_1_2
         >>= loadUpdate updateId_2_3
 

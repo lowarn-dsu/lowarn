@@ -7,8 +7,8 @@ module Lowarn.ExampleProgram.ManualFollowing.VersionId
 where
 
 import Lowarn.ExampleProgram.ManualFollowing.UpdateId
-import Lowarn.UpdateId (nextVersionId, previousVersionId)
-import Lowarn.VersionId (VersionId)
+import Lowarn.UpdateId
+import Lowarn.VersionId
 
 manualFollowingVersionId_0 :: VersionId
 manualFollowingVersionId_0 = previousVersionId manualFollowingUpdateId_0_1

@@ -1,3 +1,5 @@
+{-# LANGUAGE InstanceSigs #-}
+
 -- |
 -- Module                  : Lowarn.ProgramName.Arbitrary
 -- SPDX-License-Identifier : MIT
@@ -7,13 +9,13 @@
 -- Module for 'Arbitrary' instances for 'ProgramName'.
 module Lowarn.ProgramName.Arbitrary () where
 
-import Control.Applicative (liftA2)
-import Data.Char (isAsciiLower, isDigit)
+import Control.Applicative
+import Data.Char
 import Data.List (intercalate)
-import Data.Maybe (fromJust)
-import Lowarn.ProgramName (ProgramName, mkProgramName, unProgramName)
+import Data.Maybe
+import Lowarn.ProgramName
 import Math.Combinat.Compositions (randomComposition1)
-import System.Random (mkStdGen)
+import System.Random
 import Test.QuickCheck
 
 arbitraryAsciiLower :: Gen Char
@@ -32,17 +34,18 @@ arbitraryProgramNameWordWithLength n = do
   firstHalf <- vectorOf firstHalfLength arbitraryAsciiLetterOrDigit
   middle <- arbitraryAsciiLower
   secondHalf <- vectorOf secondHalfLength arbitraryAsciiLetterOrDigit
-  return $ firstHalf ++ (middle : secondHalf)
+  return $ firstHalf <> (middle : secondHalf)
 
 shrinkArbitraryProgramNameWord :: String -> [String]
 shrinkArbitraryProgramNameWord programNameWord =
-  [ programNameWord'
-    | programNameWord' <- shrink programNameWord,
-      all (liftA2 (||) isAsciiLower isDigit) programNameWord',
-      any isAsciiLower programNameWord'
+  [ shrunkProgramNameWord
+    | shrunkProgramNameWord <- shrink programNameWord,
+      all (liftA2 (||) isAsciiLower isDigit) shrunkProgramNameWord,
+      any isAsciiLower shrunkProgramNameWord
   ]
 
 instance Arbitrary ProgramName where
+  arbitrary :: Gen ProgramName
   arbitrary = sized $ \n -> do
     numWords <- chooseInt (1, n + 1)
     seed <- arbitrary
@@ -52,11 +55,12 @@ instance Arbitrary ProgramName where
       mapM arbitraryProgramNameWordWithLength numNonHyphensPerWord
     return $ fromJust $ mkProgramName $ intercalate "-" programNameWords
 
+  shrink :: ProgramName -> [ProgramName]
   shrink programName =
-    [ fromJust $ mkProgramName $ intercalate "-" programNameWords'
-      | programNameWords' <-
+    [ fromJust $ mkProgramName $ intercalate "-" shrunkProgramNameWords
+      | shrunkProgramNameWords <-
           shrinkList shrinkArbitraryProgramNameWord $
             words $
               unProgramName programName,
-        not $ null programNameWords'
+        not $ null shrunkProgramNameWords
     ]

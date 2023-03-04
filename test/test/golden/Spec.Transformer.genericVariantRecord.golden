@@ -1,1 +1,1 @@
-Just (VariantRecord3'A {_variantRecord3'A = 1, _variantRecord3'B = "a", _variantRecord3'C = True})
+Just (VariantRecord3'A {variantRecord3'A = 1, variantRecord3'B = "a", variantRecord3'C = True})

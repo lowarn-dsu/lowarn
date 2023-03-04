@@ -30,7 +30,7 @@ data Variant1 = Variant1'A
   deriving (Show)
 
 data Record1 = Record1A
-  { _record1' :: Int
+  { record1' :: Int
   }
   deriving (Show)
 
@@ -41,8 +41,8 @@ data Unlabelled2 = Unlabelled2A String Int
   deriving (Show)
 
 data Record2 = Record2A
-  { _record2B :: String,
-    _record2A :: Int
+  { record2B :: String,
+    record2A :: Int
   }
   deriving (Show)
 

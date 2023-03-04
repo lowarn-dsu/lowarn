@@ -4,11 +4,7 @@
 module Spec.Transformer (transformerTests) where
 
 import Test.Lowarn.Transformer
-  ( Expression (Expression),
-    Import (Import),
-    transformerGoldenTest,
-  )
-import Test.Tasty (TestTree, testGroup)
+import Test.Tasty
 import Text.RawString.QQ
 
 failImports :: [Import]

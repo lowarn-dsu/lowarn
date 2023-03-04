@@ -12,7 +12,6 @@ module Test.Lowarn.Story
   ( -- * Monad
     Story,
     runStory,
-    liftIO,
 
     -- * Actions
     inputLine,
@@ -26,25 +25,15 @@ module Test.Lowarn.Story
   )
 where
 
-import Control.Concurrent (threadDelay, withMVar)
-import Control.Exception (SomeException, catch, displayException)
-import Control.Monad (replicateM, when)
-import Control.Monad.IO.Class (MonadIO, liftIO)
-import Control.Monad.Trans.Reader (ReaderT, asks, runReaderT)
-import Data.IORef (newIORef, readIORef, writeIORef)
-import Lowarn.Runtime (Runtime, runRuntime)
-import System.Exit (ExitCode (ExitFailure, ExitSuccess))
+import Control.Concurrent
+import Control.Exception
+import Control.Monad
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Reader
+import Data.IORef
+import Lowarn.Runtime
+import System.Exit
 import System.IO
-  ( BufferMode (LineBuffering),
-    Handle,
-    IOMode (WriteMode),
-    hClose,
-    hGetLine,
-    hPutStrLn,
-    hSetBinaryMode,
-    hSetBuffering,
-    withFile,
-  )
 import System.Posix
   ( ProcessID,
     ProcessStatus (Exited, Stopped, Terminated),
@@ -54,18 +43,18 @@ import System.Posix
     sigUSR2,
     signalProcess,
   )
-import System.Process (createPipe)
-import qualified System.Timeout as Timeout (timeout)
-import Test.Lowarn.Golden (goldenTest)
-import Test.Lowarn.Tasty (BinarySemaphore)
-import Test.Tasty (TestTree)
-import Text.Printf (printf)
+import System.Process
+import System.Timeout
+import Test.Lowarn.Golden
+import Test.Lowarn.Tasty
+import Test.Tasty
+import Text.Printf
 
 data StoryData = StoryData
-  { _inputHandle :: Handle,
-    _outputHandle :: Handle,
-    _fileHandle :: Handle,
-    _processId :: ProcessID
+  { storyDataInputHandle :: Handle,
+    storyDataOutputHandle :: Handle,
+    storyDataFileHandle :: Handle,
+    storyDataProcessId :: ProcessID
   }
 
 -- | Monad for stories, which are sequences of actions to be run on a program
@@ -79,7 +68,8 @@ data LogType = Input | Output | Error | Info
   deriving (Show)
 
 writeLog :: Handle -> LogType -> String -> IO ()
-writeLog handle logType = hPutStrLn handle . printf "%6s: %s" (show logType)
+writeLog fileHandle logType =
+  hPutStrLn fileHandle . printf "%6s: %s" (show logType)
 
 createPipeWithLineBuffering :: IO (Handle, Handle)
 createPipeWithLineBuffering = do
@@ -105,7 +95,7 @@ runStory ::
   -- | A timeout in microseconds.
   Int ->
   IO ()
-runStory story getRuntime outputPath timeout = do
+runStory story getRuntime outputPath timeoutLength = do
   (inputReadHandle, inputWriteHandle) <- createPipeWithLineBuffering
   (outputReadHandle, outputWriteHandle) <- createPipeWithLineBuffering
   withFile outputPath WriteMode $ \fileHandle -> do
@@ -130,8 +120,8 @@ runStory story getRuntime outputPath timeout = do
                   displayException (exception :: SomeException)
           )
 
-    Timeout.timeout
-      timeout
+    timeout
+      timeoutLength
       ( runReaderT (unStory story) $
           StoryData inputWriteHandle outputReadHandle fileHandle processId
       )
@@ -163,8 +153,8 @@ runStory story getRuntime outputPath timeout = do
 -- | Action that queues a line to be read by the program.
 inputLine :: String -> Story ()
 inputLine line = Story $ do
-  inputHandle <- asks _inputHandle
-  fileHandle <- asks _fileHandle
+  inputHandle <- asks storyDataInputHandle
+  fileHandle <- asks storyDataFileHandle
   liftIO $ do
     hPutStrLn inputHandle line
     writeLog fileHandle Input line
@@ -172,8 +162,8 @@ inputLine line = Story $ do
 -- | Action that blocks until a line can be read from the program.
 outputLine :: Story String
 outputLine = Story $ do
-  outputHandle <- asks _outputHandle
-  fileHandle <- asks _fileHandle
+  outputHandle <- asks storyDataOutputHandle
+  fileHandle <- asks storyDataFileHandle
   liftIO $ do
     line <- hGetLine outputHandle
     writeLog fileHandle Output line
@@ -187,15 +177,15 @@ outputLines n = replicateM n outputLine
 -- | Action that writes a string to the log file.
 writeInfo :: String -> Story ()
 writeInfo info = Story $ do
-  fileHandle <- asks _fileHandle
+  fileHandle <- asks storyDataFileHandle
   liftIO $ writeLog fileHandle Info info
 
 -- | Action that sends an update signal to the program. This action waits for
 -- 1 second after sending the update signal, so it can be received.
 updateProgram :: Story ()
 updateProgram = Story $ do
-  processId <- asks _processId
-  fileHandle <- asks _fileHandle
+  processId <- asks storyDataProcessId
+  fileHandle <- asks storyDataFileHandle
   liftIO $ do
     signalProcess sigUSR2 processId
     writeLog fileHandle Info "Update signal sent."
@@ -222,11 +212,11 @@ storyGoldenTest ::
   -- | An action that returns a binary semaphore.
   IO BinarySemaphore ->
   TestTree
-storyGoldenTest testName getRuntime story timeout binarySemaphoreAction =
+storyGoldenTest testName getRuntime story timeoutLength binarySemaphoreAction =
   goldenTest
     testName
     $ \logFile -> do
       binarySemaphore <- binarySemaphoreAction
       withMVar binarySemaphore $
         const $
-          runStory story getRuntime logFile timeout
+          runStory story getRuntime logFile timeoutLength

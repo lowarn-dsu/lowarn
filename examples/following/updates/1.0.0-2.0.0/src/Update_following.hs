@@ -6,17 +6,17 @@
 
 module Update_following () where
 
-import Control.Arrow (first)
+import Control.Arrow
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
-import Foreign (StablePtr, newStablePtr)
-import Lowarn (Update (Update))
-import Lowarn.Transformer (Transformable (transform))
-import Lowarn.Transformer.Strict (StrictTransformable (transformer'))
-import System.Random (mkStdGen, randomR)
-import System.Random.Stateful (applyIOGen, newIOGenM)
+import Foreign
+import Lowarn
+import Lowarn.Transformer
+import Lowarn.Transformer.Strict
+import System.Random
+import System.Random.Stateful
 import qualified "lowarn-version-following-v1v0v0" Lowarn.ExampleProgram.Following as PreviousVersion
-import "lowarn-version-following-v2v0v0" EntryPoint_following (entryPoint)
+import "lowarn-version-following-v2v0v0" EntryPoint_following
 import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Following as NextVersion
 
 instance Transformable [PreviousVersion.User] (Seq NextVersion.User) where

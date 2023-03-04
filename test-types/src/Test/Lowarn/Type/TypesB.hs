@@ -38,12 +38,12 @@ data Unlabelled1 = Unlabelled1A Int
   deriving (Show)
 
 data Record1 = Record1A
-  { _record1A :: Int
+  { record1A :: Int
   }
   deriving (Show)
 
 data Record1' = Record1'A
-  { _record1A' :: Int
+  { record1A' :: Int
   }
   deriving (Show)
 
@@ -54,8 +54,8 @@ data Unlabelled2 = Unlabelled2A Int String
   deriving (Show)
 
 data Record2 = Record2A
-  { _record2A :: Int,
-    _record2B :: String
+  { record2A :: Int,
+    record2B :: String
   }
   deriving (Show)
 
@@ -63,9 +63,9 @@ data Variant3 = Variant3C | Variant3A | Variant3B
   deriving (Show)
 
 data Record3 = Record3A
-  { _record3C :: Bool,
-    _record3A :: Int,
-    _record3B :: String
+  { record3C :: Bool,
+    record3A :: Int,
+    record3B :: String
   }
   deriving (Show)
 
@@ -77,19 +77,19 @@ data VariantUnlabelled3
 
 data VariantRecord3
   = VariantRecord3C
-      { _variantRecord3A :: Int,
-        _variantRecord3C :: Bool,
-        _variantRecord3B :: String
+      { variantRecord3A :: Int,
+        variantRecord3C :: Bool,
+        variantRecord3B :: String
       }
   | VariantRecord3A
-      { _variantRecord3C :: Bool,
-        _variantRecord3B :: String,
-        _variantRecord3A :: Int
+      { variantRecord3C :: Bool,
+        variantRecord3B :: String,
+        variantRecord3A :: Int
       }
   | VariantRecord3B
-      { _variantRecord3B :: String,
-        _variantRecord3A :: Int,
-        _variantRecord3C :: Bool
+      { variantRecord3B :: String,
+        variantRecord3A :: Int,
+        variantRecord3C :: Bool
       }
   deriving (Show)
 

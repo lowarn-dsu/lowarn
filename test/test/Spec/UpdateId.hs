@@ -3,15 +3,10 @@
 module Spec.UpdateId (updateIdTests) where
 
 import Lowarn.UpdateId
-  ( parseUpdateId,
-    parseUpdatePackageName,
-    showUpdateId,
-    showUpdatePackageName,
-  )
 import Lowarn.UpdateId.Arbitrary ()
-import Test.Lowarn.Property (roundTripProperty)
-import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.QuickCheck (testProperty)
+import Test.Lowarn.Property
+import Test.Tasty
+import Test.Tasty.QuickCheck
 
 updateIdRoundTrip :: TestTree
 updateIdRoundTrip =

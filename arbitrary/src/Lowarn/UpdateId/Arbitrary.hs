@@ -1,3 +1,6 @@
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE RecordWildCards #-}
+
 -- |
 -- Module                  : Lowarn.UpdateId.Arbitrary
 -- SPDX-License-Identifier : MIT
@@ -7,18 +10,20 @@
 -- Module for 'Arbitrary' instances for 'UpdateId'.
 module Lowarn.UpdateId.Arbitrary () where
 
+import Control.Applicative
 import Lowarn.ProgramName.Arbitrary ()
-import Lowarn.UpdateId (UpdateId (UpdateId))
+import Lowarn.UpdateId
 import Lowarn.VersionNumber.Arbitrary ()
 import Test.QuickCheck
 
 instance Arbitrary UpdateId where
+  arbitrary :: Gen UpdateId
   arbitrary = UpdateId <$> arbitrary <*> arbitrary <*> arbitrary
 
-  shrink (UpdateId programName previousVersionNumber nextVersionNumber) =
-    do
-      programName' <- shrink programName
-      previousVersionNumber' <- shrink previousVersionNumber
-      nextVersionNumber' <- shrink nextVersionNumber
-      return $
-        UpdateId programName' previousVersionNumber' nextVersionNumber'
+  shrink :: UpdateId -> [UpdateId]
+  shrink UpdateId {..} =
+    liftA3
+      UpdateId
+      (shrink updateIdProgramName)
+      (shrink updateIdPreviousVersionNumber)
+      (shrink updateIdNextVersionNumber)

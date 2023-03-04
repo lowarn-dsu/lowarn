@@ -1,4 +1,5 @@
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
+{-# LANGUAGE RecordWildCards #-}
 
 -- |
 -- Module                  : Lowarn.Runtime
@@ -12,44 +13,24 @@ module Lowarn.Runtime
     runRuntime,
     loadVersion,
     loadUpdate,
-    updatePackageDatabase,
+    updateRuntimePackageDatabase,
     liftLinker,
-    liftIO,
   )
 where
 
-import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.Trans.Class (lift)
-import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
+import Control.Exception
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.Reader
 import Data.Functor
 import Debug.Trace (traceMarkerIO)
-import GHC.IO (evaluate)
 import Lowarn
-  ( EntryPoint (unEntryPoint),
-    RuntimeData (RuntimeData),
-    Transformer (unTransformer),
-    Update (_entryPoint, _transformer),
-    UpdateInfo (UpdateInfo),
-    UpdateSignalRegister,
-    fillUpdateSignalRegister,
-    mkUpdateSignalRegister,
-  )
-import Lowarn.Linker (Linker, liftIO, load, runLinker)
-import qualified Lowarn.Linker as Linker (updatePackageDatabase)
+import Lowarn.Linker
 import Lowarn.UpdateId
-  ( UpdateId (..),
-    nextVersionId,
-    showUpdateId,
-    showUpdatePackageName,
-  )
 import Lowarn.VersionId
-  ( VersionId (_versionNumber),
-    showVersionId,
-    showVersionPackageName,
-  )
-import Lowarn.VersionNumber (showEntryPointExport, showUpdateExport)
-import System.Posix.Signals (Handler (Catch), installHandler, sigUSR2)
-import Text.Printf (printf)
+import Lowarn.VersionNumber
+import System.Posix.Signals
+import Text.Printf
 
 -- | Monad for loading versions of programs while handling signals and
 -- transferring state.
@@ -123,7 +104,7 @@ loadVersion versionId mPreviousState = do
         RuntimeData updateSignalRegister (UpdateInfo <$> mPreviousState)
   where
     packageName = showVersionPackageName versionId
-    entryPointExport = showEntryPointExport $ _versionNumber versionId
+    entryPointExport = showEntryPointExport $ versionIdVersionNumber versionId
 
 -- | Action that performs an given update by running its state transformer,
 -- producing the state for the next version of a program, then running the next
@@ -134,33 +115,31 @@ loadUpdate ::
   -- | State from the previous version of the program.
   a ->
   Runtime b
-loadUpdate updateId previousState = do
+loadUpdate updateId@UpdateId {..} previousState = do
   updateSignalRegister <- Runtime ask
   withLinkedEntity
     packageName
     updateExport
-    ( \update -> do
+    ( \Update {..} -> do
         traceMarkerIO $
-          printf
-            "Update %s begin."
-            (showUpdateId updateId)
-        previousState' <-
-          evaluate =<< unTransformer (_transformer update) previousState
+          printf "Update %s begin." (showUpdateId updateId)
+        transformedPreviousState <-
+          evaluate =<< unTransformer updateTransformer previousState
         traceMarkerIO $
-          printf
-            "Version %s begin."
-            (showVersionId $ nextVersionId updateId)
-        unEntryPoint (_entryPoint update) $
-          RuntimeData updateSignalRegister (UpdateInfo <$> previousState')
+          printf "Version %s begin." (showVersionId $ nextVersionId updateId)
+        unEntryPoint updateEntryPoint $
+          RuntimeData
+            updateSignalRegister
+            (UpdateInfo <$> transformedPreviousState)
     )
   where
     packageName = showUpdatePackageName updateId
     updateExport =
       showUpdateExport
-        (_previousVersionNumber updateId)
-        (_nextVersionNumber updateId)
+        updateIdPreviousVersionNumber
+        updateIdNextVersionNumber
 
 -- | Action that updates the package database, using
 -- 'Linker.updatePackageDatabase'.
-updatePackageDatabase :: Runtime ()
-updatePackageDatabase = liftLinker Linker.updatePackageDatabase
+updateRuntimePackageDatabase :: Runtime ()
+updateRuntimePackageDatabase = liftLinker updatePackageDatabase

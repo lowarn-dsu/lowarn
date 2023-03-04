@@ -3,15 +3,10 @@
 module Spec.VersionId (versionIdTests) where
 
 import Lowarn.VersionId
-  ( parseVersionId,
-    parseVersionPackageName,
-    showVersionId,
-    showVersionPackageName,
-  )
 import Lowarn.VersionId.Arbitrary ()
-import Test.Lowarn.Property (roundTripProperty)
-import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.QuickCheck (testProperty)
+import Test.Lowarn.Property
+import Test.Tasty
+import Test.Tasty.QuickCheck
 
 versionIdRoundTrip :: TestTree
 versionIdRoundTrip =

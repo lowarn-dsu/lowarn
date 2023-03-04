@@ -17,19 +17,10 @@ where
 import Data.Functor
 import Data.List (isPrefixOf)
 import Language.Haskell.Interpreter
-  ( GhcError,
-    InterpreterError (..),
-    errMsg,
-    eval,
-    runInterpreter,
-    runStmt,
-    setImportsQ,
-    typeChecksWithDetails,
-  )
-import Language.Haskell.Interpreter.Unsafe (unsafeSetGhcOption)
-import Test.Lowarn.Golden (goldenTest)
-import Test.Tasty (TestTree)
-import Text.Printf (printf)
+import Language.Haskell.Interpreter.Unsafe
+import Test.Lowarn.Golden
+import Test.Tasty
+import Text.Printf
 
 -- | Type for modules that should be imported during the test. This is typically
 -- used for adding orphan instances.

@@ -7,13 +7,9 @@
 -- Module for property testing utilities for Lowarn.
 module Test.Lowarn.Property (roundTripProperty) where
 
-import Lowarn.ParserCombinators (readWithParser)
+import Lowarn.ParserCombinators
 import Test.QuickCheck
-  ( Arbitrary (arbitrary, shrink),
-    Property,
-    propertyForAllShrinkShow,
-  )
-import Text.ParserCombinators.ReadP (ReadP)
+import Text.ParserCombinators.ReadP
 
 -- | Give the property that the result of parsing the result of showing a value,
 -- with a given custom parser and show function, is the original value.

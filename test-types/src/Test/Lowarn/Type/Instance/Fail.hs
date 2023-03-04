@@ -11,7 +11,7 @@
 -- Module for failing 'Transformable' instances for testing lowarn-transformer.
 module Test.Lowarn.Type.Instance.Fail () where
 
-import Lowarn.Transformer (Transformable (transform))
+import Lowarn.Transformer
 import qualified Test.Lowarn.Type.TypesA as A
 import qualified Test.Lowarn.Type.TypesB as B
 

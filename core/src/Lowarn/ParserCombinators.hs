@@ -16,11 +16,11 @@ module Lowarn.ParserCombinators
   )
 where
 
-import Control.Applicative (liftA2)
+import Control.Applicative
 import Control.Monad
-import Data.Char (isAsciiLower, isDigit)
+import Data.Char
 import Data.List (intercalate)
-import Data.Maybe (listToMaybe)
+import Data.Maybe
 import Text.ParserCombinators.ReadP
 
 -- $setup

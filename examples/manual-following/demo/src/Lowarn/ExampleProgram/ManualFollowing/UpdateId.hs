@@ -5,26 +5,26 @@ module Lowarn.ExampleProgram.ManualFollowing.UpdateId
   )
 where
 
-import Data.Maybe (fromJust)
-import Lowarn.ParserCombinators (readWithParser)
-import Lowarn.ProgramName (ProgramName, mkProgramName)
-import Lowarn.UpdateId (UpdateId (UpdateId))
-import Lowarn.VersionNumber (VersionNumber, parseWithDots)
+import Data.Maybe
+import Lowarn.ParserCombinators
+import Lowarn.ProgramName
+import Lowarn.UpdateId
+import Lowarn.VersionNumber
 
-mkVersionNumber :: String -> VersionNumber
-mkVersionNumber = fromJust . readWithParser parseWithDots
+mkVersionNumberFromString :: String -> VersionNumber
+mkVersionNumberFromString = fromJust . readWithParser parseWithDots
 
 versionNumber0 :: VersionNumber
-versionNumber0 = mkVersionNumber "0"
+versionNumber0 = mkVersionNumberFromString "0"
 
 versionNumber1 :: VersionNumber
-versionNumber1 = mkVersionNumber "1.0.0"
+versionNumber1 = mkVersionNumberFromString "1.0.0"
 
 versionNumber2 :: VersionNumber
-versionNumber2 = mkVersionNumber "2.0.0"
+versionNumber2 = mkVersionNumberFromString "2.0.0"
 
 versionNumber3 :: VersionNumber
-versionNumber3 = mkVersionNumber "3.0.0"
+versionNumber3 = mkVersionNumberFromString "3.0.0"
 
 manualFollowingProgramName :: ProgramName
 manualFollowingProgramName = fromJust $ mkProgramName "manual-following"

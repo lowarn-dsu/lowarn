@@ -1,12 +1,12 @@
 Type checking errors:
-Field name "_record2B" doesn't match field name "_record2A".
+Field name "record2B" doesn't match field name "record2A".
 In the first argument of ‘unTransformer’, namely
   ‘(genericRenamingTransformer :: Transformer Record2 Record2)’
 In the expression:
   unTransformer
     (genericRenamingTransformer :: Transformer Record2 Record2)
     (Record2A 1 "a")
-Field name "_record2A" doesn't match field name "_record2B".
+Field name "record2A" doesn't match field name "record2B".
 In the first argument of ‘unTransformer’, namely
   ‘(genericRenamingTransformer :: Transformer Record2 Record2)’
 In the expression:

@@ -1,5 +1,5 @@
 Type checking errors:
-Field name "_variantRecord3C" doesn't match field name "_variantRecord3'C".
+Field name "variantRecord3C" doesn't match field name "variantRecord3'C".
 In the first argument of ‘unTransformer’, namely
   ‘(genericRenamingTransformer ::
       Transformer VariantRecord3 VariantRecord3')’
@@ -8,7 +8,7 @@ In the expression:
     (genericRenamingTransformer ::
        Transformer VariantRecord3 VariantRecord3')
     (VariantRecord3A 1 "a" True)
-Field name "_variantRecord3B" doesn't match field name "_variantRecord3'B".
+Field name "variantRecord3B" doesn't match field name "variantRecord3'B".
 In the first argument of ‘unTransformer’, namely
   ‘(genericRenamingTransformer ::
       Transformer VariantRecord3 VariantRecord3')’
@@ -17,7 +17,7 @@ In the expression:
     (genericRenamingTransformer ::
        Transformer VariantRecord3 VariantRecord3')
     (VariantRecord3A 1 "a" True)
-Field name "_variantRecord3A" doesn't match field name "_variantRecord3'A".
+Field name "variantRecord3A" doesn't match field name "variantRecord3'A".
 In the first argument of ‘unTransformer’, namely
   ‘(genericRenamingTransformer ::
       Transformer VariantRecord3 VariantRecord3')’

@@ -2,24 +2,17 @@
 
 module Spec.Story (storyTests) where
 
-import Control.Monad (void)
+import Control.Monad
 import Lowarn.ExampleProgram.ManualFollowing.UpdateId
-  ( manualFollowingUpdateId_0_1,
-  )
-import Lowarn.Runtime (Runtime, loadUpdate)
-import System.IO (Handle)
+import Lowarn.Runtime
+import System.IO
 import Test.Lowarn.Story
-  ( inputLine,
-    outputLines,
-    storyGoldenTest,
-    writeInfo,
-  )
-import Test.Lowarn.Tasty (BinarySemaphore)
-import Test.Tasty (TestTree, testGroup)
+import Test.Lowarn.Tasty
+import Test.Tasty
 
 getExampleRuntime :: (Handle, Handle) -> Runtime ()
-getExampleRuntime handles =
-  void $ loadUpdate manualFollowingUpdateId_0_1 handles
+getExampleRuntime fileHandles =
+  void $ loadUpdate manualFollowingUpdateId_0_1 fileHandles
 
 timeout :: Int
 timeout = 40000000

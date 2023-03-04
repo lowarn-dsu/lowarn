@@ -41,9 +41,9 @@ where
 import Control.Applicative
 import Control.Arrow
 import qualified Control.Category as Cat
-import Control.Concurrent (MVar, newEmptyMVar, tryPutMVar, tryTakeMVar)
+import Control.Concurrent
 import Control.Monad
-import Data.Maybe (isJust)
+import Data.Maybe
 
 -- | Type for storing whether or not Lowarn should try to update a program.
 newtype UpdateSignalRegister = UpdateSignalRegister
@@ -55,15 +55,15 @@ newtype UpdateSignalRegister = UpdateSignalRegister
 newtype UpdateInfo a = UpdateInfo
   { -- | The state of the previous version of the program, after being
     -- transformed.
-    _lastState :: a
+    updateInfoLastState :: a
   }
 
 -- | Type for accessing data injected by the runtime.
 data RuntimeData a = RuntimeData
   { -- | An update signal register.
-    _updateSignalRegister :: UpdateSignalRegister,
+    runtimeDataUpdateSignalRegister :: UpdateSignalRegister,
     -- | If an update has occurred successfully, information about the update.
-    _updateInfo :: Maybe (UpdateInfo a)
+    runtimeDataUpdateInfo :: Maybe (UpdateInfo a)
   }
 
 -- | Type for functions that begin running a version of a program.
@@ -148,8 +148,8 @@ instance ArrowApply Transformer where
 -- | Type for functions that transform state from one version of a program
 -- into state for another.
 data Update a b = Update
-  { _transformer :: Transformer a b,
-    _entryPoint :: EntryPoint b
+  { updateTransformer :: Transformer a b,
+    updateEntryPoint :: EntryPoint b
   }
 
 -- | Create an update signal register.
@@ -164,16 +164,17 @@ fillUpdateSignalRegister = (`tryPutMVar` ()) . unUpdateSignalRegister
 -- | Return @True@ if the runtime has a program update that can be applied.
 isUpdateAvailable :: RuntimeData a -> IO Bool
 isUpdateAvailable =
-  (fmap isJust . tryTakeMVar) . (unUpdateSignalRegister . _updateSignalRegister)
+  (fmap isJust . tryTakeMVar)
+    . (unUpdateSignalRegister . runtimeDataUpdateSignalRegister)
 
 -- | Send a signal to Lowarn that indicates that an update is available. A
 -- boolean is returned which is @False@ if an update has already been signalled,
 -- and @True@ if one hasn't.
 signalUpdate :: RuntimeData a -> IO Bool
-signalUpdate = fillUpdateSignalRegister . _updateSignalRegister
+signalUpdate = fillUpdateSignalRegister . runtimeDataUpdateSignalRegister
 
 -- | Return the transformed state of the last version of the program, if there
 -- was a previous version of the program and the state was able to be
 -- transformed.
 lastState :: RuntimeData a -> Maybe a
-lastState = fmap _lastState . _updateInfo
+lastState = fmap updateInfoLastState . runtimeDataUpdateInfo

@@ -18,10 +18,10 @@ module Lowarn.Transformer.Strict
 where
 
 import Control.DeepSeq
-import Control.Exception (evaluate)
+import Control.Exception
 import Control.Monad
-import Lowarn (Transformer (..))
-import Lowarn.Transformer (Transformable (..))
+import Lowarn
+import Lowarn.Transformer
 
 class NFData b => StrictTransformable a b where
   {-# MINIMAL transformer' | transform' #-}
