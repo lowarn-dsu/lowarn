@@ -2,9 +2,9 @@ Type checking errors:
 No instance for (OrderWithSymbols
                    '[]
                    '[]
-                   '["_record1B"]
+                   '["record1B"]
                    '[t0]
-                   (OrderWithSymbolsWbs '[] '[] '["_record1B"]))
+                   (OrderWithSymbolsWbs '[] '[] '["record1B"]))
   arising from a use of ‘genericReorderingTransformer’
 In the first argument of ‘unTransformer’, namely
   ‘(genericReorderingTransformer :: Transformer Record1 Record1)’
