@@ -59,14 +59,14 @@ where
 
 import Control.Arrow
 import qualified Control.Category as Cat
-import Data.Coerce (Coercible, coerce)
-import Data.Kind (Type)
+import Data.Coerce
+import Data.Kind
 import GHC.TypeLits
 import Generics.SOP
 import Generics.SOP.Constraint
-import Generics.SOP.TH (deriveGeneric)
+import Generics.SOP.TH
 import qualified Generics.SOP.Type.Metadata as M
-import Lowarn (Transformer (..))
+import Lowarn
 
 -- | A two-parameter typeclass that has instances for types @a@ and @b@ if a
 -- @'Transformer' a b@ can be defined.
