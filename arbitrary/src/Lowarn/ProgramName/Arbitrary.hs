@@ -32,7 +32,7 @@ arbitraryProgramNameWordWithLength n = do
   firstHalf <- vectorOf firstHalfLength arbitraryAsciiLetterOrDigit
   middle <- arbitraryAsciiLower
   secondHalf <- vectorOf secondHalfLength arbitraryAsciiLetterOrDigit
-  return $ firstHalf ++ (middle : secondHalf)
+  return $ firstHalf <> (middle : secondHalf)
 
 shrinkArbitraryProgramNameWord :: String -> [String]
 shrinkArbitraryProgramNameWord programNameWord =
