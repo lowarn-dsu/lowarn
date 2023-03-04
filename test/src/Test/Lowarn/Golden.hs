@@ -7,9 +7,9 @@
 -- Module for golden testing utilities for Lowarn.
 module Test.Lowarn.Golden (goldenTest) where
 
-import System.FilePath ((<.>), (</>))
-import Test.Tasty (TestTree)
-import Test.Tasty.Golden (goldenVsFileDiff)
+import System.FilePath
+import Test.Tasty
+import Test.Tasty.Golden
 
 -- | Run a golden test that writes to a file when given a file path. A file path
 -- is given which corresponds to the test name. The file has extension @.log@

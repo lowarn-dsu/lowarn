@@ -3,15 +3,10 @@
 module Spec.ProgramName (programNameTests) where
 
 import Lowarn.ProgramName
-  ( parsePrefixModuleName,
-    parseProgramName,
-    showPrefixModuleName,
-    unProgramName,
-  )
 import Lowarn.ProgramName.Arbitrary ()
-import Test.Lowarn.Property (roundTripProperty)
-import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.QuickCheck (testProperty)
+import Test.Lowarn.Property
+import Test.Tasty
+import Test.Tasty.QuickCheck
 
 programNameRoundTrip :: TestTree
 programNameRoundTrip =

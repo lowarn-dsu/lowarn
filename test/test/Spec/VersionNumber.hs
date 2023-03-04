@@ -3,20 +3,12 @@
 module Spec.VersionNumber (versionNumberTests) where
 
 import Data.List.NonEmpty (NonEmpty ((:|)))
-import Data.Maybe (fromJust)
+import Data.Maybe
 import Lowarn.VersionNumber
-  ( VersionNumber,
-    mkVersionNumber,
-    parseWithDots,
-    parseWithLetters,
-    showWithDots,
-    showWithLetters,
-    unVersionNumber,
-  )
 import Lowarn.VersionNumber.Arbitrary ()
-import Test.Lowarn.Property (roundTripProperty)
-import Test.Tasty (TestTree, testGroup)
-import Test.Tasty.QuickCheck (testProperty)
+import Test.Lowarn.Property
+import Test.Tasty
+import Test.Tasty.QuickCheck
 
 lexicographicOrdering :: TestTree
 lexicographicOrdering = testProperty (show 'lexicographicOrdering) prop

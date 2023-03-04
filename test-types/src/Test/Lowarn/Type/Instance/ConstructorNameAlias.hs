@@ -11,7 +11,7 @@
 -- Module for constructor name aliases for testing lowarn-transformer.
 module Test.Lowarn.Type.Instance.ConstructorNameAlias () where
 
-import Lowarn.Transformer (ConstructorNameAlias)
+import Lowarn.Transformer
 
 instance ConstructorNameAlias "VariantUnlabelled3A" "VariantUnlabelled3'A"
 

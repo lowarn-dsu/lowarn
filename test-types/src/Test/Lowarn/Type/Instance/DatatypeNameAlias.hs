@@ -11,7 +11,7 @@
 -- Module for datatype name aliases for testing lowarn-transformer.
 module Test.Lowarn.Type.Instance.DatatypeNameAlias () where
 
-import Lowarn.Transformer (DatatypeNameAlias)
+import Lowarn.Transformer
 
 instance DatatypeNameAlias "VariantUnlabelled3" "VariantUnlabelled3'"
 

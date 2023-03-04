@@ -7,8 +7,8 @@
 -- Module for utilities for using Tasty.
 module Test.Lowarn.Tasty (BinarySemaphore, withBinarySemaphore) where
 
-import Control.Concurrent (MVar, newMVar)
-import Test.Tasty (TestTree, withResource)
+import Control.Concurrent
+import Test.Tasty
 
 -- | A binary semaphore.
 type BinarySemaphore = MVar ()
