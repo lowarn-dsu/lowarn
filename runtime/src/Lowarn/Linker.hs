@@ -15,7 +15,6 @@ module Lowarn.Linker
   ( -- * Monad
     Linker,
     runLinker,
-    liftIO,
 
     -- * Actions
     load,
@@ -23,38 +22,31 @@ module Lowarn.Linker
   )
 where
 
-import Control.Exception (bracket)
+import Control.Exception
 import Control.Monad
-import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.Trans.Class (lift)
-import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
-import Control.Monad.Trans.State.Strict (StateT, evalStateT, get, put)
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.Reader
+import Control.Monad.Trans.State.Strict
 import Data.List (minimumBy)
-import Data.Maybe (catMaybes, mapMaybe)
-import Data.Ord (comparing)
+import Data.Maybe
+import Data.Ord
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Foreign
-  ( FunPtr,
-    StablePtr,
-    castPtrToFunPtr,
-    deRefStablePtr,
-    freeStablePtr,
-  )
 import GHC hiding (load, moduleName)
 import GHC.Data.FastString
-import GHC.Data.ShortText (unpack)
-import GHC.Driver.Env (HscEnv (..))
-import GHC.Driver.Monad
+import GHC.Data.ShortText
+import GHC.Driver.Env
 import GHC.Driver.Session
-import GHC.Paths (libdir)
+import GHC.Paths
 import GHC.Unit hiding (moduleName)
-import GHC.Unit.Env (UnitEnv (..))
+import GHC.Unit.Env
 import GHC.Unit.State
 import GHCi.ObjLink
-import System.Environment (lookupEnv)
-import System.FilePath.Glob (CompOptions (..), compileWith, globDir1)
-import Text.Printf (printf)
+import System.Environment
+import System.FilePath.Glob
+import Text.Printf
 
 foreign import ccall "dynamic"
   mkStablePtr :: FunPtr (IO (StablePtr a)) -> IO (StablePtr a)
@@ -67,11 +59,11 @@ linkable f _ (Object objectFile) = f objectFile
 linkable _ f (Archive archiveFile) = f archiveFile
 
 newtype CurrentLinkables = CurrentLinkables
-  { _currentLinkables :: Set Linkable
+  { unCurrentLinkables :: Set Linkable
   }
 
 newtype ShouldUnload = ShouldUnload
-  { _shouldUnload :: Bool
+  { unShouldUnload :: Bool
   }
 
 -- | Monad for linking packages from the package database and accessing their
@@ -91,18 +83,18 @@ runLinker ::
 runLinker linker shouldUnload =
   defaultErrorHandler defaultFatalMessager defaultFlushOut $
     runGhc (Just libdir) $ do
-      flags <- getSessionDynFlags
+      dynFlags <- getSessionDynFlags
       session <- getSession
-      flags' <-
+      dynFlagsWithPackageEnv <-
         liftIO $
           lookupEnv "LOWARN_PACKAGE_ENV"
             >>= \case
-              Just "" -> return flags
-              Nothing -> return flags
+              Just "" -> return dynFlags
+              Nothing -> return dynFlags
               Just lowarnPackageEnv ->
                 interpretPackageEnv (hsc_logger session) $
-                  flags {packageEnv = Just lowarnPackageEnv}
-      setSessionDynFlags flags' {ghcLink = LinkStaticLib}
+                  dynFlags {packageEnv = Just lowarnPackageEnv}
+      setSessionDynFlags dynFlagsWithPackageEnv {ghcLink = LinkStaticLib}
       liftIO $
         initObjLinker $
           if shouldUnload then DontRetainCAFs else RetainCAFs
@@ -121,14 +113,14 @@ load ::
   -- | The name of a symbol that exports an entity.
   String ->
   Linker (Maybe a)
-load packageName' entityName = Linker $ do
+load packageName entityName = Linker $ do
   session <- lift $ lift getSession
 
-  case lookupUnitInfo session (PackageName $ mkFastString packageName') of
+  case lookupUnitInfo session (PackageName $ fsLit packageName) of
     Nothing -> return Nothing
     Just unitInfo -> do
-      previousLinkables <- _currentLinkables <$> get
-      shouldUnload <- _shouldUnload <$> lift ask
+      previousLinkables <- unCurrentLinkables <$> get
+      shouldUnload <- unShouldUnload <$> lift ask
 
       nextLinkables <-
         Set.fromList . catMaybes
@@ -179,24 +171,25 @@ load packageName' entityName = Linker $ do
 -- instead updated by resetting the unit state and unit databases.
 updatePackageDatabase :: Linker ()
 updatePackageDatabase = Linker $ lift $ lift $ do
-  flags <- getSessionDynFlags
+  dynFlags <- getSessionDynFlags
   session <- getSession
-  case packageEnv flags of
+  case packageEnv dynFlags of
     Nothing ->
-      setSession $
+      setSession
         session
           { hsc_unit_env = (hsc_unit_env session) {ue_units = emptyUnitState},
             hsc_unit_dbs = Nothing
           }
     Just _ -> do
       setSessionDynFlags
-        =<< liftIO (interpretPackageEnv (hsc_logger session) flags)
-  flags' <- getSessionDynFlags
+        =<< liftIO (interpretPackageEnv (hsc_logger session) dynFlags)
+  refreshedDynFlags <- getSessionDynFlags
   (unitDbs, unitState, homeUnit, platformConstants) <-
-    liftIO $ initUnits (hsc_logger session) flags' (hsc_unit_dbs session)
+    liftIO $
+      initUnits (hsc_logger session) refreshedDynFlags (hsc_unit_dbs session)
   setSessionDynFlags
-    =<< liftIO (updatePlatformConstants flags' platformConstants)
-  setSession $
+    =<< liftIO (updatePlatformConstants refreshedDynFlags platformConstants)
+  setSession
     session
       { hsc_unit_env =
           (hsc_unit_env session)
@@ -211,13 +204,13 @@ lookupUnitInfo session packageName = do
   unitInfo <-
     lookupUnitId unitState . indefUnit
       =<< lookupPackageName unitState packageName
-  unless (unitIsExposed unitInfo) Nothing
+  guard $ unitIsExposed unitInfo
   return unitInfo
   where
     unitState = ue_units $ hsc_unit_env session
 
 findLinkable :: UnitInfo -> IO (Maybe Linkable)
-findLinkable unitInfo = do
+findLinkable unitInfo =
   findFiles "%s/HS%s*.o" >>= \case
     [objectFile] -> return $ Just $ Object objectFile
     _ -> do
@@ -260,7 +253,7 @@ findDependencyUnitInfo session rootUnitInfo =
     transitiveClosure [] _ acc = acc
     transitiveClosure (unitInfo : unvisitedDependencies) seenDependencyIds acc =
       transitiveClosure
-        (newUnvisitedDependencies ++ unvisitedDependencies)
+        (newUnvisitedDependencies <> unvisitedDependencies)
         (Set.union seenDependencyIds $ Set.fromList newUnvisitedDependencyIds)
         (unitInfo : acc)
       where

@@ -12,44 +12,24 @@ module Lowarn.Runtime
     runRuntime,
     loadVersion,
     loadUpdate,
-    updatePackageDatabase,
+    updateRuntimePackageDatabase,
     liftLinker,
-    liftIO,
   )
 where
 
-import Control.Monad.IO.Class (MonadIO)
-import Control.Monad.Trans.Class (lift)
-import Control.Monad.Trans.Reader (ReaderT, ask, runReaderT)
+import Control.Exception
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Class
+import Control.Monad.Trans.Reader
 import Data.Functor
 import Debug.Trace (traceMarkerIO)
-import GHC.IO (evaluate)
 import Lowarn
-  ( EntryPoint (unEntryPoint),
-    RuntimeData (RuntimeData),
-    Transformer (unTransformer),
-    Update (_entryPoint, _transformer),
-    UpdateInfo (UpdateInfo),
-    UpdateSignalRegister,
-    fillUpdateSignalRegister,
-    mkUpdateSignalRegister,
-  )
-import Lowarn.Linker (Linker, liftIO, load, runLinker)
-import qualified Lowarn.Linker as Linker (updatePackageDatabase)
+import Lowarn.Linker
 import Lowarn.UpdateId
-  ( UpdateId (..),
-    nextVersionId,
-    showUpdateId,
-    showUpdatePackageName,
-  )
 import Lowarn.VersionId
-  ( VersionId (_versionNumber),
-    showVersionId,
-    showVersionPackageName,
-  )
-import Lowarn.VersionNumber (showEntryPointExport, showUpdateExport)
-import System.Posix.Signals (Handler (Catch), installHandler, sigUSR2)
-import Text.Printf (printf)
+import Lowarn.VersionNumber
+import System.Posix.Signals
+import Text.Printf
 
 -- | Monad for loading versions of programs while handling signals and
 -- transferring state.
@@ -144,14 +124,16 @@ loadUpdate updateId previousState = do
           printf
             "Update %s begin."
             (showUpdateId updateId)
-        previousState' <-
+        transformedPreviousState <-
           evaluate =<< unTransformer (_transformer update) previousState
         traceMarkerIO $
           printf
             "Version %s begin."
             (showVersionId $ nextVersionId updateId)
         unEntryPoint (_entryPoint update) $
-          RuntimeData updateSignalRegister (UpdateInfo <$> previousState')
+          RuntimeData
+            updateSignalRegister
+            (UpdateInfo <$> transformedPreviousState)
     )
   where
     packageName = showUpdatePackageName updateId
@@ -162,5 +144,5 @@ loadUpdate updateId previousState = do
 
 -- | Action that updates the package database, using
 -- 'Linker.updatePackageDatabase'.
-updatePackageDatabase :: Runtime ()
-updatePackageDatabase = liftLinker Linker.updatePackageDatabase
+updateRuntimePackageDatabase :: Runtime ()
+updateRuntimePackageDatabase = liftLinker updatePackageDatabase
