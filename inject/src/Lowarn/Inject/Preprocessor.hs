@@ -11,7 +11,7 @@ module Lowarn.Inject.Preprocessor (processFile, parseModuleName) where
 
 import Control.Monad
 import Data.Char
-import Data.List ( intercalate, isSuffixOf )
+import Data.List (intercalate, isSuffixOf)
 import Lowarn.Inject.Preprocessor.GenerateModule
 import Lowarn.ParserCombinators
 import Lowarn.ProgramName
