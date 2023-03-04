@@ -12,7 +12,6 @@ module Test.Lowarn.Story
   ( -- * Monad
     Story,
     runStory,
-    liftIO,
 
     -- * Actions
     inputLine,
