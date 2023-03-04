@@ -175,7 +175,7 @@ parseUpdatePackageName =
 -- ==== __Examples__
 --
 -- >>> previousVersionId (UpdateId (fromJust (mkProgramName "foo-bar")) (fromJust (mkVersionNumber (1 :| [2, 3]))) (fromJust (mkVersionNumber (1 :| [2, 4]))))
--- VersionId {updateIdProgramName = ProgramName {unProgramName = "foo-bar"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}}
+-- VersionId {versionIdProgramName = ProgramName {unProgramName = "foo-bar"}, versionIdVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}}
 previousVersionId :: UpdateId -> VersionId
 previousVersionId UpdateId {..} =
   VersionId updateIdProgramName updateIdPreviousVersionNumber
@@ -186,7 +186,7 @@ previousVersionId UpdateId {..} =
 -- ==== __Examples__
 --
 -- >>> nextVersionId (UpdateId (fromJust (mkProgramName "foo-bar")) (fromJust (mkVersionNumber (1 :| [2, 3]))) (fromJust (mkVersionNumber (1 :| [2, 4]))))
--- VersionId {updateIdProgramName = ProgramName {unProgramName = "foo-bar"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}}
+-- VersionId {versionIdProgramName = ProgramName {unProgramName = "foo-bar"}, versionIdVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}}
 nextVersionId :: UpdateId -> VersionId
 nextVersionId UpdateId {..} =
   VersionId updateIdProgramName updateIdNextVersionNumber
