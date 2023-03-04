@@ -1,4 +1,5 @@
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
+{-# LANGUAGE RecordWildCards #-}
 
 -- |
 -- Module                  : Lowarn.Runtime
@@ -103,7 +104,7 @@ loadVersion versionId mPreviousState = do
         RuntimeData updateSignalRegister (UpdateInfo <$> mPreviousState)
   where
     packageName = showVersionPackageName versionId
-    entryPointExport = showEntryPointExport $ _versionNumber versionId
+    entryPointExport = showEntryPointExport $ versionIdVersionNumber versionId
 
 -- | Action that performs an given update by running its state transformer,
 -- producing the state for the next version of a program, then running the next
@@ -114,23 +115,19 @@ loadUpdate ::
   -- | State from the previous version of the program.
   a ->
   Runtime b
-loadUpdate updateId previousState = do
+loadUpdate updateId@UpdateId {..} previousState = do
   updateSignalRegister <- Runtime ask
   withLinkedEntity
     packageName
     updateExport
-    ( \update -> do
+    ( \Update {..} -> do
         traceMarkerIO $
-          printf
-            "Update %s begin."
-            (showUpdateId updateId)
+          printf "Update %s begin." (showUpdateId updateId)
         transformedPreviousState <-
-          evaluate =<< unTransformer (_transformer update) previousState
+          evaluate =<< unTransformer updateTransformer previousState
         traceMarkerIO $
-          printf
-            "Version %s begin."
-            (showVersionId $ nextVersionId updateId)
-        unEntryPoint (_entryPoint update) $
+          printf "Version %s begin." (showVersionId $ nextVersionId updateId)
+        unEntryPoint updateEntryPoint $
           RuntimeData
             updateSignalRegister
             (UpdateInfo <$> transformedPreviousState)
@@ -139,8 +136,8 @@ loadUpdate updateId previousState = do
     packageName = showUpdatePackageName updateId
     updateExport =
       showUpdateExport
-        (_previousVersionNumber updateId)
-        (_nextVersionNumber updateId)
+        updateIdPreviousVersionNumber
+        updateIdNextVersionNumber
 
 -- | Action that updates the package database, using
 -- 'Linker.updatePackageDatabase'.

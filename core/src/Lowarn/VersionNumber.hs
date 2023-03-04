@@ -23,7 +23,7 @@ module Lowarn.VersionNumber
   )
 where
 
-import Data.Char (isDigit)
+import Data.Char
 import Data.List (intercalate)
 import Data.List.NonEmpty (NonEmpty ((:|)), toList)
 import Text.ParserCombinators.ReadP

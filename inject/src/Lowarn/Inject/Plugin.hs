@@ -95,7 +95,7 @@ resolveNames programName = do
           possiblePackageNames ->
             Just $ maximumBy (comparing length) possiblePackageNames
       mPackageProgramName =
-        _programName
+        versionIdProgramName
           <$> (readWithParser parseVersionPackageName =<< mPackageName)
       isEntryPointModule =
         isJust $

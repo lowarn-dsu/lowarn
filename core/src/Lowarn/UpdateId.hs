@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 -- |
 -- Module                  : Lowarn.UpdateId
 -- SPDX-License-Identifier : MIT
@@ -23,16 +25,10 @@ module Lowarn.UpdateId
   )
 where
 
-import Control.Monad (void)
-import Lowarn.ProgramName (ProgramName, parseProgramName, unProgramName)
-import Lowarn.VersionId (VersionId (VersionId))
+import Control.Monad
+import Lowarn.ProgramName
+import Lowarn.VersionId
 import Lowarn.VersionNumber
-  ( VersionNumber,
-    parseWithDots,
-    parseWithLetters,
-    showWithDots,
-    showWithLetters,
-  )
 import Text.ParserCombinators.ReadP
 
 -- $setup
@@ -48,23 +44,20 @@ import Text.ParserCombinators.ReadP
 -- identified by a version ID consisting of the program name and version's
 -- respective version number.
 data UpdateId = UpdateId
-  { _programName :: ProgramName,
-    _previousVersionNumber :: VersionNumber,
-    _nextVersionNumber :: VersionNumber
+  { updateIdProgramName :: ProgramName,
+    updateIdPreviousVersionNumber :: VersionNumber,
+    updateIdNextVersionNumber :: VersionNumber
   }
   deriving (Eq, Show)
 
 showWithShows :: String -> (VersionNumber -> String) -> UpdateId -> String
-showWithShows
+showWithShows prefix showVersionNumber UpdateId {..} =
   prefix
-  showVersionNumber
-  (UpdateId programName previousVersionNumber nextVersionNumber) =
-    prefix
-      <> unProgramName programName
-      <> "-"
-      <> showVersionNumber previousVersionNumber
-      <> "-"
-      <> showVersionNumber nextVersionNumber
+    <> unProgramName updateIdProgramName
+    <> "-"
+    <> showVersionNumber updateIdPreviousVersionNumber
+    <> "-"
+    <> showVersionNumber updateIdNextVersionNumber
 
 -- | Give the update ID as a 'String' in the form @foo-bar-1.2.3-1.2.4@,
 -- where @foo-bar@ is the program name, @1.2.3@ corresponds to the previous
@@ -88,17 +81,17 @@ showUpdateId = showWithShows "" showWithDots
 -- >>> showUpdatePackageName (UpdateId (fromJust (mkProgramName "foo-bar")) (fromJust (mkVersionNumber (1 :| [2, 3]))) (fromJust (mkVersionNumber (1 :| [2, 4]))))
 -- "lowarn-update-foo-bar-v1v2v3-v1v2v4"
 showUpdatePackageName :: UpdateId -> String
-showUpdatePackageName =
-  showWithShows "lowarn-update-" showWithLetters
+showUpdatePackageName = showWithShows "lowarn-update-" showWithLetters
 
 parseWithParsers :: ReadP () -> ReadP VersionNumber -> ReadP UpdateId
 parseWithParsers parsePrefix parseVersionNumber = do
   parsePrefix
-  programName <- parseProgramName
+  updateIdProgramName <- parseProgramName
   void $ char '-'
-  previousVersionNumber <- parseVersionNumber
+  updateIdPreviousVersionNumber <- parseVersionNumber
   void $ char '-'
-  UpdateId programName previousVersionNumber <$> parseVersionNumber
+  updateIdNextVersionNumber <- parseVersionNumber
+  return UpdateId {..}
 
 -- | A parser for update IDs in the form @foo-bar-1.2.3-1.2.4@, where
 -- @foo-bar@ is the program name, @1.2.3@ corresponds to the previous version
@@ -107,10 +100,10 @@ parseWithParsers parsePrefix parseVersionNumber = do
 -- ==== __Examples__
 --
 -- >>> readP_to_S parseUpdateId "foo-bar-1.2.3-1.2.4"
--- [(UpdateId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| []}},".2.4"),(UpdateId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2]}},".4"),(UpdateId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}},"")]
+-- [(UpdateId {updateIdProgramName = ProgramName {unProgramName = "foo-bar"}, updateIdPreviousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, updateIdNextVersionNumber = VersionNumber {unVersionNumber = 1 :| []}},".2.4"),(UpdateId {updateIdProgramName = ProgramName {unProgramName = "foo-bar"}, updateIdPreviousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, updateIdNextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2]}},".4"),(UpdateId {updateIdProgramName = ProgramName {unProgramName = "foo-bar"}, updateIdPreviousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, updateIdNextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}},"")]
 --
 -- >>> readWithParser parseUpdateId "foo-bar-1.2.3-1.2.4"
--- Just (UpdateId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}})
+-- Just (UpdateId {updateIdProgramName = ProgramName {unProgramName = "foo-bar"}, updateIdPreviousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, updateIdNextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}})
 --
 -- >>> readWithParser parseUpdateId "foo-bar-1.2.3-"
 -- Nothing
@@ -141,10 +134,10 @@ parseUpdateId = parseWithParsers (return ()) parseWithDots
 -- ==== __Examples__
 --
 -- >>> readP_to_S parseUpdatePackageName "lowarn-update-foo-bar-v1v2v3-v1v2v4"
--- [(UpdateId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| []}},"v2v4"),(UpdateId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2]}},"v4"),(UpdateId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}},"")]
+-- [(UpdateId {updateIdProgramName = ProgramName {unProgramName = "foo-bar"}, updateIdPreviousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, updateIdNextVersionNumber = VersionNumber {unVersionNumber = 1 :| []}},"v2v4"),(UpdateId {updateIdProgramName = ProgramName {unProgramName = "foo-bar"}, updateIdPreviousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, updateIdNextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2]}},"v4"),(UpdateId {updateIdProgramName = ProgramName {unProgramName = "foo-bar"}, updateIdPreviousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, updateIdNextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}},"")]
 --
 -- >>> readWithParser parseUpdatePackageName "lowarn-update-foo-bar-v1v2v3-v1v2v4"
--- Just (UpdateId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}})
+-- Just (UpdateId {updateIdProgramName = ProgramName {unProgramName = "foo-bar"}, updateIdPreviousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, updateIdNextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}})
 --
 -- >>> readWithParser parseUpdatePackageName "lowarn-update-foo-bar-v1v2v3-"
 -- Nothing
@@ -168,10 +161,10 @@ parseUpdateId = parseWithParsers (return ()) parseWithDots
 -- Nothing
 --
 -- >>> readP_to_S parseUpdatePackageName "lowarn-update-foo-bar-v1v2v3-v1v2v4-v1v2v5"
--- [(UpdateId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| []}},"v2v4-v1v2v5"),(UpdateId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2]}},"v4-v1v2v5"),(UpdateId {_programName = ProgramName {unProgramName = "foo-bar"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}},"-v1v2v5"),(UpdateId {_programName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| []}},"v2v5"),(UpdateId {_programName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2]}},"v5"),(UpdateId {_programName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,5]}},"")]
+-- [(UpdateId {updateIdProgramName = ProgramName {unProgramName = "foo-bar"}, updateIdPreviousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, updateIdNextVersionNumber = VersionNumber {unVersionNumber = 1 :| []}},"v2v4-v1v2v5"),(UpdateId {updateIdProgramName = ProgramName {unProgramName = "foo-bar"}, updateIdPreviousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, updateIdNextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2]}},"v4-v1v2v5"),(UpdateId {updateIdProgramName = ProgramName {unProgramName = "foo-bar"}, updateIdPreviousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}, updateIdNextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}},"-v1v2v5"),(UpdateId {updateIdProgramName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, updateIdPreviousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}, updateIdNextVersionNumber = VersionNumber {unVersionNumber = 1 :| []}},"v2v5"),(UpdateId {updateIdProgramName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, updateIdPreviousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}, updateIdNextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2]}},"v5"),(UpdateId {updateIdProgramName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, updateIdPreviousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}, updateIdNextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,5]}},"")]
 --
 -- >>> readWithParser parseUpdatePackageName "lowarn-update-foo-bar-v1v2v3-v1v2v4-v1v2v5"
--- Just (UpdateId {_programName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, _previousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}, _nextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,5]}})
+-- Just (UpdateId {updateIdProgramName = ProgramName {unProgramName = "foo-bar-v1v2v3"}, updateIdPreviousVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}, updateIdNextVersionNumber = VersionNumber {unVersionNumber = 1 :| [2,5]}})
 parseUpdatePackageName :: ReadP UpdateId
 parseUpdatePackageName =
   parseWithParsers (void $ string "lowarn-update-") parseWithLetters
@@ -182,10 +175,10 @@ parseUpdatePackageName =
 -- ==== __Examples__
 --
 -- >>> previousVersionId (UpdateId (fromJust (mkProgramName "foo-bar")) (fromJust (mkVersionNumber (1 :| [2, 3]))) (fromJust (mkVersionNumber (1 :| [2, 4]))))
--- VersionId {_programName = ProgramName {unProgramName = "foo-bar"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}}
+-- VersionId {updateIdProgramName = ProgramName {unProgramName = "foo-bar"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| [2,3]}}
 previousVersionId :: UpdateId -> VersionId
-previousVersionId (UpdateId programName previousVersionNumber _) =
-  VersionId programName previousVersionNumber
+previousVersionId UpdateId {..} =
+  VersionId updateIdProgramName updateIdPreviousVersionNumber
 
 -- | Give the version ID corresponding to the version of the program that the
 -- update corresponding to the update ID updates to.
@@ -193,7 +186,7 @@ previousVersionId (UpdateId programName previousVersionNumber _) =
 -- ==== __Examples__
 --
 -- >>> nextVersionId (UpdateId (fromJust (mkProgramName "foo-bar")) (fromJust (mkVersionNumber (1 :| [2, 3]))) (fromJust (mkVersionNumber (1 :| [2, 4]))))
--- VersionId {_programName = ProgramName {unProgramName = "foo-bar"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}}
+-- VersionId {updateIdProgramName = ProgramName {unProgramName = "foo-bar"}, _versionNumber = VersionNumber {unVersionNumber = 1 :| [2,4]}}
 nextVersionId :: UpdateId -> VersionId
-nextVersionId (UpdateId programName _ nextVersionNumber) =
-  VersionId programName nextVersionNumber
+nextVersionId UpdateId {..} =
+  VersionId updateIdProgramName updateIdNextVersionNumber
