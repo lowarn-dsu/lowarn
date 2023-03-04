@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Lowarn.ExampleProgram.Following
   ( User (..),
@@ -11,52 +12,47 @@ where
 
 import Control.DeepSeq
 import qualified GHC.Generics as GHC (Generic)
-import Lowarn (isUpdateAvailable)
+import Lowarn
 import Lowarn.Inject
 import Lowarn.Transformer (Generic, HasDatatypeInfo)
 import System.IO
-  ( Handle,
-    hFlush,
-    hGetLine,
-    hPutStrLn,
-  )
 import Text.Regex.TDFA
 
 newtype User = User
-  { _tag :: String
+  { userTag :: String
   }
   deriving (GHC.Generic, NFData, Generic, HasDatatypeInfo)
 
 data State = State
-  { _users :: [User],
-    _in :: Handle,
-    _out :: Handle
+  { stateUsers :: [User],
+    stateIn :: Handle,
+    stateOut :: Handle
   }
   deriving (GHC.Generic, Generic, HasDatatypeInfo)
 
 instance NFData State where
-  rnf state = rnf $ _users state
+  rnf state = rnf $ stateUsers state
 
 showUser :: User -> String
-showUser = _tag
+showUser = userTag
 
 eventLoop :: State -> IO State
-eventLoop state@(State users in_ out) = do
+eventLoop state@State {..} = do
   continue <- isUpdateAvailable =<< injectedRuntimeData
   if not continue
     then do
-      hPutStrLn out "Following:"
-      mapM_ (hPutStrLn out . showUser) $ reverse users
-      hPutStrLn out "------"
-      tag <- User <$> getTag
-      eventLoop $ state {_users = tag : users}
+      hPutStrLn stateOut "Following:"
+      mapM_ (hPutStrLn stateOut . showUser) $ reverse stateUsers
+      hPutStrLn stateOut "------"
+      user <- User <$> getTag
+      eventLoop $ state {stateUsers = user : stateUsers}
     else return state
   where
     getTag :: IO String
     getTag = do
-      hPutStrLn out "Input tag of user to follow:"
-      hFlush out
-      tag <- hGetLine in_
+      hPutStrLn stateOut "Input tag of user to follow:"
+      hFlush stateOut
+      tag <- hGetLine stateIn
       if tag =~ "\\`[a-zA-Z]+#[0-9]{4}\\'"
         then return tag
-        else hPutStrLn out "Invalid tag, try again." >> getTag
+        else hPutStrLn stateOut "Invalid tag, try again." >> getTag

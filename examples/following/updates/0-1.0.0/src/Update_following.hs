@@ -1,10 +1,10 @@
 module Update_following () where
 
-import EntryPoint_following (entryPoint)
-import Foreign (StablePtr, newStablePtr)
-import Lowarn (Transformer (Transformer), Update (Update))
-import Lowarn.ExampleProgram.Following (State (State))
-import System.IO (Handle)
+import EntryPoint_following
+import Foreign
+import Lowarn
+import Lowarn.ExampleProgram.Following
+import System.IO
 
 transformer :: Transformer (Handle, Handle) State
 transformer = Transformer $

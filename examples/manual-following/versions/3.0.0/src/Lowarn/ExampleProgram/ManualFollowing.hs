@@ -1,3 +1,5 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Lowarn.ExampleProgram.ManualFollowing
   ( User (..),
     State (..),
@@ -16,35 +18,35 @@ import System.IO
 import Text.Regex.TDFA
 
 newtype User = User
-  { _tag :: String
+  { userTag :: String
   }
 
 data State = State
-  { _users :: [User],
-    _in :: Handle,
-    _out :: Handle
+  { stateUsers :: [User],
+    stateIn :: Handle,
+    stateOut :: Handle
   }
 
 showUser :: User -> String
-showUser = _tag
+showUser = userTag
 
 eventLoop :: RuntimeData a -> State -> IO State
-eventLoop runtimeData state@(State users in_ out) = do
+eventLoop runtimeData state@State {..} = do
   continue <- isUpdateAvailable runtimeData
   if not continue
     then do
-      hPutStrLn out "Following:"
-      mapM_ (hPutStrLn out . showUser) $ reverse users
-      hPutStrLn out "------"
-      tag <- User <$> getTag
-      eventLoop runtimeData $ state {_users = tag : users}
+      hPutStrLn stateOut "Following:"
+      mapM_ (hPutStrLn stateOut . showUser) $ reverse stateUsers
+      hPutStrLn stateOut "------"
+      user <- User <$> getTag
+      eventLoop runtimeData $ state {stateUsers = user : stateUsers}
     else return state
   where
     getTag :: IO String
     getTag = do
-      hPutStrLn out "Input tag of user to follow:"
-      hFlush out
-      tag <- hGetLine in_
+      hPutStrLn stateOut "Input tag of user to follow:"
+      hFlush stateOut
+      tag <- hGetLine stateIn
       if tag =~ "\\`[a-zA-Z]+#[0-9]{4}\\'"
         then return tag
-        else hPutStrLn out "Invalid tag, try again." >> getTag
+        else hPutStrLn stateOut "Invalid tag, try again." >> getTag

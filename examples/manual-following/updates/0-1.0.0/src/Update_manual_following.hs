@@ -1,10 +1,10 @@
 module Update_manual_following () where
 
-import EntryPoint_manual_following (entryPoint)
-import Foreign (StablePtr, newStablePtr)
-import Lowarn (Transformer (Transformer), Update (Update))
-import Lowarn.ExampleProgram.ManualFollowing (State (State))
-import System.IO (Handle)
+import EntryPoint_manual_following
+import Foreign
+import Lowarn
+import Lowarn.ExampleProgram.ManualFollowing
+import System.IO
 
 transformer :: Transformer (Handle, Handle) State
 transformer = Transformer $
