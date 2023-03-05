@@ -7,7 +7,7 @@ cabal-version: 1.12
 name:           lowarn-cli
 version:        0.1.0.0
 synopsis:       Command-line interface for Lowarn
-description:    Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/inject#readme>
+description:    Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/cli#readme>
 category:       System
 homepage:       https://github.com/jonathanjameswatson/lowarn#readme
 bug-reports:    https://github.com/jonathanjameswatson/lowarn/issues
@@ -24,6 +24,8 @@ source-repository head
   location: https://github.com/jonathanjameswatson/lowarn
 
 library
+  exposed-modules:
+      Lowarn.Cli.Config
   other-modules:
       Paths_lowarn_cli
   hs-source-dirs:
@@ -33,7 +35,9 @@ library
       Glob >=0.10.2 && <0.11
     , base >=4.7 && <5
     , lowarn
+    , lowarn-aeson
     , lowarn-runtime
+    , yaml >=0.11.8 && <0.12
   default-language: Haskell2010
 
 executable lowarn-cli
@@ -47,7 +51,9 @@ executable lowarn-cli
       Glob >=0.10.2 && <0.11
     , base >=4.7 && <5
     , lowarn
+    , lowarn-aeson
     , lowarn-cli
     , lowarn-runtime
     , optparse-applicative ==0.17.*
+    , yaml >=0.11.8 && <0.12
   default-language: Haskell2010
