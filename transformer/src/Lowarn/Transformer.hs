@@ -219,18 +219,18 @@ type TransformableCodes' as bs =
 -- transformer fails. However, this is not short-circuiting, so every 'IO'
 -- action will be run.
 genericTransformer ::
-  TransformableCodes a b =>
+  (TransformableCodes a b) =>
   Transformer a b
 genericTransformer = Transformer genericTransform
 
 genericTransform ::
-  TransformableCodes a b =>
+  (TransformableCodes a b) =>
   a ->
   IO (Maybe b)
 genericTransform = fmap (fmap to) . genericTransform' . from
 
 genericTransform' ::
-  TransformableCodes' as bs =>
+  (TransformableCodes' as bs) =>
   SOP I as ->
   IO (Maybe (SOP I bs))
 genericTransform' =
@@ -307,37 +307,38 @@ instance
 instance NameAlias' 'True nu nl a b
 
 instance
-  TypeError
-    ( 'Text nu
-        ':<>: 'Text " name "
-        ':<>: 'ShowType a
-        ':<>: 'Text " doesn't match "
-        ':<>: 'Text nl
-        ':<>: 'Text " name "
-        ':<>: 'ShowType b
-        ':<>: 'Text "."
-    ) =>
+  ( TypeError
+      ( 'Text nu
+          ':<>: 'Text " name "
+          ':<>: 'ShowType a
+          ':<>: 'Text " doesn't match "
+          ':<>: 'Text nl
+          ':<>: 'Text " name "
+          ':<>: 'ShowType b
+          ':<>: 'Text "."
+      )
+  ) =>
   NameAlias' 'False nu nl a b
 
 class DatatypeNameAlias (a :: Symbol) (b :: Symbol)
 
 instance
   {-# OVERLAPPABLE #-}
-  NameAlias "Datatype" "datatype" a b =>
+  (NameAlias "Datatype" "datatype" a b) =>
   DatatypeNameAlias a b
 
 class ConstructorNameAlias (a :: Symbol) (b :: Symbol)
 
 instance
   {-# OVERLAPPABLE #-}
-  NameAlias "Constructor" "constructor" a b =>
+  (NameAlias "Constructor" "constructor" a b) =>
   ConstructorNameAlias a b
 
 class FieldNameAlias (a :: Symbol) (b :: Symbol)
 
 instance
   {-# OVERLAPPABLE #-}
-  NameAlias "Field" "field" a b =>
+  (NameAlias "Field" "field" a b) =>
   FieldNameAlias a b
 
 type DatatypesMatchRenamingConstraint a b =
@@ -352,25 +353,25 @@ type DatatypesMatchRenamingConstraint a b =
       (ConstructorInfosOf (DatatypeInfoOf b))
   )
 
-class DatatypesMatchRenamingConstraint a b => DatatypesMatchRenaming a b
+class (DatatypesMatchRenamingConstraint a b) => DatatypesMatchRenaming a b
 
-instance DatatypesMatchRenamingConstraint a b => DatatypesMatchRenaming a b
+instance (DatatypesMatchRenamingConstraint a b) => DatatypesMatchRenaming a b
 
 type ConstructorsMatchConstraint a b =
   ( ConstructorNameAlias (ConstructorNameOf a) (ConstructorNameOf b),
     AllZip FieldsMatch (FieldInfosOf a) (FieldInfosOf b)
   )
 
-class ConstructorsMatchConstraint a b => ConstructorsMatch a b
+class (ConstructorsMatchConstraint a b) => ConstructorsMatch a b
 
-instance ConstructorsMatchConstraint a b => ConstructorsMatch a b
+instance (ConstructorsMatchConstraint a b) => ConstructorsMatch a b
 
 type FieldsMatchConstraint a b =
   (FieldNameAlias (FieldNameOf a) (FieldNameOf b))
 
-class FieldsMatchConstraint a b => FieldsMatch a b
+class (FieldsMatchConstraint a b) => FieldsMatch a b
 
-instance FieldsMatchConstraint a b => FieldsMatch a b
+instance (FieldsMatchConstraint a b) => FieldsMatch a b
 
 -- | 'genericTransformer' with the following constraints:
 --
