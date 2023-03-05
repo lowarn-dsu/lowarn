@@ -7,6 +7,7 @@ extra-deps:
 
 packages:
 - arbitrary
+- cli
 - core
 - examples/following/demo
 - examples/following/updates/0-1.0.0
