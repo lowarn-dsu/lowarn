@@ -2,18 +2,19 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Update_following () where
 
 import Control.Arrow
 import Data.Foldable
-import Foreign
 import Lowarn
+import Lowarn.TH
 import Lowarn.Transformer
 import Lowarn.Transformer.Strict
 import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Following as PreviousVersion
-import "lowarn-version-following-v3v0v0" EntryPoint_following (entryPoint)
+import "lowarn-version-following-v3v0v0" EntryPoint_following
 import qualified "lowarn-version-following-v3v0v0" Lowarn.ExampleProgram.Following as NextVersion
 
 instance
@@ -27,8 +28,7 @@ instance
         . toList
         . fmap (NextVersion.User . PreviousVersion.showUser)
 
-foreign export ccall "hs_update_v2v0v0_v3v0v0"
-  hsUpdate :: IO (StablePtr (Update PreviousVersion.State NextVersion.State))
+update :: Update PreviousVersion.State NextVersion.State
+update = Update transformer' entryPoint
 
-hsUpdate :: IO (StablePtr (Update PreviousVersion.State NextVersion.State))
-hsUpdate = newStablePtr $ Update transformer' entryPoint
+updateExportDeclarations 'update
