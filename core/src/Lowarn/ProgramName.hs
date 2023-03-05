@@ -78,7 +78,7 @@ mkProgramName = readWithParser parseProgramName
 parseProgramName :: ReadP ProgramName
 parseProgramName = ProgramName <$> parsePackageName
 
-replace :: Eq a => a -> a -> [a] -> [a]
+replace :: (Eq a) => a -> a -> [a] -> [a]
 replace a b = map $ \c -> if c == a then b else c
 
 replaceUnderscoresWithHyphens :: String -> String

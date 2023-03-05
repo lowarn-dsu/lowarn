@@ -141,7 +141,7 @@ resolveNames programName = do
     lowarnInjectQualifier :: PkgQual
     lowarnInjectQualifier = OtherPkg $ stringToUnitId "lowarn-inject"
 
-    mapRightM :: Monad m => (b -> m c) -> Either a b -> m (Either a c)
+    mapRightM :: (Monad m) => (b -> m c) -> Either a b -> m (Either a c)
     mapRightM f = either (return . Left) (fmap Right . f)
 
     innerResolve :: Bool -> TcPluginM 'Init (Either String ResolvedNames)

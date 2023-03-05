@@ -23,7 +23,7 @@ import Control.Monad
 import Lowarn
 import Lowarn.Transformer
 
-class NFData b => StrictTransformable a b where
+class (NFData b) => StrictTransformable a b where
   {-# MINIMAL transformer' | transform' #-}
 
   -- | Gives a transformer that attempts to transform data from type @a@ to type
