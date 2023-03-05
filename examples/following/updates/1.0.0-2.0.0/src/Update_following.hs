@@ -2,6 +2,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE PackageImports #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Update_following () where
@@ -9,8 +10,8 @@ module Update_following () where
 import Control.Arrow
 import Data.Sequence (Seq)
 import qualified Data.Sequence as Seq
-import Foreign
 import Lowarn
+import Lowarn.TH
 import Lowarn.Transformer
 import Lowarn.Transformer.Strict
 import System.Random
@@ -32,8 +33,7 @@ instance Transformable [PreviousVersion.User] (Seq NextVersion.User) where
         )
         users
 
-foreign export ccall "hs_update_v1v0v0_v2v0v0"
-  hsUpdate :: IO (StablePtr (Update PreviousVersion.State NextVersion.State))
+update :: Update PreviousVersion.State NextVersion.State
+update = Update transformer' entryPoint
 
-hsUpdate :: IO (StablePtr (Update PreviousVersion.State NextVersion.State))
-hsUpdate = newStablePtr $ Update transformer' entryPoint
+updateExportDeclarations 'update
