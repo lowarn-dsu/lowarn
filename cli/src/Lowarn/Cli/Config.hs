@@ -27,4 +27,4 @@ instance FromJSON LowarnConfig where
   parseJSON = withObject "LowarnConfig" $ \v ->
     LowarnConfig
       <$> v
-        .: "program-name"
+      .: "program-name"
