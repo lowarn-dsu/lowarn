@@ -27,6 +27,7 @@ library
   exposed-modules:
       Lowarn.Cli.Config
       Lowarn.Cli.Env
+      Lowarn.Cli.Graph
       Lowarn.Cli.Run
   other-modules:
       Paths_lowarn_cli
@@ -36,6 +37,7 @@ library
   build-depends:
       Glob >=0.10.2 && <0.11
     , base >=4.7 && <5
+    , containers
     , directory
     , lowarn
     , lowarn-aeson
@@ -55,6 +57,7 @@ executable lowarn-cli
   build-depends:
       Glob >=0.10.2 && <0.11
     , base >=4.7 && <5
+    , containers
     , directory
     , lowarn
     , lowarn-aeson
