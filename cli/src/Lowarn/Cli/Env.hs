@@ -1,5 +1,4 @@
 {-# LANGUAGE InstanceSigs #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 
 -- |
@@ -12,7 +11,6 @@
 module Lowarn.Cli.Env (LowarnEnv (..), GetEnvException, getLowarnEnv) where
 
 import Control.Exception
-import Control.Monad.Trans.Class
 import Control.Monad.Trans.Except
 import Data.Yaml
 import Lowarn.Cli.Config
@@ -59,10 +57,7 @@ getLowarnEnv configPath =
         (ExceptT $ decodeFileEither configPath)
         (throwE . ConfigParseException)
     lowarnEnvConfigPath <-
-      catchE (parseSomeFile configPath) (throwE . PathException)
-        >>= \case
-          Abs absPath -> return absPath
-          Rel relPath -> do
-            currentDir <- lift getCurrentDir
-            return $ currentDir </> relPath
+      catchE
+        (resolveFile' configPath)
+        (throwE . PathException)
     return $ LowarnEnv {..}
