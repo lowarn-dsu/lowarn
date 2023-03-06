@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TupleSections #-}
 
 -- |
@@ -7,7 +8,13 @@
 -- Portability             : non-portable (GHC)
 --
 -- Module for Lowarn program version graphs.
-module Lowarn.Cli.VersionGraph (VersionGraph (..), getVersionGraph) where
+module Lowarn.Cli.VersionGraph
+  ( VersionGraph (..),
+    getVersionGraph,
+    latestVersionNumber,
+    latestNextVersionNumber,
+  )
+where
 
 import Control.Applicative
 import Control.Monad
@@ -32,6 +39,7 @@ newtype VersionGraph = VersionGraph
   }
 
 getPackages ::
+  Path Rel Dir ->
   ReadP a ->
   (ProgramName -> a -> b) ->
   (b -> String) ->
@@ -39,12 +47,13 @@ getPackages ::
   ProgramName ->
   IO [a]
 getPackages
+  packageParentDirectory
   parseVersionNumbers
   mkId
   showPackageName
   projectDirectory
   programName = do
-    (subdirectories, _) <- listDir projectDirectory
+    (subdirectories, _) <- listDir $ projectDirectory </> packageParentDirectory
     map fst
       <$> filterM
         snd
@@ -54,7 +63,7 @@ getPackages
           | versionDirectory <- subdirectories,
             Just versionNumbers <-
               return $
-                readWithParser parseVersionNumbers $
+                readWithParser (parseVersionNumbers <* char '/') $
                   toFilePath $
                     dirname versionDirectory,
             versionCabalPath <-
@@ -63,11 +72,13 @@ getPackages
         ]
 
 getVersions :: Path Abs Dir -> ProgramName -> IO [VersionNumber]
-getVersions = getPackages parseWithDots VersionId showVersionPackageName
+getVersions =
+  getPackages [reldir|versions|] parseWithDots VersionId showVersionPackageName
 
 getUpdates :: Path Abs Dir -> ProgramName -> IO [(VersionNumber, VersionNumber)]
 getUpdates =
   getPackages
+    [reldir|updates|]
     (liftA2 (,) parseWithDots (char '-' >> parseWithDots))
     (uncurry . UpdateId)
     showUpdatePackageName
@@ -92,3 +103,10 @@ getVersionGraph searchDir programName = do
         )
         (Map.fromList $ map (,Set.empty) versions)
         updates
+
+latestVersionNumber :: VersionGraph -> Maybe VersionNumber
+latestVersionNumber = fmap fst . Map.lookupMax . unVersionGraph
+
+latestNextVersionNumber :: VersionNumber -> VersionGraph -> Maybe VersionNumber
+latestNextVersionNumber versionNumber =
+  Map.lookup versionNumber . unVersionGraph >=> Set.lookupMax
