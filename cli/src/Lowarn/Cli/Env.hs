@@ -17,7 +17,7 @@ import Control.Monad.Trans.Except
 import Data.Yaml
 import Lowarn.Cli.Config
 import Path
-import System.Directory
+import Path.IO
 import Text.Printf
 
 -- | Type for the environment used by functions in Lowarn's CLI.
@@ -63,8 +63,6 @@ getLowarnEnv configPath =
         >>= \case
           Abs absPath -> return absPath
           Rel relPath -> do
-            currentDir <- lift getCurrentDirectory
-            absCurrentDir <-
-              catchE (parseAbsDir currentDir) (throwE . PathException)
-            return $ absCurrentDir </> relPath
+            currentDir <- lift getCurrentDir
+            return $ currentDir </> relPath
     return $ LowarnEnv {..}
