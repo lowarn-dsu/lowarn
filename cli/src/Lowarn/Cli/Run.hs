@@ -23,30 +23,36 @@ import Path
 import System.IO
 import Text.Printf
 
-run :: LowarnEnv -> IO ()
-run lowarnEnv =
-  runRuntime (runWithState lowarnEnv Nothing) True >>= \case
+run :: LowarnEnv -> Maybe VersionNumber -> IO ()
+run lowarnEnv mVersionNumber =
+  runRuntime (runWithState lowarnEnv $ Left mVersionNumber) True >>= \case
     Left e ->
       hPutStrLn stderr $ printf "An error occurred in Lowarn's runtime:\n%s" e
     Right () -> return ()
 
+
+
 runWithState ::
-  LowarnEnv -> Maybe (VersionNumber, a) -> Runtime (Either String ())
+  LowarnEnv ->
+    Either (Maybe VersionNumber) (VersionNumber, a) ->
+     Runtime (Either String ())
 runWithState
   lowarnEnv@LowarnEnv {lowarnEnvConfig = LowarnConfig {..}, ..}
-  mPreviousVersionNumberAndState = do
+  ePreviousVersionNumberAndState = do
     updateRuntimePackageDatabase
     versionGraph <-
       liftIO $
         getVersionGraph (parent lowarnEnvConfigPath) lowarnConfigProgramName
-    eNextVersionNumberAndState <- case mPreviousVersionNumberAndState of
-      Nothing ->
+    eNextVersionNumberAndState <- case ePreviousVersionNumberAndState of
+      Left Nothing ->
         return $ case latestVersionNumber versionGraph of
           Just nextVersionNumber -> Right (nextVersionNumber, Nothing)
           Nothing ->
             Left
               "Latest version could not be loaded as there are no versions in the version graph."
-      Just (previousVersionNumber, previousState) ->
+      Left (Just previousVersionNumber) ->
+        return $ Right (previousVersionNumber, Nothing)
+      Right (previousVersionNumber, previousState) ->
         case latestNextVersionNumber previousVersionNumber versionGraph of
           Just nextVersionNumber ->
             Right . (nextVersionNumber,)
@@ -66,7 +72,7 @@ runWithState
     case eNextVersionNumberAndState of
       Left e -> return $ Left e
       Right (nextVersionNumber, mState) ->
-        runWithState lowarnEnv . Just . (nextVersionNumber,)
+        runWithState lowarnEnv . Right . (nextVersionNumber,)
           =<< loadVersion
             (VersionId lowarnConfigProgramName nextVersionNumber)
             mState

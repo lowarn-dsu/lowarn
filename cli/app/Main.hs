@@ -9,16 +9,40 @@ import Lowarn.Cli.Env
 import Lowarn.Cli.Run
 import Options.Applicative
 import System.IO
+import Lowarn.VersionNumber
+import Lowarn.ParserCombinators
+import Text.Printf
 
 data Options = Options
   { optionsCommand :: Command,
     optionsConfigPath :: Maybe FilePath
   }
 
-data Command = RunCommand
+newtype Command = RunCommand RunOptions
+
+newtype RunOptions = RunOptions
+  {
+    runOptionsVersion :: Maybe VersionNumber
+  }
+
+versionNumberReader :: ReadM VersionNumber
+versionNumberReader = do
+  versionNumberString <- str
+  case readWithParser parseWithDots versionNumberString of
+    Just versionNumber -> return versionNumber
+    Nothing ->
+      readerError $
+        printf "The given version number \"%s\" is invalid." versionNumberString
 
 runParser :: Parser Command
-runParser = pure RunCommand
+runParser = do
+  runOptionsVersion <-
+    optional $
+      option versionNumberReader $
+        long "version"
+          <> metavar "VERSION-NUMBER"
+          <> help "Override the starting version to run."
+  return $ RunCommand $ RunOptions {..}
 
 runParserInfo :: ParserInfo Command
 runParserInfo =
@@ -27,15 +51,14 @@ runParserInfo =
 
 parser :: Parser Options
 parser = do
-  optionsCommand <-
-    hsubparser $ command "run" runParserInfo
   optionsConfigPath <-
     optional $
       strOption $
         long "lowarn-yaml"
           <> metavar "LOWARN-YAML"
           <> help "Override Lowarn CLI configuration file."
-
+  optionsCommand <-
+    hsubparser $ command "run" runParserInfo
   return Options {..}
 
 parserInfo :: ParserInfo Options
@@ -59,4 +82,4 @@ main = do
       hPutStrLn stderr $ displayException e
     Right env -> do
       case optionsCommand of
-        RunCommand -> run env
+        RunCommand (RunOptions {..}) -> run env runOptionsVersion
