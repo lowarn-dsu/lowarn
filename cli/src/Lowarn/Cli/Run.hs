@@ -24,8 +24,10 @@ import System.IO
 import Text.Printf
 
 run :: LowarnEnv -> Maybe VersionNumber -> IO ()
-run lowarnEnv mVersionNumber =
-  runRuntime (runWithState lowarnEnv $ Left mVersionNumber) True >>= \case
+run lowarnEnv@LowarnEnv {lowarnEnvConfig = LowarnConfig {..}} mVersionNumber =
+  runRuntime
+    (runWithState lowarnEnv $ Left mVersionNumber)
+    lowarnConfigLazyUpdates >>= \case
     Left e ->
       hPutStrLn stderr $ printf "An error occurred in Lowarn's runtime:\n%s" e
     Right () -> return ()

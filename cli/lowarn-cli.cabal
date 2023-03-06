@@ -35,8 +35,7 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      Glob >=0.10.2 && <0.11
-    , base >=4.7 && <5
+      base >=4.7 && <5
     , containers
     , lowarn
     , lowarn-aeson
@@ -55,8 +54,7 @@ executable lowarn-cli
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      Glob >=0.10.2 && <0.11
-    , base >=4.7 && <5
+      base >=4.7 && <5
     , containers
     , lowarn
     , lowarn-aeson

@@ -16,9 +16,10 @@ import Lowarn.ProgramName
 import Lowarn.ProgramName.Aeson ()
 
 -- | Type for Lowarn CLI configurations.
-newtype LowarnConfig = LowarnConfig
+data LowarnConfig = LowarnConfig
   { -- | The name of the program that is being updated.
-    lowarnConfigProgramName :: ProgramName
+    lowarnConfigProgramName :: ProgramName,
+    lowarnConfigLazyUpdates :: Bool
   }
   deriving (Show)
 
@@ -28,3 +29,5 @@ instance FromJSON LowarnConfig where
     LowarnConfig
       <$> v
         .: "program-name"
+      <*> v
+        .:? "lazy-updates" .!= True
