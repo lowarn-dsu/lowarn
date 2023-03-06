@@ -1,0 +1,36 @@
+name:                lowarn-aeson
+version:             0.1.0.0
+github:              "jonathanjameswatson/lowarn"
+license:             MIT
+author:              "Jonathan Watson"
+maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
+copyright:           "2023 Jonathan Watson"
+
+extra-source-files:
+- README.md
+
+synopsis:            Aeson instances for Lowarn
+category:            System
+
+description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/aeson#readme>
+
+dependencies:
+- aeson >= 2.0.3 && < 2.1
+- base >= 4.7 && < 5
+- lowarn
+- text >= 1.2.5 && < 1.3
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+- -Wno-orphans
+
+library:
+  source-dirs: src

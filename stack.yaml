@@ -6,7 +6,9 @@ extra-deps:
 - ghc-tcplugin-api-0.9.0.0
 
 packages:
+- aeson
 - arbitrary
+- cli
 - core
 - examples/following/demo
 - examples/following/updates/0-1.0.0
