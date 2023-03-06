@@ -115,7 +115,7 @@ showUpdateExport previousVersionNumber nextVersionNUmber =
 
 parseWithSeparator :: Char -> ReadP VersionNumber
 parseWithSeparator separator = do
-  xs <- sepBy1 (read <$> munch1 isDigit) (char separator)
+  xs <- sepBy1 (read <$> string "0" <++ munch1 isDigit) (char separator)
   case xs of
     (y : ys) -> return $ VersionNumber (y :| ys)
     [] -> pfail
@@ -150,7 +150,7 @@ parseWithSeparator separator = do
 -- Just (VersionNumber {unVersionNumber = 0 :| []})
 --
 -- >>> readWithParser parseWithDots "01.002.0003"
--- Just (VersionNumber {unVersionNumber = 1 :| [2,3]})
+-- Nothing
 --
 -- >>> readWithParser parseWithDots ""
 -- Nothing
@@ -187,7 +187,7 @@ parseWithDots = parseWithSeparator '.'
 -- Just (VersionNumber {unVersionNumber = 0 :| []})
 --
 -- >>> readWithParser parseWithLetters "v01v002v0003"
--- Just (VersionNumber {unVersionNumber = 1 :| [2,3]})
+-- Nothing
 --
 -- >>> readWithParser parseWithLetters ""
 -- Nothing
