@@ -24,7 +24,7 @@ class InjectRuntimeData a where
 
 -- | Set the 'RuntimeData' associated with a version of a program, when we have
 -- an instance of @'InjectRuntimeData' a@.
-injectRuntimeData :: InjectRuntimeData a => RuntimeData a -> IO ()
+injectRuntimeData :: (InjectRuntimeData a) => RuntimeData a -> IO ()
 injectRuntimeData = injectRuntimeData'
 
 -- | A typeclass that allows @'RuntimeData' a@ to be accessed in certain
@@ -34,5 +34,5 @@ class InjectedRuntimeData a where
 
 -- | Get the 'RuntimeData' associated with a version of a program, when we have
 -- an instance of @'InjectedRuntimeData' a@.
-injectedRuntimeData :: InjectedRuntimeData a => IO (RuntimeData a)
+injectedRuntimeData :: (InjectedRuntimeData a) => IO (RuntimeData a)
 injectedRuntimeData = injectedRuntimeData'
