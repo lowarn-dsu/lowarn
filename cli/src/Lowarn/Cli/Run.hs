@@ -23,6 +23,9 @@ import Path
 import System.IO
 import Text.Printf
 
+-- | Find and run versions of the program, optionally starting with a given
+-- version. The latest available version of the program is used when searching
+-- for one.
 run :: LowarnEnv -> Maybe VersionNumber -> IO ()
 run lowarnEnv@LowarnEnv {lowarnEnvConfig = LowarnConfig {..}} mVersionNumber =
   runRuntime

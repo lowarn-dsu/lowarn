@@ -105,9 +105,14 @@ getVersionGraph searchDir programName = do
         (Map.fromList $ map (,Set.empty) versions)
         updates
 
+-- | Give the latest version found in the version graph, if the version graph is
+-- not empty.
 latestVersionNumber :: VersionGraph -> Maybe VersionNumber
 latestVersionNumber = fmap fst . Map.lookupMax . unVersionGraph
 
+-- | Give the latest version that can be updated to from a given version,
+-- according to a version graph, or 'Nothing' if the given version number is not
+-- in the version graph or does not point to another version.
 latestNextVersionNumber :: VersionNumber -> VersionGraph -> Maybe VersionNumber
 latestNextVersionNumber versionNumber =
   Map.lookup versionNumber . unVersionGraph >=> Set.lookupMax
