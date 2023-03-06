@@ -7,10 +7,10 @@ module Main (main) where
 import Control.Exception
 import Lowarn.Cli.Env
 import Lowarn.Cli.Run
+import Lowarn.ParserCombinators
+import Lowarn.VersionNumber
 import Options.Applicative
 import System.IO
-import Lowarn.VersionNumber
-import Lowarn.ParserCombinators
 import Text.Printf
 
 data Options = Options
@@ -21,8 +21,7 @@ data Options = Options
 newtype Command = RunCommand RunOptions
 
 newtype RunOptions = RunOptions
-  {
-    runOptionsVersion :: Maybe VersionNumber
+  { runOptionsVersion :: Maybe VersionNumber
   }
 
 versionNumberReader :: ReadM VersionNumber

@@ -37,6 +37,7 @@ import Text.ParserCombinators.ReadP
 newtype VersionGraph = VersionGraph
   { unVersionGraph :: Map VersionNumber (Set VersionNumber)
   }
+  deriving (Show)
 
 getPackages ::
   Path Rel Dir ->
@@ -99,7 +100,7 @@ getVersionGraph searchDir programName = do
     VersionGraph $
       foldl'
         ( \versionMap (fromVersion, toVersion) ->
-            Map.adjust (Set.insert fromVersion) toVersion versionMap
+            Map.adjust (Set.insert toVersion) fromVersion versionMap
         )
         (Map.fromList $ map (,Set.empty) versions)
         updates

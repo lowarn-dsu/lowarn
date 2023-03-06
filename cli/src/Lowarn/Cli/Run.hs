@@ -30,12 +30,10 @@ run lowarnEnv mVersionNumber =
       hPutStrLn stderr $ printf "An error occurred in Lowarn's runtime:\n%s" e
     Right () -> return ()
 
-
-
 runWithState ::
   LowarnEnv ->
-    Either (Maybe VersionNumber) (VersionNumber, a) ->
-     Runtime (Either String ())
+  Either (Maybe VersionNumber) (VersionNumber, a) ->
+  Runtime (Either String ())
 runWithState
   lowarnEnv@LowarnEnv {lowarnEnvConfig = LowarnConfig {..}, ..}
   ePreviousVersionNumberAndState = do
