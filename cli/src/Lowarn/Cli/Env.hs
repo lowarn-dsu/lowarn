@@ -29,6 +29,7 @@ data LowarnEnv = LowarnEnv
   }
   deriving (Show)
 
+-- | Type for the exceptions raised while creating 'LowarnEnv'.
 data GetEnvException
   = ConfigParseException ParseException
   | PathException PathException
@@ -48,6 +49,8 @@ instance Exception GetEnvException where
         PathException pathException ->
           ("config file path", displayException pathException)
 
+-- | Create a 'LowarnEnv', given the file path of the configuration file being
+-- used.
 getLowarnEnv :: FilePath -> IO (Either GetEnvException LowarnEnv)
 getLowarnEnv configPath =
   runExceptT $ do
