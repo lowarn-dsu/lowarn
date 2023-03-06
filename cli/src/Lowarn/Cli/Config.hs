@@ -30,4 +30,5 @@ instance FromJSON LowarnConfig where
       <$> v
         .: "program-name"
       <*> v
-        .:? "lazy-updates" .!= True
+        .:? "lazy-updates"
+        .!= True
