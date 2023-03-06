@@ -1,2 +1,2 @@
 program-name: following
-lazy: true
+lazy-updates: false
