@@ -27,8 +27,8 @@ library
   exposed-modules:
       Lowarn.Cli.Config
       Lowarn.Cli.Env
-      Lowarn.Cli.Graph
       Lowarn.Cli.Run
+      Lowarn.Cli.VersionGraph
   other-modules:
       Paths_lowarn_cli
   hs-source-dirs:

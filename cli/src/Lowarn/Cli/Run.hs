@@ -9,11 +9,15 @@
 -- Module for a command that allows Lowarn programs to be run.
 module Lowarn.Cli.Run (run) where
 
+import Lowarn.Cli.Config (LowarnConfig (lowarnConfigProgramName))
 import Lowarn.Cli.Env
-import Lowarn.Cli.Graph
+import Lowarn.Cli.VersionGraph
 import Path
 
 run :: LowarnEnv -> IO ()
 run LowarnEnv {..} = do
-  graph <- getGraph $ parent lowarnEnvConfigPath
+  versionGraph <-
+    getVersionGraph
+      (parent lowarnEnvConfigPath)
+      (lowarnConfigProgramName lowarnEnvConfig)
   return ()
