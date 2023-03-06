@@ -15,7 +15,6 @@ import Control.Monad.Trans.Except
 import Data.Yaml
 import Lowarn.Cli.Config
 import Path
-import Path.IO
 import Text.Printf
 
 -- | Type for the environment used by functions in Lowarn's CLI.
@@ -28,9 +27,8 @@ data LowarnEnv = LowarnEnv
   deriving (Show)
 
 -- | Type for the exceptions raised while creating 'LowarnEnv'.
-data GetEnvException
+newtype GetEnvException
   = ConfigParseException ParseException
-  | PathException PathException
   deriving (Show)
 
 instance Exception GetEnvException where
@@ -44,20 +42,14 @@ instance Exception GetEnvException where
       (errorTypeString, errorString) = case e of
         ConfigParseException parseException ->
           ("configuration file parsing", displayException parseException)
-        PathException pathException ->
-          ("config file path", displayException pathException)
 
 -- | Create a 'LowarnEnv', given the file path of the configuration file being
 -- used.
-getLowarnEnv :: FilePath -> IO (Either GetEnvException LowarnEnv)
-getLowarnEnv configPath =
+getLowarnEnv :: Path Abs File -> IO (Either GetEnvException LowarnEnv)
+getLowarnEnv lowarnEnvConfigPath =
   runExceptT $ do
     lowarnEnvConfig <-
       catchE
-        (ExceptT $ decodeFileEither configPath)
+        (ExceptT $ decodeFileEither $ toFilePath lowarnEnvConfigPath)
         (throwE . ConfigParseException)
-    lowarnEnvConfigPath <-
-      catchE
-        (resolveFile' configPath)
-        (throwE . PathException)
     return $ LowarnEnv {..}

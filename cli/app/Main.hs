@@ -5,17 +5,19 @@
 module Main (main) where
 
 import Control.Exception
+import Lowarn.Cli.Config
 import Lowarn.Cli.Env
 import Lowarn.Cli.Run
 import Lowarn.ParserCombinators
 import Lowarn.VersionNumber
 import Options.Applicative
+import Path.IO
 import System.IO
 import Text.Printf
 
 data Options = Options
   { optionsCommand :: Command,
-    optionsConfigPath :: Maybe FilePath
+    optionsConfigFilePath :: Maybe FilePath
   }
 
 newtype Command = RunCommand RunOptions
@@ -50,7 +52,7 @@ runParserInfo =
 
 parser :: Parser Options
 parser = do
-  optionsConfigPath <-
+  optionsConfigFilePath <-
     optional $
       strOption $
         long "lowarn-yaml"
@@ -71,11 +73,12 @@ parserInfo =
 main :: IO ()
 main = do
   Options {..} <- execParser parserInfo
-  configPath <- case optionsConfigPath of
-    Just p -> return p
+  configPath <- case optionsConfigFilePath of
+    Just configPath -> resolveFile' configPath
     Nothing ->
-      fail
-        "Automatically finding the Lowarn configuration file is not currently supported."
+      findConfigPath >>= \case
+        Just configFilePath -> return configFilePath
+        Nothing -> fail "The Lowarn configuration file could not be found."
   getLowarnEnv configPath >>= \case
     Left e ->
       hPutStrLn stderr $ displayException e
