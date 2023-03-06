@@ -4,19 +4,18 @@
 
 module Main (main) where
 
-import Data.Yaml (decodeFileEither)
-import Lowarn.Cli.Config
-import Lowarn.ProgramName
+import Control.Exception
+import Lowarn.Cli.Env
 import Options.Applicative
-import Text.Printf
+import System.IO
 
 newtype Options = Options
-  { optionsLowarnYamlPath :: Maybe FilePath
+  { optionsConfigPath :: Maybe FilePath
   }
 
 parser :: Parser Options
 parser = do
-  optionsLowarnYamlPath <-
+  optionsConfigPath <-
     optional $
       strOption $
         long "lowarn-yaml"
@@ -35,16 +34,13 @@ parserInfo =
 main :: IO ()
 main = do
   Options {..} <- execParser parserInfo
-  lowarnYamlPath <- case optionsLowarnYamlPath of
+  configPath <- case optionsConfigPath of
     Just p -> return p
     Nothing ->
       fail
         "Automatically finding the Lowarn configuration file is not currently supported."
-  decodeFileEither lowarnYamlPath >>= \case
+  getLowarnEnv configPath >>= \case
     Left e ->
-      printf "Could not parse Lowarn CLI configuration file:\n%s" (show e)
-    Right config -> do
-      putStrLn $
-        printf "Program name is %s." $
-          unProgramName $
-            lowarnConfigProgramName config
+      hPutStrLn stderr $ displayException e
+    Right env -> do
+      print env
