@@ -1,4 +1,4 @@
-resolver: lts-20.9
+resolver: lts-20.13
 
 extra-deps:
 - combinat-0.2.10.0@sha256:adc1dbb532b048e419374e9e89dc4f92c47758300ffe8534a54849266706e53b,5318
