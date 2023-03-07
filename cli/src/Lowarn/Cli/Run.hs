@@ -48,14 +48,21 @@ runWithState
       liftIO $
         getVersionGraph (parent lowarnEnvConfigPath) lowarnConfigProgramName
     eNextVersionNumberAndState <- case ePreviousVersionNumberAndState of
-      Left Nothing ->
-        return $ case latestVersionNumber versionGraph of
-          Just nextVersionNumber -> Right (nextVersionNumber, Nothing)
-          Nothing ->
-            Left
-              "Latest version could not be loaded as there are no versions in the version graph."
-      Left (Just previousVersionNumber) ->
-        return $ Right (previousVersionNumber, Nothing)
+      Left mNextVersionNumber -> do
+        case maybe
+          ( maybe
+              (Left "Latest version could not be loaded as there are no versions in the version graph.")
+              Right
+              $ latestVersionNumber versionGraph
+          )
+          Right
+          mNextVersionNumber of
+          Left e -> return $ Left e
+          Right nextVersionNumber ->
+            Right . (nextVersionNumber,)
+              <$> loadVersion
+                (VersionId lowarnConfigProgramName nextVersionNumber)
+                Nothing
       Right (previousVersionNumber, previousState) ->
         case latestNextVersionNumber previousVersionNumber versionGraph of
           Just nextVersionNumber ->
@@ -75,8 +82,5 @@ runWithState
               $ showWithDots previousVersionNumber
     case eNextVersionNumberAndState of
       Left e -> return $ Left e
-      Right (nextVersionNumber, mState) ->
-        runWithState lowarnEnv . Right . (nextVersionNumber,)
-          =<< loadVersion
-            (VersionId lowarnConfigProgramName nextVersionNumber)
-            mState
+      Right (nextVersionNumber, nextState) ->
+        runWithState lowarnEnv $ Right (nextVersionNumber, nextState)
