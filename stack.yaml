@@ -24,6 +24,10 @@ packages:
 - examples/manual-following/versions/1.0.0
 - examples/manual-following/versions/2.0.0
 - examples/manual-following/versions/3.0.0
+- examples/reproduction/demo
+- examples/reproduction/updates/1.0.0-2.0.0
+- examples/reproduction/versions/1.0.0
+- examples/reproduction/versions/2.0.0
 - inject
 - runtime
 - test
