@@ -59,6 +59,9 @@ import Text.Printf (printf)
 foreign import ccall "dynamic"
   mkStablePtr :: FunPtr (IO (StablePtr a)) -> IO (StablePtr a)
 
+foreign import ccall unsafe "setHighMemDynamic"
+  setHighMemDynamic :: IO ()
+
 data Linkable = Object FilePath | Archive FilePath
   deriving (Eq, Ord, Show)
 
@@ -103,9 +106,10 @@ runLinker linker shouldUnload =
                 interpretPackageEnv (hsc_logger session) $
                   flags {packageEnv = Just lowarnPackageEnv}
       setSessionDynFlags flags' {ghcLink = LinkStaticLib}
-      liftIO $
+      liftIO $ do
         initObjLinker $
           if shouldUnload then DontRetainCAFs else RetainCAFs
+        when shouldUnload setHighMemDynamic
       runReaderT
         ( evalStateT (unLinker linker) $ CurrentLinkables Set.empty
         )
