@@ -1,35 +1,9 @@
 resolver: lts-20.13
 
-extra-deps:
-- combinat-0.2.10.0@sha256:adc1dbb532b048e419374e9e89dc4f92c47758300ffe8534a54849266706e53b,5318
-- compact-word-vectors-0.2.0.2@sha256:49cf00f224000f149306e7043c228fa33e3dba87f10589e8326388c3278ba594,2709
-- ghc-tcplugin-api-0.9.0.0
-
 packages:
-- aeson
-- arbitrary
-- cli
 - core
-- examples/following/demo
-- examples/following/updates/0-1.0.0
-- examples/following/updates/1.0.0-2.0.0
-- examples/following/updates/2.0.0-3.0.0
-- examples/following/versions/1.0.0
-- examples/following/versions/2.0.0
-- examples/following/versions/3.0.0
-- examples/manual-following/demo
-- examples/manual-following/updates/0-1.0.0
-- examples/manual-following/updates/1.0.0-2.0.0
-- examples/manual-following/updates/2.0.0-3.0.0
-- examples/manual-following/versions/1.0.0
-- examples/manual-following/versions/2.0.0
-- examples/manual-following/versions/3.0.0
 - examples/reproduction/demo
 - examples/reproduction/updates/1.0.0-2.0.0
 - examples/reproduction/versions/1.0.0
 - examples/reproduction/versions/2.0.0
-- inject
 - runtime
-- test
-- test-types
-- transformer

@@ -3,28 +3,7 @@
 # For more information, please see the documentation at:
 #   https://docs.haskellstack.org/en/stable/lock_files
 
-packages:
-- completed:
-    hackage: combinat-0.2.10.0@sha256:adc1dbb532b048e419374e9e89dc4f92c47758300ffe8534a54849266706e53b,5318
-    pantry-tree:
-      sha256: 3633e40972d9b3bc12ae75fdeadff558d5bf8293f592245db8bfdbff8c9e22be
-      size: 4964
-  original:
-    hackage: combinat-0.2.10.0@sha256:adc1dbb532b048e419374e9e89dc4f92c47758300ffe8534a54849266706e53b,5318
-- completed:
-    hackage: compact-word-vectors-0.2.0.2@sha256:49cf00f224000f149306e7043c228fa33e3dba87f10589e8326388c3278ba594,2709
-    pantry-tree:
-      sha256: 5713337589ee024f627123b448f8bf6ddf33e457c72daabc84a12f4ce7d8ddb0
-      size: 744
-  original:
-    hackage: compact-word-vectors-0.2.0.2@sha256:49cf00f224000f149306e7043c228fa33e3dba87f10589e8326388c3278ba594,2709
-- completed:
-    hackage: ghc-tcplugin-api-0.9.0.0@sha256:36301d3175153aa1fa9c3dab5f70692293f09f1f26ef907f42d0f54ef9d3ce6a,4597
-    pantry-tree:
-      sha256: a3f8d371dfaf9612e84e1d2aa30b08176c91f7247b07a0616885855cb1d132b6
-      size: 498
-  original:
-    hackage: ghc-tcplugin-api-0.9.0.0
+packages: []
 snapshots:
 - completed:
     sha256: b37c0abab16c7de352c45b85f8ecc8530b084209a2c42987a96c92b4a5e3cd65
