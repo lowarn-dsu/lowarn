@@ -1,9 +1,9 @@
-module EntryPoint_following (entryPoint) where
+module EntryPoint_reproduction (entryPoint) where
 
 import Data.Maybe (fromMaybe)
 import Foreign (StablePtr, newStablePtr)
 import Lowarn (EntryPoint (..), lastState)
-import Lowarn.ExampleProgram.Following (State (State), eventLoop)
+import Lowarn.ExampleProgram.Reproduction (State (State), eventLoop)
 
 entryPoint :: EntryPoint State
 entryPoint = EntryPoint $

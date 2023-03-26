@@ -2,8 +2,8 @@ resolver: lts-20.13
 
 packages:
 - core
-- examples/following/demo
-- examples/following/updates/1.0.0-2.0.0
-- examples/following/versions/1.0.0
-- examples/following/versions/2.0.0
+- examples/reproduction/demo
+- examples/reproduction/updates/1.0.0-2.0.0
+- examples/reproduction/versions/1.0.0
+- examples/reproduction/versions/2.0.0
 - runtime

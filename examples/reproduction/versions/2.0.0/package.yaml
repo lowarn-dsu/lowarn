@@ -1,4 +1,4 @@
-name:                following
+name:                lowarn-version-reproduction-v2v0v0
 version:             1.0.0
 github:              "jonathanjameswatson/lowarn"
 license:             MIT
@@ -6,12 +6,11 @@ author:              "Jonathan Watson"
 maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
 copyright:           "2022 Jonathan Watson"
 
-description:         Lowarn demo program
+description:         Lowarn demo program 2
 
 dependencies:
 - base >= 4.7 && < 5
 - lowarn
-- lowarn-runtime
 
 ghc-options:
 - -Wall
@@ -24,14 +23,5 @@ ghc-options:
 - -Wpartial-fields
 - -Wredundant-constraints
 
-executables:
-  following-exe:
-    main:                Main.hs
-    source-dirs:         app
-    ghc-options:
-    # - -threaded
-    - -rtsopts
-    # - -with-rtsopts=-N
-    - -rdynamic
-    - -fkeep-cafs
-    - -fwhole-archive-hs-libs
+library:
+  source-dirs: src

@@ -1,4 +1,4 @@
-name:                lowarn-version-following-v2v0v0
+name:                lowarn-version-reproduction-v1v0v0
 version:             1.0.0
 github:              "jonathanjameswatson/lowarn"
 license:             MIT
@@ -6,7 +6,7 @@ author:              "Jonathan Watson"
 maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
 copyright:           "2022 Jonathan Watson"
 
-description:         Lowarn demo program 2
+description:         Lowarn demo program 1
 
 dependencies:
 - base >= 4.7 && < 5

@@ -4,9 +4,9 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           lowarn-version-following-v2v0v0
+name:           lowarn-version-reproduction-v1v0v0
 version:        1.0.0
-description:    Lowarn demo program 2
+description:    Lowarn demo program 1
 homepage:       https://github.com/jonathanjameswatson/lowarn#readme
 bug-reports:    https://github.com/jonathanjameswatson/lowarn/issues
 author:         Jonathan Watson
@@ -21,10 +21,10 @@ source-repository head
 
 library
   exposed-modules:
-      EntryPoint_following
-      Lowarn.ExampleProgram.Following
+      EntryPoint_reproduction
+      Lowarn.ExampleProgram.Reproduction
   other-modules:
-      Paths_lowarn_version_following_v2v0v0
+      Paths_lowarn_version_reproduction_v1v0v0
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints

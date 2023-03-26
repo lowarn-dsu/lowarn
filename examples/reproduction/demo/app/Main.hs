@@ -17,7 +17,7 @@ versionNumber1 = mkVersionNumberFromString "1.0.0"
 versionNumber2 = mkVersionNumberFromString "2.0.0"
 
 programName :: ProgramName
-programName = fromJust $ mkProgramName "following"
+programName = fromJust $ mkProgramName "reproduction"
 
 updateId :: (VersionNumber, VersionNumber) -> UpdateId
 updateId (previousVersionNumber, nextVersionNumber) =
