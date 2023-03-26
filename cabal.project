@@ -7,3 +7,12 @@ packages:
   , examples/*/updates/*/*.cabal
 
 flags: +cabal
+
+package *
+  ghc-options: -rdynamic -fwhole-archive-hs-libs -fkeep-cafs
+
+package lowarn-version-reproduction-v1v0v0
+  ghc-options: -fno-keep-cafs
+
+package lowarn-version-reproduction-v2v0v0
+  ghc-options: -fno-keep-cafs

@@ -19,7 +19,7 @@ source-repository head
   type: git
   location: https://github.com/jonathanjameswatson/lowarn
 
-executable following-exe
+executable reproduction-exe
   main-is: Main.hs
   other-modules:
       Paths_reproduction

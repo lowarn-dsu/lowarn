@@ -7,3 +7,8 @@ packages:
 - examples/reproduction/versions/1.0.0
 - examples/reproduction/versions/2.0.0
 - runtime
+
+ghc-options:
+  "$everything": -rdynamic -fwhole-archive-hs-libs -fkeep-cafs
+  lowarn-version-reproduction-v1v0v0: -fno-keep-cafs
+  lowarn-version-reproduction-v2v0v0: -fno-keep-cafs
