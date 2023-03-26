@@ -10,11 +10,9 @@ description:         Lowarn demo program update from version 1.0.0 to 2.0.0
 
 dependencies:
 - base >= 4.7 && < 5
-- containers
 - lowarn
 - lowarn-version-following-v1v0v0
 - lowarn-version-following-v2v0v0
-- random
 
 ghc-options:
 - -Wall

@@ -6,39 +6,21 @@ module Lowarn.ExampleProgram.Following
   )
 where
 
-import Data.Sequence (Seq)
-import qualified Data.Sequence as Seq
-import Text.Printf (printf)
-
-data User = User
-  { userNickname :: String,
-    userInt :: Int
+newtype User = User
+  { userName :: String
   }
 
 newtype State = State
-  { stateUsers :: Seq User
+  { stateUsers :: [User]
   }
 
 showUser :: User -> String
-showUser (User nickname int) = printf "%s#%04d" nickname int
+showUser = userName
 
 eventLoop :: State -> IO State
-eventLoop state@(State users) = do
+eventLoop (State users) = do
   putStrLn "Following (2):"
   mapM_ (putStrLn . showUser) users
   putStrLn "------"
-  nickname <- getNickname
-  int <- getInt
-  let user = User nickname int
-  eventLoop state {stateUsers = users Seq.|> user}
-  where
-    getInput :: String -> IO String
-    getInput field = do
-      putStrLn $ printf "Input %s of user to follow:" field
-      getLine
-
-    getNickname :: IO String
-    getNickname = getInput "nickname"
-
-    getInt :: IO Int
-    getInt = read <$> getInput "user ID"
+  user <- User <$> getLine
+  eventLoop $ State (user : users)
