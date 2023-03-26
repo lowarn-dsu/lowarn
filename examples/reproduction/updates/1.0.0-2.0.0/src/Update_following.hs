@@ -12,8 +12,9 @@ import qualified "lowarn-version-reproduction-v2v0v0" Lowarn.ExampleProgram.Repr
 
 transformer :: Transformer PreviousVersion.State NextVersion.State
 transformer = Transformer $
-  \(PreviousVersion.State stateString) ->
-    evaluate $ force $ Just $ NextVersion.State $! length stateString
+  \(PreviousVersion.State stateStrings stateHandle) ->
+    -- evaluate $ force $ Just $ (NextVersion.State $! length stateString) $! stateHandle
+    return $ Just $ (NextVersion.State $! map length stateStrings) $! stateHandle
 
 update :: Update PreviousVersion.State NextVersion.State
 update = Update transformer entryPoint

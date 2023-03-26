@@ -4,19 +4,26 @@ module Lowarn.ExampleProgram.Reproduction
   )
 where
 
+import System.IO
+
 data State = State
-  { stateString :: String
+  { stateStrings :: [String],
+    stateHandle :: Handle
   }
+
+addQuotes :: String -> String
+addQuotes s = '"' : s ++ "\""
 
 eventLoop :: State -> IO State
 eventLoop state = do
-  putStrLn "State:"
-  putStrLn $ stateString state
-  putStrLn "------"
-  putStrLn "Input a new state or \"update\" to update."
+  hPutStrLn (stateHandle state) "State:"
+  hPutStrLn (stateHandle state) $ head $ stateStrings state
+  hPrint (stateHandle state) $ length $ stateStrings state
+  hPutStrLn (stateHandle state) "------"
+  hPutStrLn (stateHandle state) "Input a new state or \"update\" to update."
   input <- getLine
   if input == "update"
     then return state
     else do
-      putStrLn "======"
-      eventLoop $ State input
+      hPutStrLn (stateHandle state) "======"
+      eventLoop state {stateStrings = replicate 10000 (addQuotes input) ++ stateStrings state}
