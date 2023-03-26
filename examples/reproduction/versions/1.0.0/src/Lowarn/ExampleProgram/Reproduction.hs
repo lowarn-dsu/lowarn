@@ -26,4 +26,4 @@ eventLoop state = do
     then return state
     else do
       hPutStrLn (stateHandle state) "======"
-      eventLoop state {stateStrings = replicate 10000 (addQuotes input) ++ stateStrings state}
+      eventLoop state {stateStrings = addQuotes input ++ stateStrings state}

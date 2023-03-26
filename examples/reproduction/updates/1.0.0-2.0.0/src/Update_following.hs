@@ -4,6 +4,7 @@ module Update_following () where
 
 import Control.DeepSeq
 import Control.Exception
+import qualified Data.Sequence as Seq
 import Foreign
 import Lowarn
 import qualified "lowarn-version-reproduction-v1v0v0" Lowarn.ExampleProgram.Reproduction as PreviousVersion
@@ -14,7 +15,7 @@ transformer :: Transformer PreviousVersion.State NextVersion.State
 transformer = Transformer $
   \(PreviousVersion.State stateStrings stateHandle) ->
     -- evaluate $ force $ Just $ (NextVersion.State $! length stateString) $! stateHandle
-    return $ Just $ (NextVersion.State $! map length stateStrings) $! stateHandle
+    return $ Just $ (NextVersion.State $! Seq.fromList $! map length stateStrings) $! stateHandle
 
 update :: Update PreviousVersion.State NextVersion.State
 update = Update transformer entryPoint

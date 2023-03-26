@@ -12,6 +12,7 @@ dependencies:
 - base >= 4.7 && < 5
 - lowarn
 - deepseq >= 1.4
+- containers
 
 ghc-options:
 - -Wall
