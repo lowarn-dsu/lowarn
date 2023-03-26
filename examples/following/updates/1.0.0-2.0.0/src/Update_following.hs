@@ -11,10 +11,7 @@ import qualified "lowarn-version-following-v2v0v0" Lowarn.ExampleProgram.Followi
 transformer :: Transformer PreviousVersion.State NextVersion.State
 transformer = Transformer $
   \(PreviousVersion.State users) ->
-    return $
-      Just $
-        NextVersion.State $
-          map (NextVersion.User . PreviousVersion.userName) users
+    return $ Just $ NextVersion.State $ map NextVersion.User users
 
 foreign export ccall "hs_update_v1v0v0_v2v0v0"
   hsUpdate :: IO (StablePtr (Update PreviousVersion.State NextVersion.State))
