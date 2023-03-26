@@ -19,21 +19,6 @@ source-repository head
   type: git
   location: https://github.com/jonathanjameswatson/lowarn
 
-library
-  exposed-modules:
-      Lowarn.ExampleProgram.Following.UpdateId
-      Lowarn.ExampleProgram.Following.VersionId
-  other-modules:
-      Paths_following
-  hs-source-dirs:
-      src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
-  build-depends:
-      base >=4.7 && <5
-    , lowarn
-    , lowarn-runtime
-  default-language: Haskell2010
-
 executable following-exe
   main-is: Main.hs
   other-modules:
@@ -43,7 +28,6 @@ executable following-exe
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -rtsopts -rdynamic -fkeep-cafs -fwhole-archive-hs-libs
   build-depends:
       base >=4.7 && <5
-    , following
     , lowarn
     , lowarn-runtime
   default-language: Haskell2010

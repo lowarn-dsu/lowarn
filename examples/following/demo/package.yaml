@@ -24,9 +24,6 @@ ghc-options:
 - -Wpartial-fields
 - -Wredundant-constraints
 
-library:
-  source-dirs: src
-
 executables:
   following-exe:
     main:                Main.hs
@@ -38,5 +35,3 @@ executables:
     - -rdynamic
     - -fkeep-cafs
     - -fwhole-archive-hs-libs
-    dependencies:
-    - following
