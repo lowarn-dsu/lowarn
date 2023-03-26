@@ -1,0 +1,34 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.35.1.
+--
+-- see: https://github.com/sol/hpack
+
+name:           lowarn-version-following-v1v0v0
+version:        1.0.0
+description:    Lowarn demo program 1
+homepage:       https://github.com/jonathanjameswatson/lowarn#readme
+bug-reports:    https://github.com/jonathanjameswatson/lowarn/issues
+author:         Jonathan Watson
+maintainer:     23344719+jonathanjameswatson@users.noreply.github.com
+copyright:      2022 Jonathan Watson
+license:        MIT
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/jonathanjameswatson/lowarn
+
+library
+  exposed-modules:
+      EntryPoint_following
+      Lowarn.ExampleProgram.Following
+  other-modules:
+      Paths_lowarn_version_following_v1v0v0
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  build-depends:
+      base >=4.7 && <5
+    , lowarn
+  default-language: Haskell2010

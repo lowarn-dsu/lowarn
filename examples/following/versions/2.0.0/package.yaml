@@ -1,0 +1,28 @@
+name:                lowarn-version-following-v2v0v0
+version:             1.0.0
+github:              "jonathanjameswatson/lowarn"
+license:             MIT
+author:              "Jonathan Watson"
+maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
+copyright:           "2022 Jonathan Watson"
+
+description:         Lowarn demo program 2
+
+dependencies:
+- base >= 4.7 && < 5
+- containers
+- lowarn
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+
+library:
+  source-dirs: src
