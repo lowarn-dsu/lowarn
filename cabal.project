@@ -7,3 +7,42 @@ packages:
   , examples/*/updates/*/*.cabal
 
 flags: +cabal
+
+package *
+  ghc-options: -rdynamic -fwhole-archive-hs-libs -fkeep-cafs -dynamic
+
+package lowarn-version-following-v1v0v0
+  ghc-options: -fno-keep-cafs
+
+package lowarn-version-following-v2v0v0
+  ghc-options: -fno-keep-cafs
+
+package lowarn-version-following-v3v0v0
+  ghc-options: -fno-keep-cafs
+
+package lowarn-update-following-v0v0v0-v1v0v0
+  ghc-options: -fno-keep-cafs
+
+package lowarn-update-following-v1v0v0-v2v0v0
+  ghc-options: -fno-keep-cafs
+
+package lowarn-update-following-v2v0v0-v3v0v0
+  ghc-options: -fno-keep-cafs
+
+package lowarn-version-manual-following-v1v0v0
+  ghc-options: -fno-keep-cafs
+
+package lowarn-version-manual-following-v2v0v0
+  ghc-options: -fno-keep-cafs
+
+package lowarn-version-manual-following-v3v0v0
+  ghc-options: -fno-keep-cafs
+
+package lowarn-update-manual-following-v0v0v0-v1v0v0
+  ghc-options: -fno-keep-cafs
+
+package lowarn-update-manual-following-v1v0v0-v2v0v0
+  ghc-options: -fno-keep-cafs
+
+package lowarn-update-manual-following-v2v0v0-v3v0v0
+  ghc-options: -fno-keep-cafs
