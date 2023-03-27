@@ -3,6 +3,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RecordWildCards #-}
 
 -- |
 -- Module                  : Lowarn.Linker
@@ -33,7 +34,7 @@ import Data.Maybe
 import Data.Ord
 import Data.Set (Set)
 import qualified Data.Set as Set
-import Foreign
+import Foreign hiding (void)
 import GHC hiding (load, moduleName)
 import GHC.Data.FastString
 import GHC.Data.ShortText
@@ -51,25 +52,28 @@ import Text.Printf
 foreign import ccall "dynamic"
   mkStablePtr :: FunPtr (IO (StablePtr a)) -> IO (StablePtr a)
 
-data Linkable = Object FilePath | Archive FilePath
+data Linkable = Object FilePath | Archive FilePath | Dll FilePath
   deriving (Eq, Ord, Show)
 
-linkable :: (FilePath -> a) -> (FilePath -> a) -> Linkable -> a
-linkable f _ (Object objectFile) = f objectFile
-linkable _ f (Archive archiveFile) = f archiveFile
+linkable ::
+  (FilePath -> a) -> (FilePath -> a) -> (FilePath -> a) -> Linkable -> a
+linkable f _ _ (Object objectFile) = f objectFile
+linkable _ f _ (Archive archiveFile) = f archiveFile
+linkable _ _ f (Dll dllFile) = f dllFile
 
 newtype CurrentLinkables = CurrentLinkables
   { unCurrentLinkables :: Set Linkable
   }
 
-newtype ShouldUnload = ShouldUnload
-  { unShouldUnload :: Bool
+data LinkerData = LinkerData
+  { shouldUnload :: Bool,
+    isDynamic :: Bool
   }
 
 -- | Monad for linking packages from the package database and accessing their
 -- exported entities.
 newtype Linker a = Linker
-  { unLinker :: StateT CurrentLinkables (ReaderT ShouldUnload Ghc) a
+  { unLinker :: StateT CurrentLinkables (ReaderT LinkerData Ghc) a
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
@@ -79,29 +83,30 @@ runLinker ::
   Linker a ->
   -- | Whether or not to unload code (may result in segmentation faults).
   Bool ->
+  -- | Whether or not to use the system linker (rather than the GHC linker).
+  Bool ->
   IO a
-runLinker linker shouldUnload =
+runLinker linker shouldUnload isDynamic =
   defaultErrorHandler defaultFatalMessager defaultFlushOut $
     runGhc (Just libdir) $ do
       dynFlags <- getSessionDynFlags
       session <- getSession
-      dynFlagsWithPackageEnv <-
-        liftIO $
-          lookupEnv "LOWARN_PACKAGE_ENV"
-            >>= \case
-              Just "" -> return dynFlags
-              Nothing -> return dynFlags
-              Just lowarnPackageEnv ->
-                interpretPackageEnv (hsc_logger session) $
-                  dynFlags {packageEnv = Just lowarnPackageEnv}
-      setSessionDynFlags dynFlagsWithPackageEnv {ghcLink = LinkStaticLib}
+      setSessionDynFlags
+        =<< liftIO
+          ( lookupEnv "LOWARN_PACKAGE_ENV"
+              >>= \case
+                Just "" -> return dynFlags
+                Nothing -> return dynFlags
+                Just lowarnPackageEnv ->
+                  interpretPackageEnv (hsc_logger session) $
+                    dynFlags {packageEnv = Just lowarnPackageEnv}
+          )
       liftIO $
         initObjLinker $
           if shouldUnload then DontRetainCAFs else RetainCAFs
       runReaderT
-        ( evalStateT (unLinker linker) $ CurrentLinkables Set.empty
-        )
-        $ ShouldUnload shouldUnload
+        (evalStateT (unLinker linker) $ CurrentLinkables Set.empty)
+        LinkerData {..}
 
 -- | Action that gives an entity exported by object files corresponding to a
 -- given package (and its dependencies) in the package database. The object
@@ -120,12 +125,12 @@ load packageName entityName = Linker $ do
     Nothing -> return Nothing
     Just unitInfo -> do
       previousLinkables <- unCurrentLinkables <$> get
-      shouldUnload <- unShouldUnload <$> lift ask
+      LinkerData {..} <- lift ask
 
       nextLinkables <-
         Set.fromList . catMaybes
           <$> sequence
-            [ liftIO $ findLinkable dependencyUnitInfo
+            [ liftIO $ findLinkable isDynamic dependencyUnitInfo
               | dependencyUnitInfo <-
                   findDependencyUnitInfo session unitInfo,
                 unitId dependencyUnitInfo /= rtsUnitId
@@ -143,7 +148,7 @@ load packageName entityName = Linker $ do
 
       liftIO $ do
         mapM_
-          (linkable loadObj loadArchive)
+          (linkable loadObj loadArchive (void . loadDLL))
           (Set.difference nextLinkables previousLinkables)
 
         entity <-
@@ -161,7 +166,7 @@ load packageName entityName = Linker $ do
                           deRefStablePtr
                   )
 
-        mapM_ (linkable unloadObj unloadObj) unloadLinkables
+        mapM_ (linkable unloadObj unloadObj unloadObj) unloadLinkables
 
         return entity
 
@@ -209,17 +214,17 @@ lookupUnitInfo session packageName = do
   where
     unitState = ue_units $ hsc_unit_env session
 
-findLinkable :: UnitInfo -> IO (Maybe Linkable)
-findLinkable unitInfo =
-  findFiles "%s/HS%s*.o" >>= \case
-    [objectFile] -> return $ Just $ Object objectFile
-    _ -> do
-      archiveFiles <- findFiles "%s/libHS%s*.a"
-      return $ case archiveFiles of
-        [] -> Nothing
-        _ : _ -> Just $ Archive $ minimumBy (comparing length) archiveFiles
+findLinkable :: Bool -> UnitInfo -> IO (Maybe Linkable)
+findLinkable isDynamic unitInfo = do
+  if isDynamic
+    then leastWithExtension "so" Dll
+    else
+      findFiles "%s/HS%s*.o" >>= \case
+        [objectFile] -> return $ Just $ Object objectFile
+        _ -> leastWithExtension "a" Archive
   where
-    searchDirs = unitLibraryDirs unitInfo
+    searchDirs =
+      (if isDynamic then unitLibraryDynDirs else unitLibraryDirs) unitInfo
     packageName = unpackFS $ unPackageName $ unitPackageName unitInfo
     compOptions =
       CompOptions
@@ -244,6 +249,16 @@ findLinkable unitInfo =
             | searchDirShort <- searchDirs,
               let searchDir = unpack searchDirShort
           ]
+
+    leastWithExtension :: String -> (String -> Linkable) -> IO (Maybe Linkable)
+    leastWithExtension fileExtension linkableConstructor = do
+      candidateFiles <- findFiles $ "%s/libHS%s*." <> fileExtension
+      return $ case candidateFiles of
+        [] -> Nothing
+        _ : _ ->
+          Just $
+            linkableConstructor $
+              minimumBy (comparing length) candidateFiles
 
 findDependencyUnitInfo :: HscEnv -> UnitInfo -> [UnitInfo]
 findDependencyUnitInfo session rootUnitInfo =

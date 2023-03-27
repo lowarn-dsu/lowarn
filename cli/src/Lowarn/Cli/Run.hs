@@ -31,6 +31,7 @@ run lowarnEnv@LowarnEnv {lowarnEnvConfig = LowarnConfig {..}} mVersionNumber =
   runRuntime
     (runWithState lowarnEnv $ Left mVersionNumber)
     lowarnConfigLazyUpdates
+    False
     >>= \case
       Left e ->
         hPutStrLn stderr $ printf "An error occurred in Lowarn's runtime:\n%s" e

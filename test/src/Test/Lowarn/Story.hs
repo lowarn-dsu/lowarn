@@ -112,6 +112,7 @@ runStory story getRuntime outputPath timeoutLength = do
                 ( getRuntime (inputReadHandle, outputWriteHandle)
                 )
                 False
+                False
           )
           ( \exception -> do
               shouldWriteExceptions <- readIORef shouldWriteExceptionsRef

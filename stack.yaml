@@ -29,3 +29,18 @@ packages:
 - test
 - test-types
 - transformer
+
+# ghc-options:
+#   "$everything": -rdynamic -fwhole-archive-hs-libs -fkeep-cafs -dynamic
+#   lowarn-version-following-v1v0v0: -fno-keep-cafs
+#   lowarn-version-following-v2v0v0: -fno-keep-cafs
+#   lowarn-version-following-v3v0v0: -fno-keep-cafs
+#   lowarn-update-following-v0v0v0-v1v0v0: -fno-keep-cafs
+#   lowarn-update-following-v1v0v0-v2v0v0: -fno-keep-cafs
+#   lowarn-update-following-v2v0v0-v3v0v0: -fno-keep-cafs
+#   lowarn-version-manual-following-v1v0v0: -fno-keep-cafs
+#   lowarn-version-manual-following-v2v0v0: -fno-keep-cafs
+#   lowarn-version-manual-following-v3v0v0: -fno-keep-cafs
+#   lowarn-update-manual-following-v0v0v0-v1v0v0: -fno-keep-cafs
+#   lowarn-update-manual-following-v1v0v0-v2v0v0: -fno-keep-cafs
+#   lowarn-update-manual-following-v2v0v0-v3v0v0: -fno-keep-cafs
