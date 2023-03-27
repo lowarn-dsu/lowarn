@@ -7,7 +7,7 @@ import Lowarn.Runtime
 
 main :: IO ()
 main =
-  runRuntime runtime True True
+  runRuntime runtime True False
   where
     runtime = do
       state1 <- loadVersion followingVersionId_1 Nothing
