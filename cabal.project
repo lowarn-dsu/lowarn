@@ -9,10 +9,10 @@ packages:
 flags: +cabal
 
 package *
-  ghc-options: -rdynamic -fwhole-archive-hs-libs -fkeep-cafs
+  ghc-options: -rdynamic -fwhole-archive-hs-libs -fkeep-cafs -dynamic
 
--- package lowarn-version-reproduction-v1v0v0
---   ghc-options: -fno-keep-cafs
---
--- package lowarn-version-reproduction-v2v0v0
---   ghc-options: -fno-keep-cafs
+package lowarn-version-reproduction-v1v0v0
+  ghc-options: -fno-keep-cafs
+
+package lowarn-version-reproduction-v2v0v0
+  ghc-options: -fno-keep-cafs

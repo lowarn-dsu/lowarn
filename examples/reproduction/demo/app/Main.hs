@@ -31,7 +31,7 @@ versionId_1 = previousVersionId updateId_1_2
 
 main :: IO ()
 main =
-  runRuntime runtime True
+  runRuntime runtime True True
   where
     runtime = do
       state <- loadVersion versionId_1 Nothing

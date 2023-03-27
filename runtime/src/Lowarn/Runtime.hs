@@ -46,8 +46,10 @@ runRuntime ::
   -- | Whether or not to unload code (may result in segmentation faults for lazy
   -- state transformations).
   Bool ->
+  -- | Whether or not to use the system linker (rather than the GHC linker).
+  Bool ->
   IO a
-runRuntime runtime shouldUnload = do
+runRuntime runtime shouldUnload isDynamic = do
   updateSignalRegister <- mkUpdateSignalRegister
   previousSignalHandler <-
     installHandler
@@ -55,7 +57,10 @@ runRuntime runtime shouldUnload = do
       (Catch (void $ fillUpdateSignalRegister updateSignalRegister))
       Nothing
   output <-
-    runLinker (runReaderT (unRuntime runtime) updateSignalRegister) shouldUnload
+    runLinker
+      (runReaderT (unRuntime runtime) updateSignalRegister)
+      shouldUnload
+      isDynamic
   liftIO $ void $ installHandler sigUSR2 previousSignalHandler Nothing
   return output
 

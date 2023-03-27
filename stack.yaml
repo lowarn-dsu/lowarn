@@ -9,6 +9,6 @@ packages:
 - runtime
 
 ghc-options:
-  "$everything": -rdynamic -fwhole-archive-hs-libs -fkeep-cafs
-#   lowarn-version-reproduction-v1v0v0: -fno-keep-cafs
-#   lowarn-version-reproduction-v2v0v0: -fno-keep-cafs
+  "$everything": -rdynamic -fwhole-archive-hs-libs -fkeep-cafs -dynamic
+  lowarn-version-reproduction-v1v0v0: -fno-keep-cafs
+  lowarn-version-reproduction-v2v0v0: -fno-keep-cafs
