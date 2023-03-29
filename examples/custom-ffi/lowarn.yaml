@@ -1,0 +1,3 @@
+program-name: custom-ffi
+unload: false
+system-linker: true

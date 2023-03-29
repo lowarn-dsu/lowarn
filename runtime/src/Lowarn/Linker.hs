@@ -46,17 +46,25 @@ import GHC.Unit.Env
 import GHC.Unit.State
 import GHCi.ObjLink
 import System.Environment
+import System.FilePath
 import System.FilePath.Glob
 import Text.Printf
 
 foreign import ccall "dynamic"
   mkStablePtr :: FunPtr (IO (StablePtr a)) -> IO (StablePtr a)
 
-data Linkable = Object FilePath | Archive FilePath | Dll FilePath
+data Linkable
+  = Object FilePath
+  | Archive FilePath
+  | Dll FilePath
   deriving (Eq, Ord, Show)
 
 linkable ::
-  (FilePath -> a) -> (FilePath -> a) -> (FilePath -> a) -> Linkable -> a
+  (FilePath -> a) ->
+  (FilePath -> a) ->
+  (FilePath -> a) ->
+  Linkable ->
+  a
 linkable f _ _ (Object objectFile) = f objectFile
 linkable _ f _ (Archive archiveFile) = f archiveFile
 linkable _ _ f (Dll dllFile) = f dllFile
@@ -128,13 +136,15 @@ load packageName entityName = Linker $ do
       LinkerData {..} <- lift ask
 
       nextLinkables <-
-        Set.fromList . catMaybes
+        Set.fromList . concat
           <$> sequence
-            [ liftIO $ findLinkable isDynamic dependencyUnitInfo
+            [ liftIO $ findLinkables isDynamic dependencyUnitInfo
               | dependencyUnitInfo <-
                   findDependencyUnitInfo session unitInfo,
                 unitId dependencyUnitInfo /= rtsUnitId
             ]
+
+      -- liftIO $ print $ Set.toList $ nextLinkables
 
       let (currentLinkables, unloadLinkables) =
             if shouldUnload
@@ -166,7 +176,7 @@ load packageName entityName = Linker $ do
                           deRefStablePtr
                   )
 
-        mapM_ (linkable unloadObj unloadObj unloadObj) unloadLinkables
+        mapM_ (linkable unloadObj unloadObj (const $ return ())) unloadLinkables
 
         return entity
 
@@ -214,18 +224,23 @@ lookupUnitInfo session packageName = do
   where
     unitState = ue_units $ hsc_unit_env session
 
-findLinkable :: Bool -> UnitInfo -> IO (Maybe Linkable)
-findLinkable isDynamic unitInfo = do
-  if isDynamic
-    then leastWithExtension "so" Dll
-    else
-      findFiles "%s/HS%s*.o" >>= \case
-        [objectFile] -> return $ Just $ Object objectFile
-        _ -> leastWithExtension "a" Archive
+systemLibraryLinkable :: String -> Linkable
+systemLibraryLinkable = Dll . dropExtension . takeFileName
+
+findLinkables :: Bool -> UnitInfo -> IO [Linkable]
+findLinkables isDynamic unitInfo =
+  (map (systemLibraryLinkable . unpack) systemLibraries <>) <$> packageLinkables
   where
-    searchDirs =
+    packageLinkableSearchDirs =
       (if isDynamic then unitLibraryDynDirs else unitLibraryDirs) unitInfo
+    systemLibraries =
+      -- When we are using the system linker, these libraries are found in
+      -- unitExtDepLibsSys. However, these libraries seem to already be linked
+      -- in the package shared objects, so we can just ignore this step.
+      (if isDynamic then (const []) else unitExtDepLibsGhc) unitInfo
+
     packageName = unpackFS $ unPackageName $ unitPackageName unitInfo
+
     compOptions =
       CompOptions
         { characterClasses = False,
@@ -237,8 +252,8 @@ findLinkable isDynamic unitInfo = do
           errorRecovery = True
         }
 
-    findFiles :: String -> IO [FilePath]
-    findFiles pattern =
+    findPackageLinkableFiles :: String -> IO [FilePath]
+    findPackageLinkableFiles pattern =
       concat
         <$> sequence
           [ globDir1
@@ -246,19 +261,28 @@ findLinkable isDynamic unitInfo = do
                   printf pattern searchDir packageName
               )
               searchDir
-            | searchDirShort <- searchDirs,
+            | searchDirShort <- packageLinkableSearchDirs,
               let searchDir = unpack searchDirShort
           ]
 
     leastWithExtension :: String -> (String -> Linkable) -> IO (Maybe Linkable)
     leastWithExtension fileExtension linkableConstructor = do
-      candidateFiles <- findFiles $ "%s/libHS%s*." <> fileExtension
+      candidateFiles <- findPackageLinkableFiles $ "%s/libHS%s*." <> fileExtension
       return $ case candidateFiles of
         [] -> Nothing
         _ : _ ->
           Just $
             linkableConstructor $
               minimumBy (comparing length) candidateFiles
+
+    packageLinkables :: IO [Linkable]
+    packageLinkables =
+      if isDynamic
+        then maybeToList <$> leastWithExtension "so" Dll
+        else
+          findPackageLinkableFiles "%s/HS%s*.o" >>= \case
+            [objectFile] -> return [Object objectFile]
+            _ -> maybeToList <$> leastWithExtension "a" Archive
 
 findDependencyUnitInfo :: HscEnv -> UnitInfo -> [UnitInfo]
 findDependencyUnitInfo session rootUnitInfo =

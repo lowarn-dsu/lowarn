@@ -23,7 +23,10 @@ import Path.IO
 data LowarnConfig = LowarnConfig
   { -- | The name of the program that is being updated.
     lowarnConfigProgramName :: ProgramName,
-    lowarnConfigLazyUpdates :: Bool
+    -- | Whether or not to attempt to unload code.
+    lowarnConfigUnload :: Bool,
+    -- | Whether or not to use the system linker, rather than GHC's.
+    lowarnConfigSystemLinker :: Bool
   }
   deriving (Show)
 
@@ -34,7 +37,10 @@ instance FromJSON LowarnConfig where
       <$> v
         .: "program-name"
       <*> v
-        .:? "lazy-updates"
+        .:? "unload"
+        .!= False
+      <*> v
+        .:? "system-linker"
         .!= True
 
 -- | Attempt to find a @lowarn.yaml@ file from the current working directory.

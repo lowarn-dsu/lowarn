@@ -1,2 +1,3 @@
 program-name: following
-lazy-updates: true
+unload: true
+system-linker: true

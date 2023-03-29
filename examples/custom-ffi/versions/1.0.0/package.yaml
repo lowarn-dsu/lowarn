@@ -1,31 +1,20 @@
-name:                lowarn-runtime
-version:             0.1.0.0
+name:                lowarn-version-custom-ffi-v1v0v0
+version:             1.0.0
 github:              "jonathanjameswatson/lowarn"
 license:             MIT
 author:              "Jonathan Watson"
 maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
 copyright:           "2023 Jonathan Watson"
 
-extra-source-files:
-- README.md
-
-synopsis:            Runtime system for Lowarn
-category:            System
-
-description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/runtime#readme>
+description:         Lowarn demo program 1
 
 dependencies:
 - base >= 4.7 && < 5
-- containers
-- filepath
-- ghc == 9.2.7
-- ghc-boot == 9.2.7
-- ghc-paths
-- ghci == 9.2.7
-- Glob >= 0.10.2 && < 0.11
 - lowarn
-- transformers
-- unix
+
+extra-libraries:
+- c
+- crypt
 
 ghc-options:
 - -Wall
