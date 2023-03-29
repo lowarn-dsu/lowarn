@@ -10,6 +10,8 @@ packages:
 - arbitrary
 - cli
 - core
+- examples/custom-ffi/demo
+- examples/custom-ffi/versions/1.0.0
 - examples/following/demo
 - examples/following/updates/0-1.0.0
 - examples/following/updates/1.0.0-2.0.0

@@ -4,11 +4,9 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 
-name:           lowarn-runtime
-version:        0.1.0.0
-synopsis:       Runtime system for Lowarn
-description:    Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/runtime#readme>
-category:       System
+name:           lowarn-version-custom-ffi-v1v0v0
+version:        1.0.0
+description:    Lowarn demo program 1
 homepage:       https://github.com/jonathanjameswatson/lowarn#readme
 bug-reports:    https://github.com/jonathanjameswatson/lowarn/issues
 author:         Jonathan Watson
@@ -17,7 +15,8 @@ copyright:      2023 Jonathan Watson
 license:        MIT
 build-type:     Simple
 extra-source-files:
-    README.md
+    cbits/triangle.c
+    cbits/triangle.h
 
 source-repository head
   type: git
@@ -25,23 +24,20 @@ source-repository head
 
 library
   exposed-modules:
-      Lowarn.Linker
-      Lowarn.Runtime
+      EntryPoint_custom_ffi
   other-modules:
-      Paths_lowarn_runtime
+      Paths_lowarn_version_custom_ffi_v1v0v0
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  include-dirs:
+      cbits
+  c-sources:
+      cbits/triangle.c
+  extra-libraries:
+      c
+      crypt
   build-depends:
-      Glob >=0.10.2 && <0.11
-    , base >=4.7 && <5
-    , containers
-    , filepath
-    , ghc ==9.2.7
-    , ghc-boot ==9.2.7
-    , ghc-paths
-    , ghci ==9.2.7
+      base >=4.7 && <5
     , lowarn
-    , transformers
-    , unix
   default-language: Haskell2010

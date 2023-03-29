@@ -1,0 +1,6 @@
+resolver: lts-20.13
+
+packages:
+- ../../core
+- ../../runtime
+- versions/1.0.0
