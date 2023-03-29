@@ -43,14 +43,8 @@ executables:
   lowarn-cli:
     source-dirs: app
     main: Main.hs
-    dependencies:
-    - lowarn-cli
-    - optparse-applicative >= 0.17 && < 0.18
-  lowarn-cli-dynamic:
-    source-dirs: app
-    main: Main.hs
-    dependencies:
-    - lowarn-cli
-    - optparse-applicative >= 0.17 && < 0.18
     ghc-options:
-    - -dynamic
+    - -rdynamic
+    dependencies:
+    - lowarn-cli
+    - optparse-applicative >= 0.17 && < 0.18
