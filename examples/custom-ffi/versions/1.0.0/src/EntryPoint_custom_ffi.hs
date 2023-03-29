@@ -14,6 +14,8 @@ foreign import capi "math.h log2" c_log2 :: CDouble -> IO CDouble
 
 foreign import capi "crypt.h crypt" c_crypt :: CString -> CString -> IO CString
 
+foreign import capi "triangle.h triangle" c_triangle :: CInt -> IO CInt
+
 entryPoint :: EntryPoint ()
 entryPoint = EntryPoint $
   const $ do
@@ -29,6 +31,9 @@ entryPoint = EntryPoint $
       peekCString =<< withCString key (withCString salt . c_crypt)
     putStrLn $
       printf "crypt(\"%s\", \"%s\") = %s using crypt.h" key salt password
+
+    six <- toInteger <$> c_triangle (fromInteger $ 3)
+    putStrLn $ printf "triangle(3) = %d using triangle.h" six
 
 foreign export ccall "hs_entryPoint_v1v0v0"
   hsEntryPoint :: IO (StablePtr (EntryPoint ()))

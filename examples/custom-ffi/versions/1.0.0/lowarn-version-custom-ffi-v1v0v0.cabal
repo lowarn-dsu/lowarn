@@ -14,6 +14,9 @@ maintainer:     23344719+jonathanjameswatson@users.noreply.github.com
 copyright:      2023 Jonathan Watson
 license:        MIT
 build-type:     Simple
+extra-source-files:
+    cbits/triangle.c
+    cbits/triangle.h
 
 source-repository head
   type: git
@@ -27,6 +30,10 @@ library
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  include-dirs:
+      cbits
+  c-sources:
+      cbits/triangle.c
   extra-libraries:
       c
       crypt

@@ -6,6 +6,10 @@ author:              "Jonathan Watson"
 maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
 copyright:           "2023 Jonathan Watson"
 
+extra-source-files:
+- cbits/*.c
+- cbits/*.h
+
 description:         Lowarn demo program 1
 
 dependencies:
@@ -29,3 +33,5 @@ ghc-options:
 
 library:
   source-dirs: src
+  include-dirs: cbits
+  c-sources: cbits/*.c
