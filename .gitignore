@@ -12,3 +12,7 @@ dist-*
 *.hi
 
 .vscode
+
+coverage*.dat
+*.coverables
+coverage/
