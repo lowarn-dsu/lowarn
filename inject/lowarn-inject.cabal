@@ -23,6 +23,11 @@ source-repository head
   type: git
   location: https://github.com/jonathanjameswatson/lowarn
 
+flag dekking
+  description: Dekking is used to find coverage when this flag is true.
+  manual: True
+  default: False
+
 library
   exposed-modules:
       Lowarn.Inject
@@ -41,6 +46,11 @@ library
     , ghc-tcplugin-api ==0.9.0.0
     , lowarn
   default-language: Haskell2010
+  if flag(dekking)
+    ghc-options: -fplugin=Dekking.Plugin
+    build-depends:
+        dekking-plugin
+      , dekking-value
 
 executable lowarn-inject
   main-is: Main.hs
@@ -57,3 +67,8 @@ executable lowarn-inject
     , lowarn-inject
     , optparse-applicative ==0.17.*
   default-language: Haskell2010
+  if flag(dekking)
+    ghc-options: -fplugin=Dekking.Plugin
+    build-depends:
+        dekking-plugin
+      , dekking-value

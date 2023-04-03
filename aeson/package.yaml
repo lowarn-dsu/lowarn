@@ -20,6 +20,20 @@ dependencies:
 - lowarn
 - text >= 1.2.5 && < 1.3
 
+flags:
+  dekking:
+    description: "Dekking is used to find coverage when this flag is true."
+    default: False
+    manual: True
+
+when:
+  - condition: flag(dekking)
+    dependencies:
+    - dekking-plugin
+    - dekking-value
+    ghc-options:
+    - -fplugin=Dekking.Plugin
+
 ghc-options:
 - -Wall
 - -Wcompat

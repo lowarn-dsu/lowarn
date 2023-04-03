@@ -36,6 +36,20 @@ ghc-options:
 - -Wpartial-fields
 - -Wredundant-constraints
 
+flags:
+  dekking:
+    description: "Dekking is used to find coverage when this flag is true."
+    default: False
+    manual: True
+
+when:
+  - condition: flag(dekking)
+    dependencies:
+    - dekking-plugin
+    - dekking-value
+    ghc-options:
+    - -fplugin=Dekking.Plugin
+
 library:
   source-dirs: src
 

@@ -8,6 +8,18 @@ packages:
 
 flags: +cabal
 
+source-repository-package
+  type: git
+  location: https://github.com/jonathanjameswatson/dekking.git
+  tag: ab90da723761df0e5aa848ce5dd3d810b9b1f214
+  subdir: dekking-plugin
+
+source-repository-package
+  type: git
+  location: https://github.com/jonathanjameswatson/dekking.git
+  tag: ab90da723761df0e5aa848ce5dd3d810b9b1f214
+  subdir: dekking-value
+
 -- package *
 --   ghc-options: -rdynamic -fwhole-archive-hs-libs -fkeep-cafs -dynamic
 --

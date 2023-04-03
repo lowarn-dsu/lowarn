@@ -1,4 +1,3 @@
-{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Main (main) where
@@ -30,13 +29,18 @@ fileVar = argument str . (metavar "FILE" <>) . help
 
 parser :: Parser Arguments
 parser = do
-  argumentsOriginalPath <- fileVar "Path to the original file."
-  argumentsInputPath <- fileVar "Path to the input file."
-  argumentsOutputPath <- fileVar "Path to the output file."
-  argumentsProgramName <-
-    argument programNameReader $
-      metavar "PROGRAMNAME" <> help "Name of the program."
-  return Arguments {..}
+  Arguments
+    <$> argumentsOriginalPath
+    <*> argumentsInputPath
+    <*> argumentsOutputPath
+    <*> argumentsProgramName
+  where
+    argumentsOriginalPath = fileVar "Path to the original file."
+    argumentsInputPath = fileVar "Path to the input file."
+    argumentsOutputPath = fileVar "Path to the output file."
+    argumentsProgramName =
+      argument programNameReader $
+        metavar "PROGRAMNAME" <> help "Name of the program."
 
 parserInfo :: ParserInfo Arguments
 parserInfo =

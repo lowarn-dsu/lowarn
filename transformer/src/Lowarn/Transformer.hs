@@ -229,6 +229,7 @@ genericTransform ::
   IO (Maybe b)
 genericTransform = fmap (fmap to) . genericTransform' . from
 
+{-# ANN genericTransform' "NOCOVER" #-}
 genericTransform' ::
   (TransformableCodes' as bs) =>
   SOP I as ->

@@ -25,6 +25,32 @@ packages:
       size: 498
   original:
     hackage: ghc-tcplugin-api-0.9.0.0
+- completed:
+    name: dekking-plugin
+    pantry-tree:
+      sha256: e9f6327a6c9ef123495cc0f4b0d5ee012ac41ccd2b92d070202b15bf00fced06
+      size: 414
+    sha256: 07405713f675528b6c7db07f52bbb4400e6d83db2a4607db7ce30df7f394bc51
+    size: 31105
+    subdir: dekking-plugin
+    url: https://github.com/jonathanjameswatson/dekking/archive/3fe8904f860e881fc3589d24657b20dd9a53a662.tar.gz
+    version: 0.0.0.0
+  original:
+    subdir: dekking-plugin
+    url: https://github.com/jonathanjameswatson/dekking/archive/3fe8904f860e881fc3589d24657b20dd9a53a662.tar.gz
+- completed:
+    name: dekking-value
+    pantry-tree:
+      sha256: c8b865cb680bc319a12287561e337284edf7b02245354fd8a8fb45e287aa8a84
+      size: 288
+    sha256: 07405713f675528b6c7db07f52bbb4400e6d83db2a4607db7ce30df7f394bc51
+    size: 31105
+    subdir: dekking-value
+    url: https://github.com/jonathanjameswatson/dekking/archive/3fe8904f860e881fc3589d24657b20dd9a53a662.tar.gz
+    version: 0.0.0.0
+  original:
+    subdir: dekking-value
+    url: https://github.com/jonathanjameswatson/dekking/archive/3fe8904f860e881fc3589d24657b20dd9a53a662.tar.gz
 snapshots:
 - completed:
     sha256: b37c0abab16c7de352c45b85f8ecc8530b084209a2c42987a96c92b4a5e3cd65

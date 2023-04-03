@@ -23,6 +23,11 @@ source-repository head
   type: git
   location: https://github.com/jonathanjameswatson/lowarn
 
+flag dekking
+  description: Dekking is used to find coverage when this flag is true.
+  manual: True
+  default: False
+
 library
   exposed-modules:
       Lowarn
@@ -41,3 +46,8 @@ library
       base >=4.7 && <5
     , template-haskell >=2.18
   default-language: Haskell2010
+  if flag(dekking)
+    ghc-options: -fplugin=Dekking.Plugin
+    build-depends:
+        dekking-plugin
+      , dekking-value

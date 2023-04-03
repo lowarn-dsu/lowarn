@@ -1,4 +1,3 @@
-{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 
@@ -36,14 +35,15 @@ versionNumberReader = do
         printf "The given version number \"%s\" is invalid." versionNumberString
 
 runParser :: Parser Command
-runParser = do
-  runOptionsVersion <-
-    optional $
-      option versionNumberReader $
-        long "version"
-          <> metavar "VERSION-NUMBER"
-          <> help "Override the starting version to run."
-  return $ RunCommand $ RunOptions {..}
+runParser =
+  RunCommand . RunOptions <$> runOptionsVersion
+  where
+    runOptionsVersion =
+      optional $
+        option versionNumberReader $
+          long "version"
+            <> metavar "VERSION-NUMBER"
+            <> help "Override the starting version to run."
 
 runParserInfo :: ParserInfo Command
 runParserInfo =
@@ -51,16 +51,16 @@ runParserInfo =
     fullDesc <> progDesc "Run programs that support DSU with Lowarn"
 
 parser :: Parser Options
-parser = do
-  optionsConfigFilePath <-
-    optional $
-      strOption $
-        long "lowarn-yaml"
-          <> metavar "LOWARN-YAML"
-          <> help "Override Lowarn CLI configuration file."
-  optionsCommand <-
-    hsubparser $ command "run" runParserInfo
-  return Options {..}
+parser =
+  Options <$> optionsCommand <*> optionsConfigFilePath
+  where
+    optionsConfigFilePath =
+      optional $
+        strOption $
+          long "lowarn-yaml"
+            <> metavar "LOWARN-YAML"
+            <> help "Override Lowarn CLI configuration file."
+    optionsCommand = hsubparser $ command "run" runParserInfo
 
 parserInfo :: ParserInfo Options
 parserInfo =
