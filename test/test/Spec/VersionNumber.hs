@@ -4,7 +4,9 @@ module Spec.VersionNumber (versionNumberTests) where
 
 import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Maybe
+import Data.Proxy
 import Lowarn.VersionNumber
+import Lowarn.VersionNumber.Aeson ()
 import Lowarn.VersionNumber.Arbitrary ()
 import Test.Lowarn.Property
 import Test.Tasty
@@ -19,12 +21,17 @@ lexicographicOrdering = testProperty (show 'lexicographicOrdering) prop
 withDotsRoundTrip :: TestTree
 withDotsRoundTrip =
   testProperty (show 'withDotsRoundTrip) $
-    roundTripProperty showWithDots parseWithDots
+    parserCombinatorRoundTripProperty showWithDots parseWithDots
 
 withLettersRoundTrip :: TestTree
 withLettersRoundTrip =
   testProperty (show 'withLettersRoundTrip) $
-    roundTripProperty showWithLetters parseWithLetters
+    parserCombinatorRoundTripProperty showWithLetters parseWithLetters
+
+encodedVersionNumberRoundTrip :: TestTree
+encodedVersionNumberRoundTrip =
+  testProperty (show 'encodedVersionNumberRoundTrip) $
+    aesonRoundTripProperty (Proxy :: Proxy VersionNumber)
 
 versionNumberTests :: TestTree
 versionNumberTests =
@@ -32,5 +39,6 @@ versionNumberTests =
     "Version number"
     [ lexicographicOrdering,
       withDotsRoundTrip,
-      withLettersRoundTrip
+      withLettersRoundTrip,
+      encodedVersionNumberRoundTrip
     ]
