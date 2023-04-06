@@ -96,6 +96,7 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       QuickCheck
+    , aeson
     , base >=4.7 && <5
     , filepath
     , generics-sop >=0.5.1 && <0.6
@@ -106,6 +107,7 @@ library
     , sop-core
     , tasty
     , tasty-golden
+    , text >=1.2.5 && <1.3
     , transformers
     , unix
   default-language: Haskell2010
@@ -127,12 +129,14 @@ test-suite lowarn-test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       QuickCheck
+    , aeson
     , base >=4.7 && <5
     , filepath
     , following
     , generics-sop >=0.5.1 && <0.6
     , hint >=0.9.0.6 && <0.9.1
     , lowarn
+    , lowarn-aeson
     , lowarn-arbitrary
     , lowarn-runtime
     , lowarn-test
@@ -157,6 +161,7 @@ test-suite lowarn-test
     , tasty
     , tasty-golden
     , tasty-quickcheck
+    , text >=1.2.5 && <1.3
     , transformers
     , unix
   default-language: Haskell2010
