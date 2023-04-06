@@ -54,8 +54,6 @@ jobs:
         run: cabal test all --enable-tests --test-show-details=streaming
       - name: Run doctests
         run: cabal-docspec
-      - name: Run Haddock
-        run: cabal haddock lowarn lowarn-runtime lowarn-cli lowarn-transformer lowarn-inject lowarn-aeson lowarn-arbitrary lowarn-test lowarn-test-types
   stack:
     runs-on: ubuntu-latest
     needs: ormolu
@@ -93,3 +91,5 @@ jobs:
         run: stack build
       - name: Run test suite
         run: stack test
+      - name: Run Haddock
+        run: stack haddock lowarn lowarn-runtime lowarn-cli lowarn-transformer lowarn-inject lowarn-aeson lowarn-arbitrary lowarn-test lowarn-test-types
