@@ -121,10 +121,13 @@ resolveNames programName = do
               "Lowarn.Inject.Plugin used in non-Lowarn version package %s."
               (unitString currentUnitId)
   where
-    findModule :: String -> PkgQual -> TcPluginM 'Init (Either String Module)
-    findModule moduleNameToFind pkgQual =
+    findModule ::
+      String -> Maybe FastString -> TcPluginM 'Init (Either String Module)
+    findModule moduleNameToFind pkgName = do
+      let moduleName = mkModuleName moduleNameToFind
+      pkgQual <- resolveImport moduleName pkgName
       findImportedModule
-        (mkModuleName moduleNameToFind)
+        moduleName
         pkgQual
         <&> \case
           Found _ m -> Right m
@@ -138,8 +141,8 @@ resolveNames programName = do
     getId idString idModule =
       tcLookupId =<< lookupOrig idModule (mkVarOcc idString)
 
-    lowarnInjectQualifier :: PkgQual
-    lowarnInjectQualifier = OtherPkg $ stringToUnitId "lowarn-inject"
+    lowarnInjectQualifier :: Maybe FastString
+    lowarnInjectQualifier = Just $ fsLit "lowarn-inject"
 
     mapRightM :: (Monad m) => (b -> m c) -> Either a b -> m (Either a c)
     mapRightM f = either (return . Left) (fmap Right . f)
@@ -153,7 +156,7 @@ resolveNames programName = do
       eLocalModule <-
         findModule
           (showPrefixModuleName "RuntimeDataVar" programName)
-          (ThisPkg $ UnitId $ fsLit "this")
+          (Just $ fsLit "this")
       liftM5
         ( liftM5
             (ResolvedNames isEntryPointModule)

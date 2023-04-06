@@ -43,7 +43,7 @@ library
   build-depends:
       base >=4.7 && <5
     , ghc ==9.2.7
-    , ghc-tcplugin-api ==0.9.0.0
+    , ghc-tcplugin-api ==0.10.0.0
     , lowarn
   default-language: Haskell2010
   if flag(dekking)
@@ -62,7 +62,7 @@ executable lowarn-inject
   build-depends:
       base >=4.7 && <5
     , ghc ==9.2.7
-    , ghc-tcplugin-api ==0.9.0.0
+    , ghc-tcplugin-api ==0.10.0.0
     , lowarn
     , lowarn-inject
     , optparse-applicative ==0.17.*
