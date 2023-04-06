@@ -10,7 +10,7 @@
 -- Module                  : Test.Lowarn.Type.TypesC
 -- SPDX-License-Identifier : MIT
 -- Stability               : experimental
--- Portability             : non-portable (GHC)
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for types for testing lowarn-transformer.
 module Test.Lowarn.Type.TypesC

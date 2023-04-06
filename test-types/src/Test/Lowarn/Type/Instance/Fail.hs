@@ -6,7 +6,7 @@
 -- Module                  : Test.Lowarn.Type.Instance.Fail
 -- SPDX-License-Identifier : MIT
 -- Stability               : experimental
--- Portability             : non-portable (GHC)
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for failing 'Transformable' instances for testing lowarn-transformer.
 module Test.Lowarn.Type.Instance.Fail () where

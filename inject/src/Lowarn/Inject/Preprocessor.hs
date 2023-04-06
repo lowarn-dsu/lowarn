@@ -4,7 +4,7 @@
 -- Module                  : Lowarn.Inject.Preprocessor
 -- SPDX-License-Identifier : MIT
 -- Stability               : experimental
--- Portability             : non-portable (GHC)
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for the Lowarn injection pre-processor.
 module Lowarn.Inject.Preprocessor (processFile, parseModuleName) where

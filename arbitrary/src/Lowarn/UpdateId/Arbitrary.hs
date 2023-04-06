@@ -5,7 +5,7 @@
 -- Module                  : Lowarn.UpdateId.Arbitrary
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : portable
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for 'Arbitrary' instances for 'UpdateId'.
 module Lowarn.UpdateId.Arbitrary () where

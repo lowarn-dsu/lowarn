@@ -4,7 +4,7 @@
 -- Module                  : Lowarn.ProgramName.Arbitrary
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : portable
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for 'Arbitrary' instances for 'ProgramName'.
 module Lowarn.ProgramName.Arbitrary () where

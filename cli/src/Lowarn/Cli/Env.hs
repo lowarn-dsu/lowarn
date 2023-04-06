@@ -5,7 +5,7 @@
 -- Module                  : Lowarn.Cli.Env
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : non-portable (GHC)
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for Lowarn CLI environments.
 module Lowarn.Cli.Env (LowarnEnv (..), GetEnvException, getLowarnEnv) where

@@ -6,7 +6,7 @@
 -- Module                  : Test.Lowarn.Type.Instance.FieldNameAlias
 -- SPDX-License-Identifier : MIT
 -- Stability               : experimental
--- Portability             : non-portable (GHC)
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for field name aliases for testing lowarn-transformer.
 module Test.Lowarn.Type.Instance.FieldNameAlias () where

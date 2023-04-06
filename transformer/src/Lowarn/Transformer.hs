@@ -20,7 +20,7 @@
 -- Module                  : Lowarn.Transformer
 -- SPDX-License-Identifier : MIT
 -- Stability               : experimental
--- Portability             : non-portable (GHC)
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for utilities for defining Lowarn state transformers.
 module Lowarn.Transformer

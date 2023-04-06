@@ -2,7 +2,7 @@
 -- Module                  : Lowarn.VersionNumber
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : portable
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for version numbers.
 module Lowarn.VersionNumber

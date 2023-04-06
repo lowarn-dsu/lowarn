@@ -2,7 +2,7 @@
 -- Module                  : Test.Lowarn.Golden
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : portable
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for golden testing utilities for Lowarn.
 module Test.Lowarn.Golden (goldenTest) where

@@ -2,7 +2,7 @@
 -- Module                  : Lowarn.Inject.RuntimeDataVar
 -- SPDX-License-Identifier : MIT
 -- Stability               : experimental
--- Portability             : non-portable (GHC)
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for a variable that stores runtime data.
 module Lowarn.Inject.RuntimeDataVar

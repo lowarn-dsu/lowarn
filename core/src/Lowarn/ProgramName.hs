@@ -2,7 +2,7 @@
 -- Module                  : Lowarn.ProgramName
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : portable
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for program names.
 module Lowarn.ProgramName

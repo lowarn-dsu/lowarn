@@ -4,7 +4,7 @@
 -- Module                  : Lowarn.VersionId.Aeson
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : portable
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for 'ToJson' and 'FromJson' instances for 'VersionId'.
 module Lowarn.VersionId.Aeson () where

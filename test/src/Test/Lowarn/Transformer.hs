@@ -4,7 +4,7 @@
 -- Module                  : Test.Lowarn.Transformer
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : portable
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for testing transformers with Lowarn.
 module Test.Lowarn.Transformer

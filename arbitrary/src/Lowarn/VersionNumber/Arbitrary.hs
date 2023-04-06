@@ -4,7 +4,7 @@
 -- Module                  : Lowarn.VersionNumber.Arbitrary
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : portable
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for 'Arbitrary' instances for 'VersionNumber'.
 module Lowarn.VersionNumber.Arbitrary () where
