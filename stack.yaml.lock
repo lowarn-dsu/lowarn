@@ -19,41 +19,41 @@ packages:
   original:
     hackage: compact-word-vectors-0.2.0.2@sha256:49cf00f224000f149306e7043c228fa33e3dba87f10589e8326388c3278ba594,2709
 - completed:
-    hackage: ghc-tcplugin-api-0.9.0.0@sha256:36301d3175153aa1fa9c3dab5f70692293f09f1f26ef907f42d0f54ef9d3ce6a,4597
+    hackage: ghc-tcplugin-api-0.10.0.0@sha256:e48b4849cf41f1a14c4550600a7f049451c413c317e937c85fe9fea61239382b,4641
     pantry-tree:
-      sha256: a3f8d371dfaf9612e84e1d2aa30b08176c91f7247b07a0616885855cb1d132b6
+      sha256: 6eb15b77c7e82aad03d48efdb417b7e3a65edc9722d195c116c56a42d676e6ac
       size: 498
   original:
-    hackage: ghc-tcplugin-api-0.9.0.0
+    hackage: ghc-tcplugin-api-0.10.0.0
 - completed:
     name: dekking-plugin
     pantry-tree:
-      sha256: e9f6327a6c9ef123495cc0f4b0d5ee012ac41ccd2b92d070202b15bf00fced06
-      size: 414
-    sha256: 07405713f675528b6c7db07f52bbb4400e6d83db2a4607db7ce30df7f394bc51
-    size: 31105
+      sha256: 768cb5a405069f3d98ef1dae4e4e8e1741902be540d3829a4294ccfbf0bf6be9
+      size: 483
+    sha256: ce95629bebbc0841ecdb9971249a1285107c667b90b62f060a4f40369f80f012
+    size: 32145
     subdir: dekking-plugin
-    url: https://github.com/jonathanjameswatson/dekking/archive/3fe8904f860e881fc3589d24657b20dd9a53a662.tar.gz
+    url: https://github.com/jonathanjameswatson/dekking/archive/041dc895b4e2b2b156a1c71a5f52dfed6e69de54.tar.gz
     version: 0.0.0.0
   original:
     subdir: dekking-plugin
-    url: https://github.com/jonathanjameswatson/dekking/archive/3fe8904f860e881fc3589d24657b20dd9a53a662.tar.gz
+    url: https://github.com/jonathanjameswatson/dekking/archive/041dc895b4e2b2b156a1c71a5f52dfed6e69de54.tar.gz
 - completed:
     name: dekking-value
     pantry-tree:
-      sha256: c8b865cb680bc319a12287561e337284edf7b02245354fd8a8fb45e287aa8a84
+      sha256: 621939a94869c1946517769f9ca636bc5f4756772bd085115a6091994c3fbc8c
       size: 288
-    sha256: 07405713f675528b6c7db07f52bbb4400e6d83db2a4607db7ce30df7f394bc51
-    size: 31105
+    sha256: ce95629bebbc0841ecdb9971249a1285107c667b90b62f060a4f40369f80f012
+    size: 32145
     subdir: dekking-value
-    url: https://github.com/jonathanjameswatson/dekking/archive/3fe8904f860e881fc3589d24657b20dd9a53a662.tar.gz
+    url: https://github.com/jonathanjameswatson/dekking/archive/041dc895b4e2b2b156a1c71a5f52dfed6e69de54.tar.gz
     version: 0.0.0.0
   original:
     subdir: dekking-value
-    url: https://github.com/jonathanjameswatson/dekking/archive/3fe8904f860e881fc3589d24657b20dd9a53a662.tar.gz
+    url: https://github.com/jonathanjameswatson/dekking/archive/041dc895b4e2b2b156a1c71a5f52dfed6e69de54.tar.gz
 snapshots:
 - completed:
-    sha256: b37c0abab16c7de352c45b85f8ecc8530b084209a2c42987a96c92b4a5e3cd65
-    size: 648924
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/20/13.yaml
-  original: lts-20.13
+    sha256: 14ca51a9a597c32dd7804c10d079feea3d0ae40c5fbbb346cbd67b3ae49f6d01
+    size: 649598
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/20/17.yaml
+  original: lts-20.17
