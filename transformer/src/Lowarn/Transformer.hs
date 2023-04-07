@@ -321,6 +321,8 @@ instance
   ) =>
   NameAlias' 'False nu nl a b
 
+-- | A type class that indicates that the second type parameter is an alias for
+-- the first type parameter in datatype names.
 class DatatypeNameAlias (a :: Symbol) (b :: Symbol)
 
 instance
@@ -328,6 +330,8 @@ instance
   (NameAlias "Datatype" "datatype" a b) =>
   DatatypeNameAlias a b
 
+-- | A type class that indicates that the second type parameter is an alias for
+-- the first type parameter in constructor names.
 class ConstructorNameAlias (a :: Symbol) (b :: Symbol)
 
 instance
@@ -335,6 +339,8 @@ instance
   (NameAlias "Constructor" "constructor" a b) =>
   ConstructorNameAlias a b
 
+-- | A type class that indicates that the second type parameter is an alias for
+-- the first type parameter in field names.
 class FieldNameAlias (a :: Symbol) (b :: Symbol)
 
 instance
