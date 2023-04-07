@@ -23,10 +23,15 @@ prefixModuleNameRoundTrip =
       (showPrefixModuleName "EntryPoint")
       (parsePrefixModuleName "EntryPoint")
 
-encodedProgramNameRoundTrip :: TestTree
-encodedProgramNameRoundTrip =
-  testProperty (show 'encodedProgramNameRoundTrip) $
-    aesonRoundTripProperty (Proxy :: Proxy ProgramName)
+jsonProgramNameRoundTrip :: TestTree
+jsonProgramNameRoundTrip =
+  testProperty (show 'jsonProgramNameRoundTrip) $
+    jsonRoundTripProperty (Proxy :: Proxy ProgramName)
+
+yamlProgramNameRoundTrip :: TestTree
+yamlProgramNameRoundTrip =
+  testProperty (show 'yamlProgramNameRoundTrip) $
+    yamlRoundTripProperty (Proxy :: Proxy ProgramName)
 
 programNameTests :: TestTree
 programNameTests =
@@ -34,5 +39,6 @@ programNameTests =
     "Program name"
     [ programNameRoundTrip,
       prefixModuleNameRoundTrip,
-      encodedProgramNameRoundTrip
+      jsonProgramNameRoundTrip,
+      yamlProgramNameRoundTrip
     ]

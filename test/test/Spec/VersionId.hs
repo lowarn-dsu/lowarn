@@ -22,10 +22,15 @@ versionPackageNameRoundTrip =
       showVersionPackageName
       parseVersionPackageName
 
-encodedVersionIdRoundTrip :: TestTree
-encodedVersionIdRoundTrip =
-  testProperty (show 'encodedVersionIdRoundTrip) $
-    aesonRoundTripProperty (Proxy :: Proxy VersionId)
+jsonVersionIdRoundTrip :: TestTree
+jsonVersionIdRoundTrip =
+  testProperty (show 'jsonVersionIdRoundTrip) $
+    jsonRoundTripProperty (Proxy :: Proxy VersionId)
+
+yamlVersionIdRoundTrip :: TestTree
+yamlVersionIdRoundTrip =
+  testProperty (show 'yamlVersionIdRoundTrip) $
+    yamlRoundTripProperty (Proxy :: Proxy VersionId)
 
 versionIdTests :: TestTree
 versionIdTests =
@@ -33,5 +38,6 @@ versionIdTests =
     "Version ID"
     [ versionIdRoundTrip,
       versionPackageNameRoundTrip,
-      encodedVersionIdRoundTrip
+      jsonVersionIdRoundTrip,
+      yamlVersionIdRoundTrip
     ]

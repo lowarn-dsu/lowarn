@@ -22,10 +22,15 @@ updatePackageNameRoundTrip =
       showUpdatePackageName
       parseUpdatePackageName
 
-encodedUpdateIdRoundTrip :: TestTree
-encodedUpdateIdRoundTrip =
-  testProperty (show 'encodedUpdateIdRoundTrip) $
-    aesonRoundTripProperty (Proxy :: Proxy UpdateId)
+jsonUpdateIdRoundTrip :: TestTree
+jsonUpdateIdRoundTrip =
+  testProperty (show 'jsonUpdateIdRoundTrip) $
+    jsonRoundTripProperty (Proxy :: Proxy UpdateId)
+
+yamlUpdateIdRoundTrip :: TestTree
+yamlUpdateIdRoundTrip =
+  testProperty (show 'yamlUpdateIdRoundTrip) $
+    yamlRoundTripProperty (Proxy :: Proxy UpdateId)
 
 updateIdTests :: TestTree
 updateIdTests =
@@ -33,5 +38,6 @@ updateIdTests =
     "Update ID"
     [ updateIdRoundTrip,
       updatePackageNameRoundTrip,
-      encodedUpdateIdRoundTrip
+      jsonUpdateIdRoundTrip,
+      yamlUpdateIdRoundTrip
     ]

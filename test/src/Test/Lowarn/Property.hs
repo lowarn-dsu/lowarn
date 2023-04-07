@@ -12,14 +12,19 @@
 module Test.Lowarn.Property
   ( roundTripPropertyShow,
     parserCombinatorRoundTripProperty,
-    aesonRoundTripProperty,
+    jsonRoundTripProperty,
+    yamlRoundTripProperty,
   )
 where
 
 import Data.Aeson
+import Data.Binary.Builder
 import Data.Proxy
-import Data.Text.Lazy
-import Data.Text.Lazy.Encoding
+import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Text
+import qualified Data.Text.Lazy as Text.Lazy
+import qualified Data.Text.Lazy.Encoding as Text.Lazy
+import qualified Data.Yaml as Yaml
 import Lowarn.ParserCombinators
 import Test.QuickCheck hiding (Success)
 import Text.ParserCombinators.ReadP
@@ -38,20 +43,34 @@ roundTripPropertyShow customShow to parse =
 parserCombinatorRoundTripProperty ::
   (Arbitrary a, Eq a) => (a -> String) -> ReadP a -> Property
 parserCombinatorRoundTripProperty customShow customParse =
-  roundTripPropertyShow customShow customShow (readWithParser customParse)
+  roundTripPropertyShow
+    customShow
+    customShow
+    (readWithParser customParse)
 
 -- | Give the property that the result of converting a given value to and from
 -- JSON is the original value.
-aesonRoundTripProperty ::
+jsonRoundTripProperty ::
   forall a. (Arbitrary a, Eq a, ToJSON a, FromJSON a) => Proxy a -> Property
-aesonRoundTripProperty =
+jsonRoundTripProperty =
   const $
     roundTripPropertyShow @a
-      (unpack . decodeUtf8 . encode)
-      toJSON
+      (Text.Lazy.unpack . Text.Lazy.decodeUtf8 . encode)
+      (toLazyByteString . fromEncoding . toEncoding)
+      decode
+
+-- | Give the property that the result of converting a given value to and from
+-- YAML is the original value.
+yamlRoundTripProperty ::
+  forall a. (Arbitrary a, Eq a, ToJSON a, FromJSON a) => Proxy a -> Property
+yamlRoundTripProperty =
+  const $
+    roundTripPropertyShow @a
+      (Text.unpack . Text.decodeUtf8 . Yaml.encode)
+      Yaml.encode
       ( ( \case
-            Error _ -> Nothing
-            Success x -> Just x
+            Left _ -> Nothing
+            Right x -> Just x
         )
-          . fromJSON
+          . Yaml.decodeEither'
       )
