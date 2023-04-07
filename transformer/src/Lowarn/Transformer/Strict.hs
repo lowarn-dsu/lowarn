@@ -8,7 +8,7 @@
 -- Module                  : Lowarn.Transformer.Strict
 -- SPDX-License-Identifier : MIT
 -- Stability               : experimental
--- Portability             : non-portable (GHC)
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for utilities for defining strict Lowarn state transformers.
 module Lowarn.Transformer.Strict
@@ -23,16 +23,17 @@ import Control.Monad
 import Lowarn
 import Lowarn.Transformer
 
+-- | A strict version of 'Transformable'.
 class (NFData b) => StrictTransformable a b where
   {-# MINIMAL transformer' | transform' #-}
 
-  -- | Gives a transformer that attempts to transform data from type @a@ to type
-  -- @b@.
+  -- | A strict transformer that attempts to transform data from type @a@ to
+  -- type @b@.
   transformer' :: Transformer a b
   transformer' = Transformer $! transform'
 
-  -- | Attempt to transform data from type @a@ to type @b@, giving @Nothing@ if
-  -- this is not possible.
+  -- | Attempt to strictly transform data from type @a@ to type @b@, giving
+  -- @Nothing@ if this is not possible.
   transform' :: a -> IO (Maybe b)
   transform' = unTransformer $! transformer'
 
@@ -45,5 +46,6 @@ instance (Transformable a b, NFData b) => StrictTransformable a b where
           (return Nothing)
           ((unTransformer $! forceTransformer) $!)
 
+-- | A transformer that forces a value.
 forceTransformer :: (NFData a) => Transformer a a
 forceTransformer = Transformer $ evaluate . force . Just

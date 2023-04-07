@@ -5,7 +5,7 @@
 -- Module                  : Lowarn.Cli.VersionGraph
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : non-portable (GHC)
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for Lowarn program version graphs.
 module Lowarn.Cli.VersionGraph

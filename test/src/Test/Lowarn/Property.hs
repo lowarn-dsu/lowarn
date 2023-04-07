@@ -6,7 +6,7 @@
 -- Module                  : Test.Lowarn.Property
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : portable
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for property testing utilities for Lowarn.
 module Test.Lowarn.Property

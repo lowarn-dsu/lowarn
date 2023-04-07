@@ -2,7 +2,7 @@
 -- Module                  : Lowarn.ProgramName
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : portable
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for program names.
 module Lowarn.ProgramName
@@ -31,7 +31,8 @@ import Text.ParserCombinators.ReadP
 -- hyphens, where each "word" is a non-empty string of lowercase ASCII letters
 -- and digits containing at least one letter.
 newtype ProgramName = ProgramName
-  { unProgramName :: String
+  { -- | Convert a program name to a 'String'.
+    unProgramName :: String
   }
   deriving (Eq, Show)
 

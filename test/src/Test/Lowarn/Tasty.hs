@@ -2,7 +2,7 @@
 -- Module                  : Test.Lowarn.Tasty
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : portable
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for utilities for using Tasty.
 module Test.Lowarn.Tasty (BinarySemaphore, withBinarySemaphore) where

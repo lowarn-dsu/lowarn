@@ -2,7 +2,7 @@
 -- Module                  : Lowarn.VersionNumber
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : portable
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for version numbers.
 module Lowarn.VersionNumber
@@ -40,7 +40,8 @@ import Text.ParserCombinators.ReadP
 -- Version numbers are compared lexicographically, so @1.2@ is less than
 -- @1.2.0@.
 newtype VersionNumber = VersionNumber
-  { unVersionNumber :: NonEmpty Int
+  { -- | Convert a version number to a @'NonEmpty' 'Int'@
+    unVersionNumber :: NonEmpty Int
   }
   deriving (Eq, Ord, Show)
 

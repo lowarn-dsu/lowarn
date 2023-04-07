@@ -4,7 +4,7 @@
 -- Module                  : Lowarn.ProgramName.Aeson
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : portable
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for 'ToJson' and 'FromJson' instances for 'ProgramName'.
 module Lowarn.ProgramName.Aeson () where

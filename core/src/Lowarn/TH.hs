@@ -4,7 +4,7 @@
 -- Module                  : Lowarn.TH
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : portable
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for using Template Haskell to generate code for Lowarn.
 module Lowarn.TH (entryPointExportDeclarations, updateExportDeclarations) where

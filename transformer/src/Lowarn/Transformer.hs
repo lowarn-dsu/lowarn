@@ -20,11 +20,11 @@
 -- Module                  : Lowarn.Transformer
 -- SPDX-License-Identifier : MIT
 -- Stability               : experimental
--- Portability             : non-portable (GHC)
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for utilities for defining Lowarn state transformers.
 module Lowarn.Transformer
-  ( -- * Typeclass
+  ( -- * Type class
     Transformable (..),
 
     -- * Transformers
@@ -68,10 +68,10 @@ import Generics.SOP.TH
 import qualified Generics.SOP.Type.Metadata as M
 import Lowarn
 
--- | A two-parameter typeclass that has instances for types @a@ and @b@ if a
+-- | A two-parameter type class that has instances for types @a@ and @b@ if a
 -- @'Transformer' a b@ can be defined.
 --
--- The purpose of this typeclass is to allow type-driven transformation of
+-- The purpose of this type class is to allow type-driven transformation of
 -- state. This means that it can be used to generate transformers for updated
 -- representations of state by only defining the constituent types that have
 -- changed. This is achieved by a number of recursively-defined derived
@@ -149,11 +149,11 @@ import Lowarn
 -- customTransformer = 'transformer'
 -- @
 --
--- This typeclass is like 'Coercible', as it is used for converting between
--- types. However, this typeclass can be instantiated by the user. Another
--- difference is that the conversions defined by instances of this typeclass can
--- fail and have side-effects. 'coerceTransformer' can be used to instantiate
--- @'Transformable' a b@ given @'Coercible' a b@.
+-- This type class is like 'Coercible', as it is used for converting between
+-- types. However, this type class can be instantiated by the user. Another
+-- difference is that the conversions defined by instances of this type class
+-- can fail and have side-effects. 'coerceTransformer' can be used to
+-- instantiate @'Transformable' a b@ given @'Coercible' a b@.
 class Transformable a b where
   {-# MINIMAL transformer | transform #-}
 
@@ -321,6 +321,8 @@ instance
   ) =>
   NameAlias' 'False nu nl a b
 
+-- | A type class that indicates that the second type parameter is an alias for
+-- the first type parameter in datatype names.
 class DatatypeNameAlias (a :: Symbol) (b :: Symbol)
 
 instance
@@ -328,6 +330,8 @@ instance
   (NameAlias "Datatype" "datatype" a b) =>
   DatatypeNameAlias a b
 
+-- | A type class that indicates that the second type parameter is an alias for
+-- the first type parameter in constructor names.
 class ConstructorNameAlias (a :: Symbol) (b :: Symbol)
 
 instance
@@ -335,6 +339,8 @@ instance
   (NameAlias "Constructor" "constructor" a b) =>
   ConstructorNameAlias a b
 
+-- | A type class that indicates that the second type parameter is an alias for
+-- the first type parameter in field names.
 class FieldNameAlias (a :: Symbol) (b :: Symbol)
 
 instance

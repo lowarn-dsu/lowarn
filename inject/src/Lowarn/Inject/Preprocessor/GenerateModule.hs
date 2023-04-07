@@ -4,7 +4,7 @@
 -- Module                  : Lowarn.Inject.Preprocessor.GenerateModule
 -- SPDX-License-Identifier : MIT
 -- Stability               : experimental
--- Portability             : non-portable (GHC)
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for the generating @RuntimeDataVar_program_name@ modules.
 module Lowarn.Inject.Preprocessor.GenerateModule

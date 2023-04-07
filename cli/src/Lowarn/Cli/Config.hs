@@ -8,7 +8,7 @@
 -- Module                  : Lowarn.Cli.Config
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : non-portable (GHC)
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for Lowarn CLI configurations.
 module Lowarn.Cli.Config (LowarnConfig (..), findConfigPath) where

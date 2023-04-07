@@ -2,7 +2,7 @@
 -- Module                  : Lowarn.ParserCombinators
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : portable
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for helper functions for using parser combinators.
 module Lowarn.ParserCombinators

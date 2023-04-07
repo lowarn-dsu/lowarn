@@ -6,7 +6,7 @@
 -- Module                  : Lowarn.Cli.Run
 -- SPDX-License-Identifier : MIT
 -- Stability               : stable
--- Portability             : non-portable (GHC)
+-- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for a command that allows Lowarn programs to be run.
 module Lowarn.Cli.Run (run) where
