@@ -78,6 +78,7 @@ successfulChain =
     dsuTest
     timeout
   where
+    dsuTest :: Story ()
     dsuTest = do
       _ <- outputLines 3
       inputLine "A"
@@ -108,6 +109,7 @@ duplicatedUpdateSignal =
     dsuTest
     timeout
   where
+    dsuTest :: Story ()
     dsuTest = do
       _ <- outputLines 3
       inputLine "A"
@@ -128,17 +130,11 @@ customFfi :: IO BinarySemaphore -> TestTree
 customFfi =
   storyGoldenTest
     (show 'customFfi)
-    runtime
-    dsuTest
+    ( \(_, outHandle) ->
+        void $ loadVersion customFfiVersionId_1 $ Just outHandle
+    )
+    (void $ outputLines 4)
     timeout
-  where
-    runtime fileHandles =
-      void $
-        loadVersion customFfiVersionId_1 (Just $ snd fileHandles)
-
-    dsuTest = do
-      _ <- outputLines 4
-      return ()
 
 manualDsuTests :: IO BinarySemaphore -> TestTree
 manualDsuTests binarySemaphoreAction =
