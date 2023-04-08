@@ -3,6 +3,7 @@
 module Spec.ManualDsu (manualDsuTests) where
 
 import Control.Monad
+import Lowarn.ExampleProgram.CustomFfi.DemoInfo
 import Lowarn.ExampleProgram.Following.DemoInfo
 import Lowarn.ExampleProgram.ManualFollowing.DemoInfo
 import Lowarn.Runtime
@@ -123,11 +124,28 @@ duplicatedUpdateSignal =
       _ <- outputLines 6
       return ()
 
+customFfi :: IO BinarySemaphore -> TestTree
+customFfi =
+  storyGoldenTest
+    (show 'customFfi)
+    runtime
+    dsuTest
+    timeout
+  where
+    runtime fileHandles =
+      void $
+        loadVersion customFfiVersionId_1 (Just $ snd fileHandles)
+
+    dsuTest = do
+      _ <- outputLines 4
+      return ()
+
 manualDsuTests :: IO BinarySemaphore -> TestTree
 manualDsuTests binarySemaphoreAction =
   testGroup
     "Manual DSU runtime"
     $ [ successfulChain,
-        duplicatedUpdateSignal
+        duplicatedUpdateSignal,
+        customFfi
       ]
       <*> [binarySemaphoreAction]

@@ -59,6 +59,7 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - custom-ffi
     - following
     - lowarn-aeson
     - lowarn-arbitrary
@@ -66,18 +67,13 @@ tests:
     - lowarn-test
     - lowarn-test-types
     - lowarn-transformer
+    - lowarn-version-custom-ffi-v1v0v0
     - lowarn-update-following-v0-v1v0v0
     - lowarn-update-following-v1v0v0-v2v0v0
     - lowarn-update-following-v2v0v0-v3v0v0
     - lowarn-update-manual-following-v0-v1v0v0
     - lowarn-update-manual-following-v1v0v0-v2v0v0
     - lowarn-update-manual-following-v2v0v0-v3v0v0
-    - lowarn-version-following-v1v0v0
-    - lowarn-version-following-v2v0v0
-    - lowarn-version-following-v3v0v0
-    - lowarn-version-manual-following-v1v0v0
-    - lowarn-version-manual-following-v2v0v0
-    - lowarn-version-manual-following-v3v0v0
     - manual-following
     - path >= 0.9.2 && < 0.10
     - raw-strings-qq
