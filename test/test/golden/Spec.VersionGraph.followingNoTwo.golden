@@ -1,0 +1,10 @@
+Version graph:
+VersionGraph {unVersionGraph = fromList [(VersionNumber {unVersionNumber = 1 :| [0,0]},fromList [VersionNumber {unVersionNumber = 2 :| [0,0]}]),(VersionNumber {unVersionNumber = 3 :| [0,0]},fromList [])]}
+Earliest version number:
+Just "1.0.0"
+Latest version number:
+Just "3.0.0"
+Earliest version number after earliest version number:
+Just "2.0.0"
+Latest version number after earliest version number:
+Just "2.0.0"

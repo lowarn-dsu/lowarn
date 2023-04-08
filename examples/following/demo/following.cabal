@@ -22,8 +22,7 @@ source-repository head
 
 library
   exposed-modules:
-      Lowarn.ExampleProgram.Following.UpdateId
-      Lowarn.ExampleProgram.Following.VersionId
+      Lowarn.ExampleProgram.Following.DemoInfo
   other-modules:
       Paths_following
   hs-source-dirs:

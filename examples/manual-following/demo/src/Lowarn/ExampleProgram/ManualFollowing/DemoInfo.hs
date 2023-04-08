@@ -1,5 +1,10 @@
-module Lowarn.ExampleProgram.ManualFollowing.UpdateId
-  ( manualFollowingUpdateId_0_1,
+module Lowarn.ExampleProgram.ManualFollowing.DemoInfo
+  ( manualFollowingProgramName,
+    manualFollowingVersionId_0,
+    manualFollowingVersionId_1,
+    manualFollowingVersionId_2,
+    manualFollowingVersionId_3,
+    manualFollowingUpdateId_0_1,
     manualFollowingUpdateId_1_2,
     manualFollowingUpdateId_2_3,
   )
@@ -9,6 +14,7 @@ import Data.Maybe
 import Lowarn.ParserCombinators
 import Lowarn.ProgramName
 import Lowarn.UpdateId
+import Lowarn.VersionId
 import Lowarn.VersionNumber
 
 mkVersionNumberFromString :: String -> VersionNumber
@@ -47,3 +53,15 @@ manualFollowingUpdateId_1_2 =
 manualFollowingUpdateId_2_3 :: UpdateId
 manualFollowingUpdateId_2_3 =
   manualFollowingUpdateId (versionNumber2, versionNumber3)
+
+manualFollowingVersionId_0 :: VersionId
+manualFollowingVersionId_0 = previousVersionId manualFollowingUpdateId_0_1
+
+manualFollowingVersionId_1 :: VersionId
+manualFollowingVersionId_1 = previousVersionId manualFollowingUpdateId_1_2
+
+manualFollowingVersionId_2 :: VersionId
+manualFollowingVersionId_2 = previousVersionId manualFollowingUpdateId_2_3
+
+manualFollowingVersionId_3 :: VersionId
+manualFollowingVersionId_3 = nextVersionId manualFollowingUpdateId_2_3

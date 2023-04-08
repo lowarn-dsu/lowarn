@@ -1,8 +1,7 @@
 module Main (main) where
 
 import Control.Monad
-import Lowarn.ExampleProgram.Following.UpdateId
-import Lowarn.ExampleProgram.Following.VersionId
+import Lowarn.ExampleProgram.Following.DemoInfo
 import Lowarn.Runtime
 
 main :: IO ()

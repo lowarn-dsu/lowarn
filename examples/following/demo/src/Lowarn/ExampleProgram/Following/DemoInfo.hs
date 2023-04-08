@@ -1,5 +1,10 @@
-module Lowarn.ExampleProgram.Following.UpdateId
-  ( followingUpdateId_0_1,
+module Lowarn.ExampleProgram.Following.DemoInfo
+  ( followingProgramName,
+    followingVersionId_0,
+    followingVersionId_1,
+    followingVersionId_2,
+    followingVersionId_3,
+    followingUpdateId_0_1,
     followingUpdateId_1_2,
     followingUpdateId_2_3,
   )
@@ -9,6 +14,7 @@ import Data.Maybe
 import Lowarn.ParserCombinators
 import Lowarn.ProgramName
 import Lowarn.UpdateId
+import Lowarn.VersionId
 import Lowarn.VersionNumber
 
 mkVersionNumberFromString :: String -> VersionNumber
@@ -44,3 +50,15 @@ followingUpdateId_1_2 =
 followingUpdateId_2_3 :: UpdateId
 followingUpdateId_2_3 =
   followingUpdateId (versionNumber2, versionNumber3)
+
+followingVersionId_0 :: VersionId
+followingVersionId_0 = previousVersionId followingUpdateId_0_1
+
+followingVersionId_1 :: VersionId
+followingVersionId_1 = previousVersionId followingUpdateId_1_2
+
+followingVersionId_2 :: VersionId
+followingVersionId_2 = previousVersionId followingUpdateId_2_3
+
+followingVersionId_3 :: VersionId
+followingVersionId_3 = nextVersionId followingUpdateId_2_3

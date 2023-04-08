@@ -3,8 +3,8 @@
 module Spec.ManualDsu (manualDsuTests) where
 
 import Control.Monad
-import Lowarn.ExampleProgram.Following.UpdateId
-import Lowarn.ExampleProgram.ManualFollowing.UpdateId
+import Lowarn.ExampleProgram.Following.DemoInfo
+import Lowarn.ExampleProgram.ManualFollowing.DemoInfo
 import Lowarn.Runtime
 import Lowarn.UpdateId
 import System.IO

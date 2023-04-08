@@ -3,7 +3,7 @@
 module Spec.Story (storyTests) where
 
 import Control.Monad
-import Lowarn.ExampleProgram.ManualFollowing.UpdateId
+import Lowarn.ExampleProgram.ManualFollowing.DemoInfo
 import Lowarn.Runtime
 import System.IO
 import Test.Lowarn.Story

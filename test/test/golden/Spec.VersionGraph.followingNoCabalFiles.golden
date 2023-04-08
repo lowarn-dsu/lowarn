@@ -1,0 +1,10 @@
+Version graph:
+VersionGraph {unVersionGraph = fromList []}
+Earliest version number:
+Nothing
+Latest version number:
+Nothing
+Earliest version number after earliest version number:
+Nothing
+Latest version number after earliest version number:
+Nothing
