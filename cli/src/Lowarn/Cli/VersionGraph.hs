@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TupleSections #-}
 
@@ -55,24 +56,32 @@ getPackages
   mkId
   showPackageName
   projectDirectory
-  programName = do
-    (subdirectories, _) <- listDir $ projectDirectory </> packageParentDirectory
-    map fst
-      <$> filterM
-        snd
-        [ ( versionNumbers,
-            doesPathExist $ versionDirectory </> versionCabalPath
-          )
-          | versionDirectory <- subdirectories,
-            Just versionNumbers <-
-              return $
-                readWithParser (parseVersionNumbers <* char '/') $
-                  toFilePath $
-                    dirname versionDirectory,
-            versionCabalPath <-
-              parseRelFile $
-                showPackageName (mkId programName versionNumbers) <> ".cabal"
-        ]
+  programName =
+    doesDirExist searchDirectory
+      >>= \case
+        True -> do
+          (subdirectories, _) <- listDir searchDirectory
+          map fst
+            <$> filterM
+              snd
+              [ ( versionNumbers,
+                  doesPathExist $ versionDirectory </> versionCabalPath
+                )
+                | versionDirectory <- subdirectories,
+                  Just versionNumbers <-
+                    return $
+                      readWithParser (parseVersionNumbers <* char '/') $
+                        toFilePath $
+                          dirname versionDirectory,
+                  versionCabalPath <-
+                    parseRelFile $
+                      showPackageName
+                        (mkId programName versionNumbers)
+                        <> ".cabal"
+              ]
+        False -> return []
+    where
+      searchDirectory = projectDirectory </> packageParentDirectory
 
 getVersions :: Path Abs Dir -> ProgramName -> IO [VersionNumber]
 getVersions =

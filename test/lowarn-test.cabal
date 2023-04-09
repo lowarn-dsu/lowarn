@@ -87,7 +87,10 @@ extra-source-files:
     test/golden/Spec.VersionGraph.following.golden
     test/golden/Spec.VersionGraph.followingFullyConnected.golden
     test/golden/Spec.VersionGraph.followingNoCabalFiles.golden
+    test/golden/Spec.VersionGraph.followingNothing.golden
     test/golden/Spec.VersionGraph.followingNoTwo.golden
+    test/golden/Spec.VersionGraph.followingNoUpdates.golden
+    test/golden/Spec.VersionGraph.followingNoVersions.golden
     test/golden/Spec.VersionGraph.followingUpdateZero.golden
     test/golden/Spec.VersionGraph.followingVersionZero.golden
     test/golden/Spec.VersionGraph.followingWrongCabalFiles.golden

@@ -208,6 +208,30 @@ followingNoTwo =
         ]
     ]
 
+followingNoVersions :: TestTree
+followingNoVersions =
+  versionGraphGoldenTest
+    (show 'followingNoVersions)
+    [ Dir
+        "updates"
+        [ Dir
+            "1.0.0-2.0.0"
+            [unitFile "lowarn-update-following-v1v0v0-v2v0v0.cabal"]
+        ]
+    ]
+
+followingNoUpdates :: TestTree
+followingNoUpdates =
+  versionGraphGoldenTest
+    (show 'followingNoUpdates)
+    [ Dir
+        "versions"
+        [Dir "1.0.0" [unitFile "lowarn-version-following-v1v0v0.cabal"]]
+    ]
+
+followingNothing :: TestTree
+followingNothing = versionGraphGoldenTest (show 'followingNothing) []
+
 versionGraphTests :: TestTree
 versionGraphTests =
   testGroup
@@ -219,5 +243,8 @@ versionGraphTests =
       followingWrongProgramName,
       followingVersionZero,
       followingUpdateZero,
-      followingNoTwo
+      followingNoTwo,
+      followingNoVersions,
+      followingNoUpdates,
+      followingNothing
     ]
