@@ -1,5 +1,5 @@
 import Spec.Config (configTests)
-import Spec.ManualDsu (manualDsuTests)
+import Spec.Dsu (dsuTests)
 import Spec.ProgramName (programNameTests)
 import Spec.Story (storyTests)
 import Spec.Transformer (transformerTests)
@@ -19,7 +19,7 @@ main =
       ( \binarySemaphoreAction ->
           testGroup
             "Runtime"
-            $ [ manualDsuTests,
+            $ [ dsuTests,
                 storyTests
               ]
               <*> [binarySemaphoreAction]

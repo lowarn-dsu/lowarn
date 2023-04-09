@@ -27,15 +27,15 @@ extra-source-files:
     test/golden/Spec.Config.readDefaultConfig.golden
     test/golden/Spec.Config.readEmptyConfig.golden
     test/golden/Spec.Config.readNonDefaultConfig.golden
-    test/golden/Spec.ManualDsu.customFfi.golden
-    test/golden/Spec.ManualDsu.duplicatedUpdateSignal.configFollowing.golden
-    test/golden/Spec.ManualDsu.duplicatedUpdateSignal.configManualFollowing.golden
-    test/golden/Spec.ManualDsu.duplicatedUpdateSignal.following.golden
-    test/golden/Spec.ManualDsu.duplicatedUpdateSignal.manualFollowing.golden
-    test/golden/Spec.ManualDsu.successfulChain.configFollowing.golden
-    test/golden/Spec.ManualDsu.successfulChain.configManualFollowing.golden
-    test/golden/Spec.ManualDsu.successfulChain.following.golden
-    test/golden/Spec.ManualDsu.successfulChain.manualFollowing.golden
+    test/golden/Spec.Dsu.customFfi.golden
+    test/golden/Spec.Dsu.duplicatedUpdateSignal.configFollowing.golden
+    test/golden/Spec.Dsu.duplicatedUpdateSignal.configManualFollowing.golden
+    test/golden/Spec.Dsu.duplicatedUpdateSignal.following.golden
+    test/golden/Spec.Dsu.duplicatedUpdateSignal.manualFollowing.golden
+    test/golden/Spec.Dsu.successfulChain.configFollowing.golden
+    test/golden/Spec.Dsu.successfulChain.configManualFollowing.golden
+    test/golden/Spec.Dsu.successfulChain.following.golden
+    test/golden/Spec.Dsu.successfulChain.manualFollowing.golden
     test/golden/Spec.Story.info.golden
     test/golden/Spec.Story.inputTimeout.golden
     test/golden/Spec.Story.outputTimeout.golden
@@ -151,7 +151,7 @@ test-suite lowarn-test
   main-is: Spec.hs
   other-modules:
       Spec.Config
-      Spec.ManualDsu
+      Spec.Dsu
       Spec.ProgramName
       Spec.Story
       Spec.Transformer
