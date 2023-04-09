@@ -24,6 +24,9 @@ extra-source-files:
     test/golden/Spec.Config.findConfigNonExistent.golden
     test/golden/Spec.Config.findConfigRootFound.golden
     test/golden/Spec.Config.findConfigRootMissing.golden
+    test/golden/Spec.Config.readDefaultConfig.golden
+    test/golden/Spec.Config.readEmptyConfig.golden
+    test/golden/Spec.Config.readNonDefaultConfig.golden
     test/golden/Spec.ManualDsu.customFfi.golden
     test/golden/Spec.ManualDsu.duplicatedUpdateSignal.following.golden
     test/golden/Spec.ManualDsu.duplicatedUpdateSignal.manualFollowing.golden
