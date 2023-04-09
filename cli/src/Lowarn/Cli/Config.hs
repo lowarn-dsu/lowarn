@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE RecordWildCards #-}
 
 -- |
 -- Module                  : Lowarn.Cli.Config
@@ -28,7 +29,16 @@ data LowarnConfig = LowarnConfig
     -- | Whether or not to use the system linker, rather than GHC's.
     lowarnConfigSystemLinker :: Bool
   }
-  deriving (Show)
+  deriving (Eq, Show)
+
+instance ToJSON LowarnConfig where
+  toJSON :: LowarnConfig -> Value
+  toJSON LowarnConfig {..} =
+    object
+      [ "program-name" .= lowarnConfigProgramName,
+        "unload" .= lowarnConfigUnload,
+        "system-linker" .= lowarnConfigSystemLinker
+      ]
 
 instance FromJSON LowarnConfig where
   parseJSON :: Value -> Parser LowarnConfig
@@ -43,20 +53,28 @@ instance FromJSON LowarnConfig where
         .:? "system-linker"
         .!= True
 
--- | Attempt to find a @lowarn.yaml@ file from the current working directory.
--- The current working directory and its ancestors are searched in order, with
--- 'Nothing' being given when there are no ancestor directories with the file
--- @lowarn.yaml@.
-findConfigPath :: IO (Maybe (Path Abs File))
-findConfigPath = getCurrentDir >>= findConfigFileWithParent
+-- | Attempt to find a @lowarn.yaml@ file from a given search directory in a
+-- given root directory. The given search directory and its ancestors are
+-- searched in order, with 'Nothing' being given when there are no ancestor
+-- directories with a file named @lowarn.yaml@ until the root directory is
+-- reached.
+findConfigPath ::
+  -- | The root directory to search in.
+  Path Abs Dir ->
+  -- | The search directory to start searching from.
+  Path Rel Dir ->
+  IO (Maybe (Path Abs File))
+findConfigPath rootDirectory searchDirectory =
+  doesDirExist absoluteSearchDirectory >>= \case
+    True ->
+      doesFileExist configFilePath >>= \case
+        True -> return $ Just configFilePath
+        False -> do
+          let searchDirectoryParent = parent searchDirectory
+          if searchDirectoryParent /= searchDirectory
+            then findConfigPath rootDirectory searchDirectoryParent
+            else return Nothing
+    False -> return Nothing
   where
-    findConfigFileWithParent :: Path Abs Dir -> IO (Maybe (Path Abs File))
-    findConfigFileWithParent parentDir =
-      let grandparentDir = parent parentDir
-       in if grandparentDir == parentDir
-            then return Nothing
-            else do
-              let configFilePath = parentDir </> [relfile|lowarn.yaml|]
-              doesFileExist configFilePath >>= \case
-                True -> return $ Just configFilePath
-                False -> findConfigFileWithParent grandparentDir
+    absoluteSearchDirectory = rootDirectory </> searchDirectory
+    configFilePath = absoluteSearchDirectory </> [relfile|lowarn.yaml|]

@@ -28,10 +28,15 @@ withLettersRoundTrip =
   testProperty (show 'withLettersRoundTrip) $
     parserCombinatorRoundTripProperty showWithLetters parseWithLetters
 
-encodedVersionNumberRoundTrip :: TestTree
-encodedVersionNumberRoundTrip =
-  testProperty (show 'encodedVersionNumberRoundTrip) $
-    aesonRoundTripProperty (Proxy :: Proxy VersionNumber)
+jsonVersionNumberRoundTrip :: TestTree
+jsonVersionNumberRoundTrip =
+  testProperty (show 'jsonVersionNumberRoundTrip) $
+    jsonRoundTripProperty (Proxy :: Proxy VersionNumber)
+
+yamlVersionNumberRoundTrip :: TestTree
+yamlVersionNumberRoundTrip =
+  testProperty (show 'yamlVersionNumberRoundTrip) $
+    yamlRoundTripProperty (Proxy :: Proxy VersionNumber)
 
 versionNumberTests :: TestTree
 versionNumberTests =
@@ -40,5 +45,6 @@ versionNumberTests =
     [ lexicographicOrdering,
       withDotsRoundTrip,
       withLettersRoundTrip,
-      encodedVersionNumberRoundTrip
+      jsonVersionNumberRoundTrip,
+      yamlVersionNumberRoundTrip
     ]

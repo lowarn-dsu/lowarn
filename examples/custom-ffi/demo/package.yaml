@@ -24,6 +24,9 @@ ghc-options:
 - -Wpartial-fields
 - -Wredundant-constraints
 
+library:
+  source-dirs: src
+
 executables:
   custom-ffi-exe:
     main:                Main.hs
@@ -33,3 +36,5 @@ executables:
     - -rtsopts
     # - -with-rtsopts=-N
     - -dynamic
+    dependencies:
+    - custom-ffi

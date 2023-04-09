@@ -22,6 +22,9 @@ module Test.Lowarn.Story
 
     -- * Tasty integration
     storyGoldenTest,
+
+    -- * Run runtime preset
+    defaultRunRuntime,
   )
 where
 
@@ -90,12 +93,14 @@ runStory ::
   -- | A function that takes a pair of input and output handles and returns a
   -- runtime.
   ((Handle, Handle) -> Runtime ()) ->
+  -- | A function that runs a runtime.
+  (Runtime () -> IO ()) ->
   -- | The file path of the output log file.
   FilePath ->
   -- | A timeout in microseconds.
   Int ->
   IO ()
-runStory story getRuntime outputPath timeoutLength = do
+runStory story getRuntime runRuntimePreset outputPath timeoutLength = do
   (inputReadHandle, inputWriteHandle) <- createPipeWithLineBuffering
   (outputReadHandle, outputWriteHandle) <- createPipeWithLineBuffering
   withFile outputPath WriteMode $ \fileHandle -> do
@@ -108,11 +113,8 @@ runStory story getRuntime outputPath timeoutLength = do
       forkProcessWithUnmask $ \unmask ->
         catch
           ( unmask $
-              runRuntime
-                ( getRuntime (inputReadHandle, outputWriteHandle)
-                )
-                False
-                False
+              runRuntimePreset $
+                getRuntime (inputReadHandle, outputWriteHandle)
           )
           ( \exception -> do
               shouldWriteExceptions <- readIORef shouldWriteExceptionsRef
@@ -206,6 +208,8 @@ storyGoldenTest ::
   -- | A function that takes a pair of input and output handles and returns a
   -- runtime.
   ((Handle, Handle) -> Runtime ()) ->
+  -- | A function that runs a runtime.
+  (Runtime () -> IO ()) ->
   -- | A story.
   Story () ->
   -- | A timeout in microseconds.
@@ -213,11 +217,22 @@ storyGoldenTest ::
   -- | An action that returns a binary semaphore.
   IO BinarySemaphore ->
   TestTree
-storyGoldenTest testName getRuntime story timeoutLength binarySemaphoreAction =
-  goldenTest
-    testName
-    $ \logFile -> do
-      binarySemaphore <- binarySemaphoreAction
-      withMVar binarySemaphore $
-        const $
-          runStory story getRuntime logFile timeoutLength
+storyGoldenTest
+  testName
+  getRuntime
+  runRuntimePreset
+  story
+  timeoutLength
+  binarySemaphoreAction =
+    goldenTest
+      testName
+      $ \logFile -> do
+        binarySemaphore <- binarySemaphoreAction
+        withMVar binarySemaphore $
+          const $
+            runStory story getRuntime runRuntimePreset logFile timeoutLength
+
+-- | A function that runs a runtime that can be used with 'runStory' and
+-- 'storyGoldenTest'.
+defaultRunRuntime :: Runtime () -> IO ()
+defaultRunRuntime runtime = runRuntime runtime False False

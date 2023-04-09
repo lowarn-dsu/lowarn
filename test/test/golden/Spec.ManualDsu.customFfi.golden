@@ -1,0 +1,4 @@
+Output: abs(-10) = 10 using stdlib.h
+Output: log2(16) = 4.0 using math.h
+Output: crypt("password123", "ab") = abJnggxhB/yWI using crypt.h
+Output: triangle(3) = 6 using triangle.h

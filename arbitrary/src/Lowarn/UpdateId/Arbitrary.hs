@@ -18,7 +18,7 @@ import Test.QuickCheck
 
 instance Arbitrary UpdateId where
   arbitrary :: Gen UpdateId
-  arbitrary = UpdateId <$> arbitrary <*> arbitrary <*> arbitrary
+  arbitrary = liftA3 UpdateId arbitrary arbitrary arbitrary
 
   shrink :: UpdateId -> [UpdateId]
   shrink UpdateId {..} =

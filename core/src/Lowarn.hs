@@ -45,6 +45,11 @@ import Control.Concurrent
 import Control.Monad
 import Data.Maybe
 
+-- $setup
+-- >>> import Control.Applicative
+-- >>> import Control.Arrow
+-- >>> import qualified Control.Category as Cat
+
 -- | Type for storing whether or not Lowarn should try to update a program.
 newtype UpdateSignalRegister = UpdateSignalRegister
   { unUpdateSignalRegister :: MVar ()
@@ -73,6 +78,56 @@ newtype EntryPoint a = EntryPoint
 
 -- | Type for functions that transform state from one version of a program
 -- into state for another.
+--
+-- ==== __Examples__
+--
+-- >>> unTransformer (Transformer $ return . Just . (<> " bar")) "foo"
+-- Just "foo bar"
+--
+-- >>> unTransformer (fmap length (Transformer $ return . Just . (<> " bar"))) "foo"
+-- Just 7
+--
+-- >>> unTransformer (pure 10) "foo"
+-- Just 10
+--
+-- >>> unTransformer (Transformer (return . Just . flip (<>)) <*> Transformer (return . Just . (<> " bar "))) "foo"
+-- Just "foo bar foo"
+--
+-- >>> unTransformer (Transformer (return . Just . ( <> " bar ")) >>= \x -> Transformer (return . Just . (x <>))) "foo"
+-- Just "foo bar foo"
+--
+-- >>> unTransformer Cat.id "foo"
+-- Just "foo"
+--
+-- >>> unTransformer (arr length Cat.. arr (<> " bar")) "foo"
+-- Just 7
+--
+-- >>> unTransformer (first $ arr (<> " bar")) ("foo", "baz")
+-- Just ("foo bar","baz")
+--
+-- >>> unTransformer (Transformer (return . Just . (<> " bar")) <> Transformer (return . Just . (<> " baz"))) "foo"
+-- Just "foo bar"
+--
+-- >>> unTransformer (Transformer (const $ return Nothing) <> Transformer (return . Just . (<> " baz"))) "foo"
+-- Just "foo baz"
+--
+-- >>> unTransformer (mempty <> Transformer (return . Just . (<> " baz"))) "foo"
+-- Just "foo baz"
+--
+-- >>> unTransformer (empty <|> Transformer (return . Just . (<> " baz"))) "foo"
+-- Just "foo baz"
+--
+-- >>> unTransformer (zeroArrow <+> arr (<> " baz")) "foo"
+-- Just "foo baz"
+--
+-- >>> unTransformer (arr (<> " bar") +++ arr (<> " baz")) $ Left "foo"
+-- Just (Left "foo bar")
+--
+-- >>> unTransformer (arr (<> " bar") +++ arr (<> " baz")) $ Right "foo"
+-- Just (Right "foo baz")
+--
+-- >>> unTransformer (first (arr (\x -> arr ((x <> " bar ") <>))) >>> app) ("foo", "baz")
+-- Just "foo bar baz"
 newtype Transformer a b = Transformer
   { unTransformer :: a -> IO (Maybe b)
   }

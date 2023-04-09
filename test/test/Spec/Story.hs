@@ -3,7 +3,7 @@
 module Spec.Story (storyTests) where
 
 import Control.Monad
-import Lowarn.ExampleProgram.ManualFollowing.UpdateId
+import Lowarn.ExampleProgram.ManualFollowing.DemoInfo
 import Lowarn.Runtime
 import System.IO
 import Test.Lowarn.Story
@@ -22,6 +22,7 @@ inputTimeout =
   storyGoldenTest
     (show 'inputTimeout)
     getExampleRuntime
+    defaultRunRuntime
     (void $ outputLines 3)
     timeout
 
@@ -30,6 +31,7 @@ outputTimeout =
   storyGoldenTest
     (show 'outputTimeout)
     getExampleRuntime
+    defaultRunRuntime
     (void $ outputLines 7)
     timeout
 
@@ -38,6 +40,7 @@ pipeOrderingWithInputFirst =
   storyGoldenTest
     (show 'pipeOrderingWithInputFirst)
     getExampleRuntime
+    defaultRunRuntime
     (void $ inputLine "A" >> outputLines 7)
     timeout
 
@@ -46,6 +49,7 @@ pipeOrderingWithOutputFirst =
   storyGoldenTest
     (show 'pipeOrderingWithOutputFirst)
     getExampleRuntime
+    defaultRunRuntime
     (outputLines 7 >> inputLine "A")
     timeout
 
@@ -54,6 +58,7 @@ info =
   storyGoldenTest
     (show 'info)
     (const $ return ())
+    defaultRunRuntime
     (writeInfo "Test")
     timeout
 

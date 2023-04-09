@@ -1,4 +1,5 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Main (main) where
@@ -10,6 +11,7 @@ import Lowarn.Cli.Run
 import Lowarn.ParserCombinators
 import Lowarn.VersionNumber
 import Options.Applicative
+import Path
 import Path.IO
 import System.IO
 import Text.Printf
@@ -70,15 +72,21 @@ parserInfo =
       <> header
         "lowarn-cli - a CLI for working with programs that support DSU with Lowarn"
 
+rootDirectory :: Path Abs Dir
+rootDirectory = [absdir|/|]
+
 main :: IO ()
 main = do
   Options {..} <- execParser parserInfo
   configPath <- case optionsConfigFilePath of
     Just configPath -> resolveFile' configPath
     Nothing ->
-      findConfigPath >>= \case
-        Just configFilePath -> return configFilePath
-        Nothing -> fail "The Lowarn configuration file could not be found."
+      getCurrentDir
+        >>= stripProperPrefix rootDirectory
+        >>= findConfigPath rootDirectory
+        >>= \case
+          Just configFilePath -> return configFilePath
+          Nothing -> fail "The Lowarn configuration file could not be found."
   getLowarnEnv configPath >>= \case
     Left e ->
       hPutStrLn stderr $ displayException e

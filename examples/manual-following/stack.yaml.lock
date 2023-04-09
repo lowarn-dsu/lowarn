@@ -5,12 +5,12 @@
 
 packages:
 - completed:
-    hackage: ghc-tcplugin-api-0.9.0.0@sha256:36301d3175153aa1fa9c3dab5f70692293f09f1f26ef907f42d0f54ef9d3ce6a,4597
+    hackage: ghc-tcplugin-api-0.10.0.0@sha256:e48b4849cf41f1a14c4550600a7f049451c413c317e937c85fe9fea61239382b,4641
     pantry-tree:
-      sha256: a3f8d371dfaf9612e84e1d2aa30b08176c91f7247b07a0616885855cb1d132b6
+      sha256: 6eb15b77c7e82aad03d48efdb417b7e3a65edc9722d195c116c56a42d676e6ac
       size: 498
   original:
-    hackage: ghc-tcplugin-api-0.9.0.0
+    hackage: ghc-tcplugin-api-0.10.0.0
 snapshots:
 - completed:
     sha256: b37c0abab16c7de352c45b85f8ecc8530b084209a2c42987a96c92b4a5e3cd65

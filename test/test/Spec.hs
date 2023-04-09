@@ -1,8 +1,10 @@
+import Spec.Config (configTests)
 import Spec.ManualDsu (manualDsuTests)
 import Spec.ProgramName (programNameTests)
 import Spec.Story (storyTests)
 import Spec.Transformer (transformerTests)
 import Spec.UpdateId (updateIdTests)
+import Spec.VersionGraph (versionGraphTests)
 import Spec.VersionId (versionIdTests)
 import Spec.VersionNumber (versionNumberTests)
 import Test.Lowarn.Tasty (withBinarySemaphore)
@@ -27,6 +29,8 @@ main =
                   programNameTests,
                   versionIdTests,
                   updateIdTests,
-                  transformerTests
+                  transformerTests,
+                  versionGraphTests,
+                  configTests
                 ]
         )

@@ -19,8 +19,21 @@ license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
+    test/golden/Spec.Config.findConfigBase.golden
+    test/golden/Spec.Config.findConfigNested.golden
+    test/golden/Spec.Config.findConfigNonExistent.golden
+    test/golden/Spec.Config.findConfigRootFound.golden
+    test/golden/Spec.Config.findConfigRootMissing.golden
+    test/golden/Spec.Config.readDefaultConfig.golden
+    test/golden/Spec.Config.readEmptyConfig.golden
+    test/golden/Spec.Config.readNonDefaultConfig.golden
+    test/golden/Spec.ManualDsu.customFfi.golden
+    test/golden/Spec.ManualDsu.duplicatedUpdateSignal.configFollowing.golden
+    test/golden/Spec.ManualDsu.duplicatedUpdateSignal.configManualFollowing.golden
     test/golden/Spec.ManualDsu.duplicatedUpdateSignal.following.golden
     test/golden/Spec.ManualDsu.duplicatedUpdateSignal.manualFollowing.golden
+    test/golden/Spec.ManualDsu.successfulChain.configFollowing.golden
+    test/golden/Spec.ManualDsu.successfulChain.configManualFollowing.golden
     test/golden/Spec.ManualDsu.successfulChain.following.golden
     test/golden/Spec.ManualDsu.successfulChain.manualFollowing.golden
     test/golden/Spec.Story.info.golden
@@ -78,6 +91,17 @@ extra-source-files:
     test/golden/Spec.Transformer.unwrapNewtype.golden
     test/golden/Spec.Transformer.wrapData.golden
     test/golden/Spec.Transformer.wrapNewtype.golden
+    test/golden/Spec.VersionGraph.following.golden
+    test/golden/Spec.VersionGraph.followingFullyConnected.golden
+    test/golden/Spec.VersionGraph.followingNoCabalFiles.golden
+    test/golden/Spec.VersionGraph.followingNothing.golden
+    test/golden/Spec.VersionGraph.followingNoTwo.golden
+    test/golden/Spec.VersionGraph.followingNoUpdates.golden
+    test/golden/Spec.VersionGraph.followingNoVersions.golden
+    test/golden/Spec.VersionGraph.followingUpdateZero.golden
+    test/golden/Spec.VersionGraph.followingVersionZero.golden
+    test/golden/Spec.VersionGraph.followingWrongCabalFiles.golden
+    test/golden/Spec.VersionGraph.followingWrongProgramName.golden
 
 source-repository head
   type: git
@@ -85,11 +109,14 @@ source-repository head
 
 library
   exposed-modules:
+      Test.Lowarn.Config
+      Test.Lowarn.DirectoryTree
       Test.Lowarn.Golden
       Test.Lowarn.Property
       Test.Lowarn.Story
       Test.Lowarn.Tasty
       Test.Lowarn.Transformer
+      Test.Lowarn.VersionGraph
   other-modules:
       Paths_lowarn_test
   hs-source-dirs:
@@ -99,39 +126,51 @@ library
       QuickCheck
     , aeson
     , base >=4.7 && <5
+    , binary
+    , directory-tree
     , filepath
     , generics-sop >=0.5.1 && <0.6
     , hint >=0.9.0.6 && <0.9.1
     , lowarn
+    , lowarn-cli
     , lowarn-runtime
+    , path >=0.9.2 && <0.10
     , process
     , sop-core
     , tasty
     , tasty-golden
+    , temporary
     , text >=1.2.5 && <1.3
     , transformers
     , unix
+    , yaml >=0.11.8 && <0.12
   default-language: Haskell2010
 
 test-suite lowarn-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Spec.Config
       Spec.ManualDsu
       Spec.ProgramName
       Spec.Story
       Spec.Transformer
       Spec.UpdateId
+      Spec.VersionGraph
       Spec.VersionId
       Spec.VersionNumber
       Paths_lowarn_test
   hs-source-dirs:
       test
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N -rdynamic
   build-depends:
       QuickCheck
     , aeson
     , base >=4.7 && <5
+    , binary
+    , containers
+    , custom-ffi
+    , directory-tree
     , filepath
     , following
     , generics-sop >=0.5.1 && <0.6
@@ -139,6 +178,7 @@ test-suite lowarn-test
     , lowarn
     , lowarn-aeson
     , lowarn-arbitrary
+    , lowarn-cli
     , lowarn-runtime
     , lowarn-test
     , lowarn-test-types
@@ -149,20 +189,18 @@ test-suite lowarn-test
     , lowarn-update-manual-following-v0-v1v0v0
     , lowarn-update-manual-following-v1v0v0-v2v0v0
     , lowarn-update-manual-following-v2v0v0-v3v0v0
-    , lowarn-version-following-v1v0v0
-    , lowarn-version-following-v2v0v0
-    , lowarn-version-following-v3v0v0
-    , lowarn-version-manual-following-v1v0v0
-    , lowarn-version-manual-following-v2v0v0
-    , lowarn-version-manual-following-v3v0v0
+    , lowarn-version-custom-ffi-v1v0v0
     , manual-following
+    , path >=0.9.2 && <0.10
     , process
     , raw-strings-qq
     , sop-core
     , tasty
     , tasty-golden
     , tasty-quickcheck
+    , temporary
     , text >=1.2.5 && <1.3
     , transformers
     , unix
+    , yaml >=0.11.8 && <0.12
   default-language: Haskell2010
