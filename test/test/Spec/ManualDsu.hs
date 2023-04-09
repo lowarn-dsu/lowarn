@@ -3,11 +3,19 @@
 module Spec.ManualDsu (manualDsuTests) where
 
 import Control.Monad
+import qualified Data.Map.Strict as Map
+import Data.Maybe
+import qualified Data.Set as Set
+import Lowarn.Cli.Config
+import Lowarn.Cli.Run
+import Lowarn.Cli.VersionGraph
 import Lowarn.ExampleProgram.CustomFfi.DemoInfo
 import Lowarn.ExampleProgram.Following.DemoInfo
 import Lowarn.ExampleProgram.ManualFollowing.DemoInfo
+import Lowarn.ParserCombinators
 import Lowarn.Runtime
 import Lowarn.UpdateId
+import Lowarn.VersionNumber
 import System.IO
 import Test.Lowarn.Story
 import Test.Lowarn.Tasty
@@ -29,24 +37,65 @@ getExampleRuntime
         >>= loadUpdate updateId_1_2
         >>= loadUpdate updateId_2_3
 
-getExampleManualFollowingRuntime :: (Handle, Handle) -> Runtime ()
+getExampleManualFollowingRuntime,
+  getExampleFollowingRuntime ::
+    (Handle, Handle) -> Runtime ()
 getExampleManualFollowingRuntime =
   getExampleRuntime
     manualFollowingUpdateId_0_1
     manualFollowingUpdateId_1_2
     manualFollowingUpdateId_2_3
-
-getExampleFollowingRuntime :: (Handle, Handle) -> Runtime ()
 getExampleFollowingRuntime =
   getExampleRuntime
     followingUpdateId_0_1
     followingUpdateId_1_2
     followingUpdateId_2_3
 
-getExampleRuntimes :: [(String, (Handle, Handle) -> Runtime ())]
+mkVersionNumberFromString :: String -> VersionNumber
+mkVersionNumberFromString = fromJust . readWithParser parseWithDots
+
+versionNumber0, versionNumber1, versionNumber2, versionNumber3 :: VersionNumber
+versionNumber0 = mkVersionNumberFromString "0"
+versionNumber1 = mkVersionNumberFromString "1.0.0"
+versionNumber2 = mkVersionNumberFromString "2.0.0"
+versionNumber3 = mkVersionNumberFromString "3.0.0"
+
+exampleVersionGraph :: VersionGraph
+exampleVersionGraph =
+  VersionGraph $
+    Map.fromAscList
+      [ (versionNumber0, Set.singleton versionNumber1),
+        (versionNumber1, Set.singleton versionNumber2),
+        (versionNumber2, Set.singleton versionNumber3),
+        (versionNumber3, Set.empty)
+      ]
+
+getConfigRuntime :: LowarnConfig -> (Handle, Handle) -> Runtime ()
+getConfigRuntime config handles =
+  void $
+    configRuntime
+      config
+      (return exampleVersionGraph)
+      False
+      (Right (versionNumber0, handles))
+
+manualFollowingConfig, followingConfig :: LowarnConfig
+manualFollowingConfig = LowarnConfig manualFollowingProgramName False False
+followingConfig = LowarnConfig followingProgramName True True
+
+getExampleRuntimes ::
+  [(String, (Handle, Handle) -> Runtime (), Runtime () -> IO ())]
 getExampleRuntimes =
-  [ ("manualFollowing", getExampleManualFollowingRuntime),
-    ("following", getExampleFollowingRuntime)
+  [ ("manualFollowing", getExampleManualFollowingRuntime, defaultRunRuntime),
+    ("following", getExampleFollowingRuntime, defaultRunRuntime),
+    ( "configManualFollowing",
+      getConfigRuntime manualFollowingConfig,
+      flip runConfigRuntime manualFollowingConfig
+    ),
+    ( "configFollowing",
+      getConfigRuntime followingConfig,
+      flip runConfigRuntime followingConfig
+    )
   ]
 
 storyGoldenTests ::
@@ -58,10 +107,11 @@ storyGoldenTests ::
 storyGoldenTests testName story timeout' binarySemaphoreAction =
   testGroup testName $
     map
-      ( \(exampleRuntimeName, getExampleRuntime') ->
+      ( \(exampleRuntimeName, getRuntime, runRuntimePreset) ->
           storyGoldenTest
             (testName <> ('.' : exampleRuntimeName))
-            getExampleRuntime'
+            getRuntime
+            runRuntimePreset
             story
             timeout'
             binarySemaphoreAction
@@ -133,6 +183,7 @@ customFfi =
     ( \(_, outHandle) ->
         void $ loadVersion customFfiVersionId_1 $ Just outHandle
     )
+    defaultRunRuntime
     (void $ outputLines 4)
     timeout
 

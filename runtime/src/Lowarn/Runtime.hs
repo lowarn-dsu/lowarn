@@ -39,7 +39,7 @@ newtype Runtime a = Runtime
   }
   deriving (Functor, Applicative, Monad, MonadIO)
 
--- | Run a runtime, optionally unloading code.
+-- | Run a runtime, optionally unloading code and/or using the system linker.
 runRuntime ::
   -- | A runtime.
   Runtime a ->

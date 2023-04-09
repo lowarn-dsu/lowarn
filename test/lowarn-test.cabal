@@ -28,8 +28,12 @@ extra-source-files:
     test/golden/Spec.Config.readEmptyConfig.golden
     test/golden/Spec.Config.readNonDefaultConfig.golden
     test/golden/Spec.ManualDsu.customFfi.golden
+    test/golden/Spec.ManualDsu.duplicatedUpdateSignal.configFollowing.golden
+    test/golden/Spec.ManualDsu.duplicatedUpdateSignal.configManualFollowing.golden
     test/golden/Spec.ManualDsu.duplicatedUpdateSignal.following.golden
     test/golden/Spec.ManualDsu.duplicatedUpdateSignal.manualFollowing.golden
+    test/golden/Spec.ManualDsu.successfulChain.configFollowing.golden
+    test/golden/Spec.ManualDsu.successfulChain.configManualFollowing.golden
     test/golden/Spec.ManualDsu.successfulChain.following.golden
     test/golden/Spec.ManualDsu.successfulChain.manualFollowing.golden
     test/golden/Spec.Story.info.golden
@@ -158,12 +162,13 @@ test-suite lowarn-test
       Paths_lowarn_test
   hs-source-dirs:
       test
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N -rdynamic
   build-depends:
       QuickCheck
     , aeson
     , base >=4.7 && <5
     , binary
+    , containers
     , custom-ffi
     , directory-tree
     , filepath

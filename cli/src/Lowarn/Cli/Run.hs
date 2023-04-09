@@ -9,7 +9,7 @@
 -- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for a command that allows Lowarn programs to be run.
-module Lowarn.Cli.Run (run) where
+module Lowarn.Cli.Run (run, runConfigRuntime, configRuntime) where
 
 import Control.Monad.IO.Class
 import Lowarn.Cli.Config
@@ -27,37 +27,58 @@ import Text.Printf
 -- version. The latest available version of the program is used when searching
 -- for one.
 run :: LowarnEnv -> Maybe VersionNumber -> IO ()
-run lowarnEnv@LowarnEnv {lowarnEnvConfig = LowarnConfig {..}} mVersionNumber =
-  runRuntime
-    (runWithState lowarnEnv $ Left mVersionNumber)
-    lowarnConfigUnload
-    lowarnConfigSystemLinker
+run LowarnEnv {..} mVersionNumber = do
+  let LowarnConfig {..} = lowarnEnvConfig
+  runConfigRuntime
+    ( configRuntime
+        lowarnEnvConfig
+        (getVersionGraph (parent lowarnEnvConfigPath) lowarnConfigProgramName)
+        True
+        (Left mVersionNumber)
+    )
+    lowarnEnvConfig
     >>= \case
       Left e ->
         hPutStrLn stderr $ printf "An error occurred in Lowarn's runtime:\n%s" e
       Right () -> return ()
 
-runWithState ::
-  LowarnEnv ->
+-- | Run a runtime according to a CLI configuration.
+runConfigRuntime :: Runtime a -> LowarnConfig -> IO a
+runConfigRuntime runtime LowarnConfig {..} =
+  runRuntime
+    runtime
+    lowarnConfigUnload
+    lowarnConfigSystemLinker
+
+-- | A Lowarn runtime that loads versions of a program according to a CLI
+-- configuration file, an action that gets the version graph, and a boolean that
+-- indicates whether latest or earliest versions should be used.
+configRuntime ::
+  -- | A CLI configuration.
+  LowarnConfig ->
+  -- | An action that gets the version graph.
+  IO VersionGraph ->
+  -- | A boolean that is @True@ if the latest versions of programs should be
+  -- used by the runtime, and @False@ if the earliest versions should be used.
+  Bool ->
+  -- | Either @Left mNextVersionNumber@, where @mNextVersionNumber@ is the first
+  -- version of the program to load (the latest version is used if
+  -- @mNextVersionNumber@ is @Nothing@), or
+  -- @Right (previousVersionNumber, previousState)@, where
+  -- @previousVersionNumber@ is the version number of the version of the program
+  -- to update from and @previousState@ is its state.
   Either (Maybe VersionNumber) (VersionNumber, a) ->
   Runtime (Either String ())
-runWithState
-  lowarnEnv@LowarnEnv {lowarnEnvConfig = LowarnConfig {..}, ..}
+configRuntime
+  lowarnConfig@(LowarnConfig {..})
+  getVersionGraphAction
+  shouldPreferLatest
   ePreviousVersionNumberAndState = do
     updateRuntimePackageDatabase
-    versionGraph <-
-      liftIO $
-        getVersionGraph (parent lowarnEnvConfigPath) lowarnConfigProgramName
+    versionGraph <- liftIO getVersionGraphAction
     eNextVersionNumberAndState <- case ePreviousVersionNumberAndState of
       Left mNextVersionNumber -> do
-        case maybe
-          ( maybe
-              (Left "Latest version could not be loaded as there are no versions in the version graph.")
-              Right
-              $ latestVersionNumber versionGraph
-          )
-          Right
-          mNextVersionNumber of
+        case maybe (eGetVersionNumber versionGraph) Right mNextVersionNumber of
           Left e -> return $ Left e
           Right nextVersionNumber ->
             Right . (nextVersionNumber,)
@@ -65,7 +86,7 @@ runWithState
                 (VersionId lowarnConfigProgramName nextVersionNumber)
                 Nothing
       Right (previousVersionNumber, previousState) ->
-        case latestNextVersionNumber previousVersionNumber versionGraph of
+        case getNextVersionNumber previousVersionNumber versionGraph of
           Just nextVersionNumber ->
             Right . (nextVersionNumber,)
               <$> loadUpdate
@@ -84,4 +105,17 @@ runWithState
     case eNextVersionNumberAndState of
       Left e -> return $ Left e
       Right (nextVersionNumber, nextState) ->
-        runWithState lowarnEnv $ Right (nextVersionNumber, nextState)
+        configRuntime lowarnConfig getVersionGraphAction shouldPreferLatest $
+          Right (nextVersionNumber, nextState)
+    where
+      (getVersionNumber, getNextVersionNumber) =
+        if shouldPreferLatest
+          then (latestVersionNumber, latestNextVersionNumber)
+          else (earliestVersionNumber, earliestNextVersionNumber)
+
+      eGetVersionNumber :: VersionGraph -> Either String VersionNumber
+      eGetVersionNumber =
+        maybe
+          (Left "Latest version could not be loaded as there are no versions in the version graph.")
+          Right
+          . getVersionNumber

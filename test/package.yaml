@@ -60,7 +60,9 @@ tests:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    - -rdynamic
     dependencies:
+    - containers
     - custom-ffi
     - following
     - lowarn-aeson
@@ -68,13 +70,13 @@ tests:
     - lowarn-test
     - lowarn-test-types
     - lowarn-transformer
-    - lowarn-version-custom-ffi-v1v0v0
     - lowarn-update-following-v0-v1v0v0
     - lowarn-update-following-v1v0v0-v2v0v0
     - lowarn-update-following-v2v0v0-v3v0v0
     - lowarn-update-manual-following-v0-v1v0v0
     - lowarn-update-manual-following-v1v0v0-v2v0v0
     - lowarn-update-manual-following-v2v0v0-v3v0v0
+    - lowarn-version-custom-ffi-v1v0v0
     - manual-following
     - raw-strings-qq
     - tasty-quickcheck
