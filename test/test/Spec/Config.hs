@@ -1,14 +1,23 @@
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskellQuotes #-}
 
 module Spec.Config (configTests) where
 
+import Data.Aeson
+import Data.Proxy
 import Lowarn.Cli.Config
+import Lowarn.ProgramName.Arbitrary ()
 import Path hiding (Dir)
 import qualified Path
 import System.Directory.Tree
 import Test.Lowarn.DirectoryTree
+import Test.Lowarn.Property
 import Test.Tasty
+import Test.Tasty.QuickCheck
 
 findConfigGoldenTest ::
   String -> Path Rel Path.Dir -> Path Rel Path.Dir -> TestTree
@@ -81,6 +90,34 @@ findConfigNonExistent =
     [reldir|.|]
     [reldir|following/versions/2.0.0|]
 
+newtype ArbitraryLowarnConfig = ArbitraryLowarnConfig LowarnConfig
+  deriving (Eq)
+  deriving newtype (ToJSON, FromJSON)
+
+instance Arbitrary ArbitraryLowarnConfig where
+  arbitrary :: Gen ArbitraryLowarnConfig
+  arbitrary =
+    ArbitraryLowarnConfig
+      <$> ( LowarnConfig
+              <$> arbitrary
+              <*> arbitrary
+              <*> arbitrary
+          )
+
+  shrink :: ArbitraryLowarnConfig -> [ArbitraryLowarnConfig]
+  shrink (ArbitraryLowarnConfig (LowarnConfig {..})) =
+    ArbitraryLowarnConfig
+      <$> ( LowarnConfig
+              <$> shrink lowarnConfigProgramName
+              <*> [lowarnConfigUnload]
+              <*> [lowarnConfigSystemLinker]
+          )
+
+yamlConfigRoundTrip :: TestTree
+yamlConfigRoundTrip =
+  testProperty (show 'yamlConfigRoundTrip) $
+    yamlRoundTripProperty (Proxy :: Proxy ArbitraryLowarnConfig)
+
 configTests :: TestTree
 configTests =
   testGroup
@@ -89,5 +126,6 @@ configTests =
       findConfigRootMissing,
       findConfigRootFound,
       findConfigNested,
-      findConfigNonExistent
+      findConfigNonExistent,
+      yamlConfigRoundTrip
     ]

@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE RecordWildCards #-}
 
 -- |
 -- Module                  : Lowarn.Cli.Config
@@ -28,7 +29,16 @@ data LowarnConfig = LowarnConfig
     -- | Whether or not to use the system linker, rather than GHC's.
     lowarnConfigSystemLinker :: Bool
   }
-  deriving (Show)
+  deriving (Eq, Show)
+
+instance ToJSON LowarnConfig where
+  toJSON :: LowarnConfig -> Value
+  toJSON LowarnConfig {..} =
+    object
+      [ "program-name" .= lowarnConfigProgramName,
+        "unload" .= lowarnConfigUnload,
+        "system-linker" .= lowarnConfigSystemLinker
+      ]
 
 instance FromJSON LowarnConfig where
   parseJSON :: Value -> Parser LowarnConfig
