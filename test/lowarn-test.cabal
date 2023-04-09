@@ -105,6 +105,7 @@ source-repository head
 
 library
   exposed-modules:
+      Test.Lowarn.Config
       Test.Lowarn.DirectoryTree
       Test.Lowarn.Golden
       Test.Lowarn.Property

@@ -1,6 +1,10 @@
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TemplateHaskellQuotes #-}
-
+-- |
+-- Module                  : Test.Lowarn.VersionGraph
+-- SPDX-License-Identifier : MIT
+-- Stability               : stable
+-- Portability             : non-portable (POSIX, GHC)
+--
+-- Module for testing version graphs with Lowarn.
 module Test.Lowarn.VersionGraph (versionGraphGoldenTest) where
 
 import Lowarn.Cli.VersionGraph
@@ -14,16 +18,13 @@ import Test.Tasty
 -- | Run a golden test that writes information about a version graph to a given
 -- file.
 --
--- The first file path that is given corresponds to the test name. This file has
--- extension @.log@ and exists next to a golden file which it is compared to.
---
 -- The program name and directory trees are used to write to a temporary
 -- directory that is used to find a version graph. The directory trees are
 -- placed in a directory with a file name of the given program name. The found
 -- version graph and some information relating to it is written to the log file.
 versionGraphGoldenTest ::
   -- | The name of the test, which is also used to determine the location of
-  -- files.
+  -- the log and golden files.
   String ->
   -- | A program name used to make and search a program project directory.
   ProgramName ->

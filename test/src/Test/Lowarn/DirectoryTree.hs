@@ -27,7 +27,7 @@ import Test.Tasty
 -- created empty.
 directoryTreeGoldenTest ::
   -- | The name of the test, which is also used to determine the location of
-  -- files.
+  -- the log and golden files.
   String ->
   -- | The directory tree that should be created inside the temporary directory.
   DirTree () ->
