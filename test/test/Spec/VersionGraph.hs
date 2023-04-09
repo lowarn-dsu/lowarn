@@ -3,54 +3,23 @@
 
 module Spec.VersionGraph (versionGraphTests) where
 
-import Lowarn.Cli.VersionGraph
 import Lowarn.ExampleProgram.Following.DemoInfo
 import Lowarn.UpdateId
 import Lowarn.VersionId
 import Lowarn.VersionNumber
-import Path hiding (Dir)
 import System.Directory.Tree
 import Test.Lowarn.DirectoryTree
+import Test.Lowarn.VersionGraph
 import Test.Tasty
 import Text.Printf
 
-versionGraphGoldenTest :: String -> [DirTree ()] -> TestTree
-versionGraphGoldenTest testName directoryChildren =
-  directoryTreeGoldenTest
-    testName
-    (Dir "following" directoryChildren)
-    $ \logFile directoryPath -> do
-      validDirectoryPath <- parseAbsDir directoryPath
-      versionGraph <-
-        getVersionGraph
-          (validDirectoryPath </> [reldir|following|])
-          followingProgramName
-      let mEarliestVersionNumber = earliestVersionNumber versionGraph
-      writeFile logFile $
-        unlines
-          [ "Version graph:",
-            show versionGraph,
-            "Earliest version number:",
-            show $ showWithDots <$> mEarliestVersionNumber,
-            "Latest version number:",
-            show $ showWithDots <$> latestVersionNumber versionGraph,
-            "Earliest version number after earliest version number:",
-            show $
-              showWithDots
-                <$> ( flip earliestNextVersionNumber versionGraph
-                        =<< mEarliestVersionNumber
-                    ),
-            "Latest version number after earliest version number:",
-            show $
-              showWithDots
-                <$> ( flip latestNextVersionNumber versionGraph
-                        =<< mEarliestVersionNumber
-                    )
-          ]
+followingVersionGraphGoldenTest :: String -> [DirTree ()] -> TestTree
+followingVersionGraphGoldenTest =
+  flip versionGraphGoldenTest followingProgramName
 
 following :: TestTree
 following =
-  versionGraphGoldenTest
+  followingVersionGraphGoldenTest
     (show 'following)
     [ Dir
         "versions"
@@ -71,7 +40,7 @@ following =
 
 followingFullyConnected :: TestTree
 followingFullyConnected =
-  versionGraphGoldenTest
+  followingVersionGraphGoldenTest
     (show 'followingFullyConnected)
     [ Dir
         "versions"
@@ -100,7 +69,7 @@ followingFullyConnected =
 
 followingNoCabalFiles :: TestTree
 followingNoCabalFiles =
-  versionGraphGoldenTest
+  followingVersionGraphGoldenTest
     (show 'followingNoCabalFiles)
     [ Dir "versions" [Dir "1.0.0" [], Dir "2.0.0" []],
       Dir
@@ -110,7 +79,7 @@ followingNoCabalFiles =
 
 followingWrongCabalFiles :: TestTree
 followingWrongCabalFiles =
-  versionGraphGoldenTest
+  followingVersionGraphGoldenTest
     (show 'followingWrongCabalFiles)
     [ Dir
         "versions"
@@ -131,7 +100,7 @@ followingWrongCabalFiles =
 
 followingWrongProgramName :: TestTree
 followingWrongProgramName =
-  versionGraphGoldenTest
+  followingVersionGraphGoldenTest
     (show 'followingWrongProgramName)
     [ Dir
         "versions"
@@ -152,7 +121,7 @@ followingWrongProgramName =
 
 followingVersionZero :: TestTree
 followingVersionZero =
-  versionGraphGoldenTest
+  followingVersionGraphGoldenTest
     (show 'followingVersionZero)
     [ Dir
         "versions"
@@ -170,7 +139,7 @@ followingVersionZero =
 
 followingUpdateZero :: TestTree
 followingUpdateZero =
-  versionGraphGoldenTest
+  followingVersionGraphGoldenTest
     (show 'followingUpdateZero)
     [ Dir
         "versions"
@@ -190,7 +159,7 @@ followingUpdateZero =
 
 followingNoTwo :: TestTree
 followingNoTwo =
-  versionGraphGoldenTest
+  followingVersionGraphGoldenTest
     (show 'followingNoTwo)
     [ Dir
         "versions"
@@ -210,7 +179,7 @@ followingNoTwo =
 
 followingNoVersions :: TestTree
 followingNoVersions =
-  versionGraphGoldenTest
+  followingVersionGraphGoldenTest
     (show 'followingNoVersions)
     [ Dir
         "updates"
@@ -222,7 +191,7 @@ followingNoVersions =
 
 followingNoUpdates :: TestTree
 followingNoUpdates =
-  versionGraphGoldenTest
+  followingVersionGraphGoldenTest
     (show 'followingNoUpdates)
     [ Dir
         "versions"
@@ -230,7 +199,7 @@ followingNoUpdates =
     ]
 
 followingNothing :: TestTree
-followingNothing = versionGraphGoldenTest (show 'followingNothing) []
+followingNothing = followingVersionGraphGoldenTest (show 'followingNothing) []
 
 versionGraphTests :: TestTree
 versionGraphTests =
