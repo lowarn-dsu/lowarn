@@ -19,6 +19,11 @@ license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
+    test/golden/Spec.Config.findConfigBase.golden
+    test/golden/Spec.Config.findConfigNested.golden
+    test/golden/Spec.Config.findConfigNonExistent.golden
+    test/golden/Spec.Config.findConfigRootFound.golden
+    test/golden/Spec.Config.findConfigRootMissing.golden
     test/golden/Spec.ManualDsu.customFfi.golden
     test/golden/Spec.ManualDsu.duplicatedUpdateSignal.following.golden
     test/golden/Spec.ManualDsu.duplicatedUpdateSignal.manualFollowing.golden
@@ -131,6 +136,7 @@ test-suite lowarn-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Spec.Config
       Spec.ManualDsu
       Spec.ProgramName
       Spec.Story

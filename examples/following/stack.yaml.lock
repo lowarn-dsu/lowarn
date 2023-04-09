@@ -13,7 +13,7 @@ packages:
     hackage: ghc-tcplugin-api-0.9.0.0
 snapshots:
 - completed:
-    sha256: c11fcbeb1aa12761044755b1109d16952ede2cb6147ebde777dd5cb38f784501
-    size: 649333
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/20/9.yaml
-  original: lts-20.9
+    sha256: b37c0abab16c7de352c45b85f8ecc8530b084209a2c42987a96c92b4a5e3cd65
+    size: 648924
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/20/13.yaml
+  original: lts-20.13

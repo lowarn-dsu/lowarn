@@ -1,3 +1,4 @@
+import Spec.Config (configTests)
 import Spec.ManualDsu (manualDsuTests)
 import Spec.ProgramName (programNameTests)
 import Spec.Story (storyTests)
@@ -29,6 +30,7 @@ main =
                   versionIdTests,
                   updateIdTests,
                   transformerTests,
-                  versionGraphTests
+                  versionGraphTests,
+                  configTests
                 ]
         )
