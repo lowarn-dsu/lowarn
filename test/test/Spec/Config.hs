@@ -7,6 +7,7 @@
 
 module Spec.Config (configTests) where
 
+import Control.Applicative
 import Data.Aeson
 import Data.Proxy
 import Lowarn.Cli.Config
@@ -97,21 +98,16 @@ newtype ArbitraryLowarnConfig = ArbitraryLowarnConfig LowarnConfig
 instance Arbitrary ArbitraryLowarnConfig where
   arbitrary :: Gen ArbitraryLowarnConfig
   arbitrary =
-    ArbitraryLowarnConfig
-      <$> ( LowarnConfig
-              <$> arbitrary
-              <*> arbitrary
-              <*> arbitrary
-          )
+    ArbitraryLowarnConfig <$> liftA3 LowarnConfig arbitrary arbitrary arbitrary
 
   shrink :: ArbitraryLowarnConfig -> [ArbitraryLowarnConfig]
   shrink (ArbitraryLowarnConfig (LowarnConfig {..})) =
     ArbitraryLowarnConfig
-      <$> ( LowarnConfig
-              <$> shrink lowarnConfigProgramName
-              <*> [lowarnConfigUnload]
-              <*> [lowarnConfigSystemLinker]
-          )
+      <$> liftA3
+        LowarnConfig
+        (shrink lowarnConfigProgramName)
+        [lowarnConfigUnload]
+        [lowarnConfigSystemLinker]
 
 yamlConfigRoundTrip :: TestTree
 yamlConfigRoundTrip =

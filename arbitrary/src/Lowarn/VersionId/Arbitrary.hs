@@ -18,7 +18,7 @@ import Test.QuickCheck
 
 instance Arbitrary VersionId where
   arbitrary :: Gen VersionId
-  arbitrary = VersionId <$> arbitrary <*> arbitrary
+  arbitrary = liftA2 VersionId arbitrary arbitrary
 
   shrink :: VersionId -> [VersionId]
   shrink VersionId {..} =
