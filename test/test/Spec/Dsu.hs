@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskellQuotes #-}
 
-module Spec.ManualDsu (manualDsuTests) where
+module Spec.Dsu (dsuTests) where
 
 import Control.Monad
 import qualified Data.Map.Strict as Map
@@ -187,10 +187,10 @@ customFfi =
     (void $ outputLines 4)
     timeout
 
-manualDsuTests :: IO BinarySemaphore -> TestTree
-manualDsuTests binarySemaphoreAction =
+dsuTests :: IO BinarySemaphore -> TestTree
+dsuTests binarySemaphoreAction =
   testGroup
-    "Manual DSU runtime"
+    "DSU"
     $ [ successfulChain,
         duplicatedUpdateSignal,
         customFfi
