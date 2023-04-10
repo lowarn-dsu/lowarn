@@ -6,7 +6,7 @@
 -- Stability               : stable
 -- Portability             : non-portable (POSIX, GHC)
 --
--- Module for program names.
+-- Module for Git branch names.
 module Lowarn.Cli.Retrofit.BranchName
   ( BranchName,
     mkBranchName,
