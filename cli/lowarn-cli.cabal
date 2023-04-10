@@ -33,6 +33,7 @@ library
   exposed-modules:
       Lowarn.Cli.Config
       Lowarn.Cli.Env
+      Lowarn.Cli.Retrofit.BranchName
       Lowarn.Cli.Run
       Lowarn.Cli.VersionGraph
   other-modules:
@@ -48,7 +49,11 @@ library
     , lowarn-runtime
     , path >=0.9.2 && <0.10
     , path-io >=1.7.0 && <1.8
+    , split
+    , text >=1.2.5 && <1.3
     , transformers
+    , uri-bytestring >=0.3.3.1 && <0.4
+    , uri-bytestring-aeson >=0.1.0.8
     , yaml >=0.11.8 && <0.12
   default-language: Haskell2010
   if flag(dekking)
@@ -74,7 +79,11 @@ executable lowarn-cli
     , optparse-applicative ==0.17.*
     , path >=0.9.2 && <0.10
     , path-io >=1.7.0 && <1.8
+    , split
+    , text >=1.2.5 && <1.3
     , transformers
+    , uri-bytestring >=0.3.3.1 && <0.4
+    , uri-bytestring-aeson >=0.1.0.8
     , yaml >=0.11.8 && <0.12
   default-language: Haskell2010
   if flag(dekking)

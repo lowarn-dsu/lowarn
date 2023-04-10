@@ -1,2 +1,2 @@
 Config:
-Right (LowarnConfig {lowarnConfigProgramName = ProgramName {unProgramName = "following"}, lowarnConfigUnload = True, lowarnConfigSystemLinker = False})
+Right (LowarnConfig {lowarnConfigProgramName = ProgramName {unProgramName = "following"}, lowarnConfigUnload = True, lowarnConfigSystemLinker = False, lowarnConfigRetrofitConfig = Just (LowarnRetrofitConfig {lowarnRetrofitConfigGitUri = URI {uriScheme = Scheme {schemeBS = "https"}, uriAuthority = Just (Authority {authorityUserInfo = Nothing, authorityHost = Host {hostBS = "github.com"}, authorityPort = Nothing}), uriPath = "/xmonad/xmonad.git", uriQuery = Query {queryPairs = []}, uriFragment = Nothing}, lowarnRetrofitConfigBranch = BranchName {unBranchName = "master"}})})

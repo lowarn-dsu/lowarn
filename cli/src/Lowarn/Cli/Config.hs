@@ -12,13 +12,21 @@
 -- Portability             : non-portable (POSIX, GHC)
 --
 -- Module for Lowarn CLI configurations.
-module Lowarn.Cli.Config (LowarnConfig (..), findConfigPath) where
+module Lowarn.Cli.Config
+  ( LowarnConfig (..),
+    LowarnRetrofitConfig (..),
+    findConfigPath,
+  )
+where
 
 import Data.Yaml
+import Lowarn.Cli.Retrofit.BranchName
 import Lowarn.ProgramName
 import Lowarn.ProgramName.Aeson ()
 import Path
 import Path.IO
+import URI.ByteString
+import URI.ByteString.Aeson ()
 
 -- | Type for Lowarn CLI configurations.
 data LowarnConfig = LowarnConfig
@@ -27,18 +35,30 @@ data LowarnConfig = LowarnConfig
     -- | Whether or not to attempt to unload code.
     lowarnConfigUnload :: Bool,
     -- | Whether or not to use the system linker, rather than GHC's.
-    lowarnConfigSystemLinker :: Bool
+    lowarnConfigSystemLinker :: Bool,
+    -- | Optional configuration for using Lowarn CLI retrofit.
+    lowarnConfigRetrofitConfig :: Maybe LowarnRetrofitConfig
+  }
+  deriving (Eq, Show)
+
+-- | Type for Lowarn CLI retrofit configurations.
+data LowarnRetrofitConfig = LowarnRetrofitConfig
+  { -- | The Git URI of the repository to clone.
+    lowarnRetrofitConfigGitUri :: URIRef Absolute,
+    -- | The branch to checkout.
+    lowarnRetrofitConfigBranch :: BranchName
   }
   deriving (Eq, Show)
 
 instance ToJSON LowarnConfig where
   toJSON :: LowarnConfig -> Value
   toJSON LowarnConfig {..} =
-    object
+    object $
       [ "program-name" .= lowarnConfigProgramName,
         "unload" .= lowarnConfigUnload,
         "system-linker" .= lowarnConfigSystemLinker
       ]
+        <> maybe [] (return . ("retrofit" .=)) lowarnConfigRetrofitConfig
 
 instance FromJSON LowarnConfig where
   parseJSON :: Value -> Parser LowarnConfig
@@ -52,6 +72,21 @@ instance FromJSON LowarnConfig where
       <*> v
         .:? "system-linker"
         .!= True
+      <*> v
+        .:? "retrofit"
+
+instance ToJSON LowarnRetrofitConfig where
+  toJSON :: LowarnRetrofitConfig -> Value
+  toJSON LowarnRetrofitConfig {..} =
+    object
+      [ "git" .= lowarnRetrofitConfigGitUri,
+        "branch" .= lowarnRetrofitConfigBranch
+      ]
+
+instance FromJSON LowarnRetrofitConfig where
+  parseJSON :: Value -> Parser LowarnRetrofitConfig
+  parseJSON = withObject "LowarnRetrofitConfig" $ \v ->
+    LowarnRetrofitConfig <$> v .: "git" <*> v .: "branch"
 
 -- | Attempt to find a @lowarn.yaml@ file from a given search directory in a
 -- given root directory. The given search directory and its ancestors are

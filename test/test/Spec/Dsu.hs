@@ -80,8 +80,9 @@ getConfigRuntime config handles =
       (Right (versionNumber0, handles))
 
 manualFollowingConfig, followingConfig :: LowarnConfig
-manualFollowingConfig = LowarnConfig manualFollowingProgramName False False
-followingConfig = LowarnConfig followingProgramName True True
+manualFollowingConfig =
+  LowarnConfig manualFollowingProgramName False False Nothing
+followingConfig = LowarnConfig followingProgramName True True Nothing
 
 getExampleRuntimes ::
   [(String, (Handle, Handle) -> Runtime (), Runtime () -> IO ())]

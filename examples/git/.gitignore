@@ -1,0 +1,5 @@
+.lowarn/
+
+versions/*/source/
+versions/*/simplified/
+versions/*/retrofitted/
