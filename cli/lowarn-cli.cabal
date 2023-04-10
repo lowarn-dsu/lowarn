@@ -34,6 +34,7 @@ library
       Lowarn.Cli.Config
       Lowarn.Cli.Env
       Lowarn.Cli.Retrofit.BranchName
+      Lowarn.Cli.Retrofit.CommitMap
       Lowarn.Cli.Retrofit.Directory
       Lowarn.Cli.Run
       Lowarn.Cli.VersionGraph
@@ -44,8 +45,11 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
+    , bytestring
+    , bytestring-strict-builder >=0.4.5.6 && <0.5
     , containers
     , cryptohash-sha256 >=0.11.102.1 && <0.12
+    , hex-text >=0.1.0.8 && <0.2
     , lowarn
     , lowarn-aeson
     , lowarn-runtime
@@ -74,8 +78,11 @@ executable lowarn-cli
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -rdynamic
   build-depends:
       base >=4.7 && <5
+    , bytestring
+    , bytestring-strict-builder >=0.4.5.6 && <0.5
     , containers
     , cryptohash-sha256 >=0.11.102.1 && <0.12
+    , hex-text >=0.1.0.8 && <0.2
     , lowarn
     , lowarn-aeson
     , lowarn-cli
