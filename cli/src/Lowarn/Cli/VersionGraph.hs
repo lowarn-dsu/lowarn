@@ -47,6 +47,7 @@ getPackages ::
   ReadP a ->
   (ProgramName -> a -> b) ->
   (b -> String) ->
+  Path Rel Dir ->
   Path Abs Dir ->
   ProgramName ->
   IO [a]
@@ -55,6 +56,7 @@ getPackages
   parseVersionNumbers
   mkId
   showPackageName
+  cabalDirectory
   projectDirectory
   programName =
     doesDirExist searchDirectory
@@ -65,7 +67,8 @@ getPackages
             <$> filterM
               snd
               [ ( versionNumbers,
-                  doesPathExist $ versionDirectory </> versionCabalPath
+                  doesPathExist $
+                    versionDirectory </> cabalDirectory </> versionCabalPath
                 )
                 | versionDirectory <- subdirectories,
                   Just versionNumbers <-
@@ -83,9 +86,13 @@ getPackages
     where
       searchDirectory = projectDirectory </> packageParentDirectory
 
-getVersions :: Path Abs Dir -> ProgramName -> IO [VersionNumber]
+getVersions :: Path Rel Dir -> Path Abs Dir -> ProgramName -> IO [VersionNumber]
 getVersions =
-  getPackages [reldir|versions|] parseWithDots VersionId showVersionPackageName
+  getPackages
+    [reldir|versions|]
+    parseWithDots
+    VersionId
+    showVersionPackageName
 
 getUpdates :: Path Abs Dir -> ProgramName -> IO [(VersionNumber, VersionNumber)]
 getUpdates =
@@ -94,18 +101,28 @@ getUpdates =
     (liftA2 (,) parseWithDots (char '-' >> parseWithDots))
     (uncurry . UpdateId)
     showUpdatePackageName
+    [reldir|.|]
 
 -- | Get a 'VersionGraph' by looking at the structure of a given directory. Each
 -- version should be in a directory @versions/1.2.3@, where @1.2.3@ represents a
--- version number, that has a file @lowarn-version-program-name-v1v2v3@, where
--- @program-name@ is the given program name. Each update should be in a
--- directory @updates/1.2.3-1.2.3@, where @1.2.3@ and @1.2.4@ represent previous
--- and next version numbers, that has a file
+-- version number, that has a file
+-- @cabal-directory/lowarn-version-program-name-v1v2v3@, where @cabal-directory@
+-- is a given relative directory and @program-name@ is the given program name.
+-- Each update should be in a directory @updates/1.2.3-1.2.3@, where @1.2.3@ and
+-- @1.2.4@ represent previous and next version numbers, that has a file
 -- @lowarn-update-program-name-v1v2v3-v1v2v4@, where @program-name@ is the given
 -- program name.
-getVersionGraph :: Path Abs Dir -> ProgramName -> IO VersionGraph
-getVersionGraph searchDir programName = do
-  versions <- getVersions searchDir programName
+getVersionGraph ::
+  -- | Directory to look for versions and updates in.
+  Path Abs Dir ->
+  -- | The program name.
+  ProgramName ->
+  -- | A relative directory path that is used for finding the @.cabal@ files
+  -- of versions in version directories.
+  Path Rel Dir ->
+  IO VersionGraph
+getVersionGraph searchDir programName cabalDirectory = do
+  versions <- getVersions cabalDirectory searchDir programName
   updates <- getUpdates searchDir programName
   return $
     VersionGraph $

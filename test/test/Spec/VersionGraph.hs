@@ -7,20 +7,23 @@ import Lowarn.ExampleProgram.Following.DemoInfo
 import Lowarn.UpdateId
 import Lowarn.VersionId
 import Lowarn.VersionNumber
+import Path
 import System.Directory.Tree
 import Test.Lowarn.DirectoryTree
 import Test.Lowarn.VersionGraph
 import Test.Tasty
 import Text.Printf
 
-followingVersionGraphGoldenTest :: String -> [DirTree ()] -> TestTree
-followingVersionGraphGoldenTest =
-  flip versionGraphGoldenTest followingProgramName
+followingVersionGraphGoldenTest ::
+  String -> Path Rel Dir -> [DirTree ()] -> TestTree
+followingVersionGraphGoldenTest testName =
+  versionGraphGoldenTest testName followingProgramName
 
 following :: TestTree
 following =
   followingVersionGraphGoldenTest
     (show 'following)
+    [reldir|.|]
     [ Dir
         "versions"
         [ Dir "1.0.0" [unitFile "lowarn-version-following-v1v0v0.cabal"],
@@ -42,6 +45,7 @@ followingFullyConnected :: TestTree
 followingFullyConnected =
   followingVersionGraphGoldenTest
     (show 'followingFullyConnected)
+    [reldir|.|]
     [ Dir
         "versions"
         [ Dir "1.0.0" [unitFile "lowarn-version-following-v1v0v0.cabal"],
@@ -71,6 +75,7 @@ followingNoCabalFiles :: TestTree
 followingNoCabalFiles =
   followingVersionGraphGoldenTest
     (show 'followingNoCabalFiles)
+    [reldir|.|]
     [ Dir "versions" [Dir "1.0.0" [], Dir "2.0.0" []],
       Dir
         "updates"
@@ -81,6 +86,7 @@ followingWrongCabalFiles :: TestTree
 followingWrongCabalFiles =
   followingVersionGraphGoldenTest
     (show 'followingWrongCabalFiles)
+    [reldir|.|]
     [ Dir
         "versions"
         [ Dir "1.0.0" [unitFile "lowarn-version-following-v2v0v0.cabal"],
@@ -102,6 +108,7 @@ followingWrongProgramName :: TestTree
 followingWrongProgramName =
   followingVersionGraphGoldenTest
     (show 'followingWrongProgramName)
+    [reldir|.|]
     [ Dir
         "versions"
         [ Dir "1.0.0" [unitFile "lowarn-version-manual-following-v1v0v0.cabal"],
@@ -123,6 +130,7 @@ followingVersionZero :: TestTree
 followingVersionZero =
   followingVersionGraphGoldenTest
     (show 'followingVersionZero)
+    [reldir|.|]
     [ Dir
         "versions"
         [ Dir "0" [unitFile "lowarn-version-following-v0.cabal"],
@@ -141,6 +149,7 @@ followingUpdateZero :: TestTree
 followingUpdateZero =
   followingVersionGraphGoldenTest
     (show 'followingUpdateZero)
+    [reldir|.|]
     [ Dir
         "versions"
         [ Dir "1.0.0" [unitFile "lowarn-version-following-v1v0v0.cabal"],
@@ -161,6 +170,7 @@ followingNoTwo :: TestTree
 followingNoTwo =
   followingVersionGraphGoldenTest
     (show 'followingNoTwo)
+    [reldir|.|]
     [ Dir
         "versions"
         [ Dir "1.0.0" [unitFile "lowarn-version-following-v1v0v0.cabal"],
@@ -181,6 +191,7 @@ followingNoVersions :: TestTree
 followingNoVersions =
   followingVersionGraphGoldenTest
     (show 'followingNoVersions)
+    [reldir|.|]
     [ Dir
         "updates"
         [ Dir
@@ -193,13 +204,68 @@ followingNoUpdates :: TestTree
 followingNoUpdates =
   followingVersionGraphGoldenTest
     (show 'followingNoUpdates)
+    [reldir|.|]
     [ Dir
         "versions"
         [Dir "1.0.0" [unitFile "lowarn-version-following-v1v0v0.cabal"]]
     ]
 
 followingNothing :: TestTree
-followingNothing = followingVersionGraphGoldenTest (show 'followingNothing) []
+followingNothing =
+  followingVersionGraphGoldenTest (show 'followingNothing) [reldir|.|] []
+
+dirTreesWithRetrofitted :: [DirTree ()]
+dirTreesWithRetrofitted =
+  [ Dir
+      "versions"
+      [ Dir
+          "1.0.0"
+          [ Dir "retrofitted" [unitFile "lowarn-version-following-v1v0v0.cabal"]
+          ],
+        Dir
+          "2.0.0"
+          [ Dir "retrofitted" [unitFile "lowarn-version-following-v2v0v0.cabal"]
+          ]
+      ],
+    Dir
+      "updates"
+      [ Dir
+          "1.0.0-2.0.0"
+          [unitFile "lowarn-update-following-v1v0v0-v2v0v0.cabal"]
+      ]
+  ]
+
+followingCabalDirectory :: TestTree
+followingCabalDirectory =
+  followingVersionGraphGoldenTest
+    (show 'followingCabalDirectory)
+    [reldir|retrofitted|]
+    dirTreesWithRetrofitted
+
+followingCabalDirectoryWithoutArgument :: TestTree
+followingCabalDirectoryWithoutArgument =
+  followingVersionGraphGoldenTest
+    (show 'followingCabalDirectoryWithoutArgument)
+    [reldir|.|]
+    dirTreesWithRetrofitted
+
+followingCabalDirectoryWithoutDirectories :: TestTree
+followingCabalDirectoryWithoutDirectories =
+  followingVersionGraphGoldenTest
+    (show 'followingCabalDirectoryWithoutDirectories)
+    [reldir|retrofitted|]
+    [ Dir
+        "versions"
+        [ Dir "1.0.0" [unitFile "lowarn-version-following-v1v0v0.cabal"],
+          Dir "2.0.0" [unitFile "lowarn-version-following-v2v0v0.cabal"]
+        ],
+      Dir
+        "updates"
+        [ Dir
+            "1.0.0-2.0.0"
+            [unitFile "lowarn-update-following-v1v0v0-v2v0v0.cabal"]
+        ]
+    ]
 
 versionGraphTests :: TestTree
 versionGraphTests =
@@ -215,5 +281,8 @@ versionGraphTests =
       followingNoTwo,
       followingNoVersions,
       followingNoUpdates,
-      followingNothing
+      followingNothing,
+      followingCabalDirectory,
+      followingCabalDirectoryWithoutArgument,
+      followingCabalDirectoryWithoutDirectories
     ]

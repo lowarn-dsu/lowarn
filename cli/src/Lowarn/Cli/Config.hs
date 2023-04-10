@@ -36,6 +36,9 @@ data LowarnConfig = LowarnConfig
     lowarnConfigUnload :: Bool,
     -- | Whether or not to use the system linker, rather than GHC's.
     lowarnConfigSystemLinker :: Bool,
+    -- | A subdirectory of each version directory to search for a @.cabal@ file
+    -- in.
+    lowarnConfigCabalDirectory :: Path Rel Dir,
     -- | Optional configuration for using Lowarn CLI retrofit.
     lowarnConfigRetrofitConfig :: Maybe LowarnRetrofitConfig
   }
@@ -56,7 +59,8 @@ instance ToJSON LowarnConfig where
     object $
       [ "program-name" .= lowarnConfigProgramName,
         "unload" .= lowarnConfigUnload,
-        "system-linker" .= lowarnConfigSystemLinker
+        "system-linker" .= lowarnConfigSystemLinker,
+        "version-package-subdirectory" .= lowarnConfigCabalDirectory
       ]
         <> maybe [] (return . ("retrofit" .=)) lowarnConfigRetrofitConfig
 
@@ -72,6 +76,9 @@ instance FromJSON LowarnConfig where
       <*> v
         .:? "system-linker"
         .!= True
+      <*> v
+        .:? "version-package-subdirectory"
+        .!= [reldir|.|]
       <*> v
         .:? "retrofit"
 

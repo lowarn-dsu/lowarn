@@ -74,6 +74,7 @@ readNonDefaultConfig =
 program-name: following
 unload: true
 system-linker: false
+version-package-subdirectory: retrofitted
 
 retrofit:
   git: https://github.com/xmonad/xmonad.git
@@ -85,15 +86,23 @@ readEmptyConfig = readConfigGoldenTest (show 'readEmptyConfig) "\n"
 
 instance Arbitrary LowarnConfig where
   arbitrary :: Gen LowarnConfig
-  arbitrary = liftM4 LowarnConfig arbitrary arbitrary arbitrary arbitrary
+  arbitrary =
+    liftM5
+      LowarnConfig
+      arbitrary
+      arbitrary
+      arbitrary
+      (elements [[reldir|.|], [reldir|retrofitted|]])
+      arbitrary
 
   shrink :: LowarnConfig -> [LowarnConfig]
   shrink LowarnConfig {..} =
-    liftM4
+    liftM5
       LowarnConfig
       (shrink lowarnConfigProgramName)
       [lowarnConfigUnload]
       [lowarnConfigSystemLinker]
+      [lowarnConfigCabalDirectory]
       (shrink lowarnConfigRetrofitConfig)
 
 instance Arbitrary LowarnRetrofitConfig where

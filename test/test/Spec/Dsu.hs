@@ -1,3 +1,4 @@
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskellQuotes #-}
 
 module Spec.Dsu (dsuTests) where
@@ -16,6 +17,7 @@ import Lowarn.ParserCombinators
 import Lowarn.Runtime
 import Lowarn.UpdateId
 import Lowarn.VersionNumber
+import Path
 import System.IO
 import Test.Lowarn.Story
 import Test.Lowarn.Tasty
@@ -81,8 +83,8 @@ getConfigRuntime config handles =
 
 manualFollowingConfig, followingConfig :: LowarnConfig
 manualFollowingConfig =
-  LowarnConfig manualFollowingProgramName False False Nothing
-followingConfig = LowarnConfig followingProgramName True True Nothing
+  LowarnConfig manualFollowingProgramName False False [reldir|.|] Nothing
+followingConfig = LowarnConfig followingProgramName True True [reldir|.|] Nothing
 
 getExampleRuntimes ::
   [(String, (Handle, Handle) -> Runtime (), Runtime () -> IO ())]
