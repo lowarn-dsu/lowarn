@@ -325,10 +325,9 @@ retrofitVersionApplyAction env RetrofitVersionOptions {..} currentDir = \case
             Nothing -> fail "The commit could not be found in the commit map."
           copyCommitState
             retrofitDirectory
-            (versionNumberToPath env versionNumber)
+            (versionNumberToPath env versionNumber </> [reldir|source|])
             commit
       )
-    fail "Not yet implemented."
   RetrofitVersionApplyActionSimplify -> fail "Not yet implemented."
   RetrofitVersionApplyActionRetrofit -> fail "Not yet implemented."
 

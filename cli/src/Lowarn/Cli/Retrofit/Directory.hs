@@ -71,7 +71,7 @@ cloneInto LowarnRetrofitConfig {..} retrofitDirectory = do
       fail $
         unlines
           [ printf
-              "Could not clone repository %s with branch %s (error code %s)."
+              "Could not clone repository %s with branch %s (error code %d)."
               uriString
               (unBranchName lowarnRetrofitConfigBranch)
               errorCode,
@@ -84,18 +84,19 @@ cloneInto LowarnRetrofitConfig {..} retrofitDirectory = do
         Text.decodeUtf8 $
           serializeURIRef' lowarnRetrofitConfigGitUri
 
-getGitDirArguments :: Path Abs Dir -> [String]
-getGitDirArguments retrofitDirectory =
-  [ "--git-dir",
-    toFilePath $ retrofitDirectory </> [reldir|repo/.git|]
-  ]
+gitDirProc :: Path Abs Dir -> FilePath -> [String] -> CreateProcess
+gitDirProc retrofitDirectory command arguments =
+  (proc command arguments)
+    { cwd = Just $ toFilePath $ retrofitDirectory </> [reldir|repo|],
+      env = Just []
+    }
 
 waitForProcessFail :: ProcessHandle -> String -> IO ()
 waitForProcessFail processHandle failMessage =
   waitForProcess processHandle >>= \case
     ExitSuccess -> return ()
     ExitFailure errorCode ->
-      fail $ printf "%s (error code %s)." failMessage errorCode
+      fail $ printf "%s (error code %d)." failMessage errorCode
 
 -- | Write a list of commit hashes in chronological order to a @commit-map@ file
 -- in a given directory, using a Git repository found in a @repo@ subdirectory.
@@ -110,14 +111,15 @@ writeCommitMap retrofitDirectory = do
         WriteMode
         $ \outHandle ->
           createProcess $
-            ( proc "git" $
-                getGitDirArguments retrofitDirectory
-                  <> [ "log",
-                       "--first-parent",
-                       "--pretty=format:%H",
-                       "--reverse",
-                       "HEAD"
-                     ]
+            ( gitDirProc
+                retrofitDirectory
+                "git"
+                [ "log",
+                  "--first-parent",
+                  "--pretty=format:%H",
+                  "--reverse",
+                  "HEAD"
+                ]
             )
               { std_in = NoStream,
                 std_out = UseHandle outHandle,
@@ -190,12 +192,8 @@ copyCommitState ::
   IO ()
 copyCommitState retrofitDirectory destination commitId = do
   (exitCode, _, errors) <-
-    readProcessWithExitCode
-      "git"
-      ( getGitDirArguments
-          retrofitDirectory
-          <> ["reset", "--hard", commitId]
-      )
+    readCreateProcessWithExitCode
+      (gitDirProc retrofitDirectory "git" ["reset", "--hard", commitId])
       ""
   case exitCode of
     ExitSuccess -> return ()
@@ -203,7 +201,7 @@ copyCommitState retrofitDirectory destination commitId = do
       fail $
         unlines
           [ printf
-              "Could not reset repository to commit %s (error code %s)."
+              "Could not reset repository to commit %s (error code %d)."
               commitId
               errorCode,
             "Git errors:",
@@ -212,20 +210,20 @@ copyCommitState retrofitDirectory destination commitId = do
 
   createDirIfMissing True destination
 
-  (pipeIn, pipeOut) <- createPipe
+  (pipeOut, pipeIn) <- createPipe
   (_, _, _, processHandle1) <- withFile "/dev/null" WriteMode $ \errHandle ->
     createProcess $
-      ( proc "git" $
-          getGitDirArguments retrofitDirectory <> ["ls-files"]
-      )
+      (gitDirProc retrofitDirectory "git" ["ls-files"])
         { std_in = NoStream,
           std_out = UseHandle pipeIn,
           std_err = UseHandle errHandle
         }
+
   (_, _, _, processHandle2) <- withFile "/dev/null" WriteMode $ \errHandle ->
     withFile "/dev/null" WriteMode $ \outHandle ->
       createProcess $
-        ( proc
+        ( gitDirProc
+            retrofitDirectory
             "xargs"
             ["cp", "--parents", "-t", toFilePath destination]
         )
