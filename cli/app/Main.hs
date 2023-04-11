@@ -5,6 +5,7 @@
 module Main (main) where
 
 import Control.Exception
+import Data.List.NonEmpty (NonEmpty ((:|)))
 import Lowarn.Cli.Config
 import Lowarn.Cli.Env
 import Lowarn.Cli.Retrofit.Directory
@@ -72,24 +73,29 @@ retrofitCleanParserInfo =
       <> progDesc "Clear internal directories used by Lowarn CLI retrofit"
 
 data RetrofitVersionCommand
-  = RetrofitVersionApplyCommand RetrofitVersionApplyAction
-  | RetrofitVersionSaveCommand RetrofitVersionSaveAction
+  = RetrofitVersionApplyCommand [RetrofitVersionApplyAction]
+  | RetrofitVersionSaveCommand [RetrofitVersionSaveAction]
 
 data RetrofitVersionApplyAction
   = RetrofitVersionApplyActionSource
   | RetrofitVersionApplyActionSimplify
   | RetrofitVersionApplyActionRetrofit
-  | RetrofitVersionApplyActionPatches
-  | RetrofitVersionApplyActionAll
 
-retrofitVersionApplyActionReader :: ReadM RetrofitVersionApplyAction
+retrofitVersionApplyActionReader :: ReadM [RetrofitVersionApplyAction]
 retrofitVersionApplyActionReader =
   str >>= \case
-    "source" -> return RetrofitVersionApplyActionSource
-    "simplify" -> return RetrofitVersionApplyActionSimplify
-    "retrofit" -> return RetrofitVersionApplyActionRetrofit
-    "patches" -> return RetrofitVersionApplyActionPatches
-    "all" -> return RetrofitVersionApplyActionAll
+    "source" -> return [RetrofitVersionApplyActionSource]
+    "simplify" -> return [RetrofitVersionApplyActionSimplify]
+    "retrofit" -> return [RetrofitVersionApplyActionRetrofit]
+    "patches" ->
+      return
+        [RetrofitVersionApplyActionSimplify, RetrofitVersionApplyActionRetrofit]
+    "all" ->
+      return
+        [ RetrofitVersionApplyActionSource,
+          RetrofitVersionApplyActionSimplify,
+          RetrofitVersionApplyActionRetrofit
+        ]
     action -> readerError $ printf "The given action \"%s\" is invalid." action
 
 retrofitVersionApplyParser :: Parser RetrofitVersionCommand
@@ -124,14 +130,15 @@ retrofitVersionApplyParserInfo =
 data RetrofitVersionSaveAction
   = RetrofitVersionSaveActionSimplify
   | RetrofitVersionSaveActionRetrofit
-  | RetrofitVersionSaveActionAll
 
-retrofitVersionSaveActionReader :: ReadM RetrofitVersionSaveAction
+retrofitVersionSaveActionReader :: ReadM [RetrofitVersionSaveAction]
 retrofitVersionSaveActionReader =
   str >>= \case
-    "simplify" -> return RetrofitVersionSaveActionSimplify
-    "retrofit" -> return RetrofitVersionSaveActionRetrofit
-    "all" -> return RetrofitVersionSaveActionAll
+    "simplify" -> return [RetrofitVersionSaveActionSimplify]
+    "retrofit" -> return [RetrofitVersionSaveActionRetrofit]
+    "all" ->
+      return
+        [RetrofitVersionSaveActionSimplify, RetrofitVersionSaveActionRetrofit]
     action -> readerError $ printf "The given action \"%s\" is invalid." action
 
 retrofitVersionSaveParser :: Parser RetrofitVersionCommand
@@ -252,15 +259,43 @@ main = do
         RetrofitCommand retrofitSubcommand ->
           case retrofitSubcommand of
             RetrofitCleanCommand -> clean lowarnEnvConfigPath
-            RetrofitVersionCommand (RetrofitVersionOptions {..}) -> do
-              versionNumber <- case retrofitVersionOptionsVersion of
-                Just v -> return v
-                Nothing -> case pathToVersionNumber env currentDir of
-                  Just v -> return v
-                  Nothing ->
-                    fail "The current directory is not a version directory."
-              case retrofitVersionOptionsCommand of
-                RetrofitVersionApplyCommand action ->
-                  fail "Not yet implemented."
-                RetrofitVersionSaveCommand action -> fail "Not yet implemented."
+            RetrofitVersionCommand
+              retrofitVersionOptions@RetrofitVersionOptions {..} ->
+                case retrofitVersionOptionsCommand of
+                  RetrofitVersionApplyCommand actions ->
+                    mapM_
+                      ( retrofitVersionApplyAction
+                          env
+                          retrofitVersionOptions
+                          currentDir
+                      )
+                      actions
+                  RetrofitVersionSaveCommand actions ->
+                    mapM_ retrofitVersionSaveAction actions
             RetrofitVersionsCommand -> fail "Not yet implemented."
+
+retrofitVersionApplyAction ::
+  LowarnEnv ->
+  RetrofitVersionOptions ->
+  Path Abs Dir ->
+  RetrofitVersionApplyAction ->
+  IO ()
+retrofitVersionApplyAction env RetrofitVersionOptions {..} currentDir = \case
+  RetrofitVersionApplyActionSource -> do
+    versionNumber <- case retrofitVersionOptionsVersion of
+      Just v -> return v
+      Nothing -> case pathToVersionNumber env currentDir of
+        Just v -> return v
+        Nothing ->
+          fail "The current directory is not a version directory."
+    versionNumberInt <- case unVersionNumber versionNumber of
+      v1 :| [] -> return v1
+      _ -> fail "The version number is not a single integer."
+    fail "Not yet implemented."
+  RetrofitVersionApplyActionSimplify -> fail "Not yet implemented."
+  RetrofitVersionApplyActionRetrofit -> fail "Not yet implemented."
+
+retrofitVersionSaveAction :: RetrofitVersionSaveAction -> IO ()
+retrofitVersionSaveAction = \case
+  RetrofitVersionSaveActionSimplify -> fail "Not yet implemented."
+  RetrofitVersionSaveActionRetrofit -> fail "Not yet implemented."
