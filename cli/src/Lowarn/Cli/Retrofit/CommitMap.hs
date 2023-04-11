@@ -25,7 +25,7 @@ import qualified Data.Text as Text
 import qualified Data.Text.IO as Text
 import Path
 import Path.IO (doesFileExist)
-import qualified Text.Hex as Hex
+import Text.Hex (decodeHex, encodeHex)
 
 -- | A map from version numbers to Git commit IDs.
 data CommitMap = CommitMap
@@ -42,7 +42,7 @@ mkCommitMap hexIds commitMapIdBytes =
     Nothing -> Nothing
   where
     mIds :: Maybe [Builder]
-    mIds = mapM (makeBuilder <=< Hex.decodeHex) hexIds
+    mIds = mapM (makeBuilder <=< decodeHex) hexIds
 
     makeBuilder :: ByteString -> Maybe Builder
     makeBuilder s =
@@ -70,7 +70,7 @@ lookupCommitMap CommitMap {..} version =
     then
       Just $
         Text.unpack $
-          Hex.encodeHex $
+          encodeHex $
             slice startIndex commitMapIdBytes commitMapByteString
     else Nothing
   where

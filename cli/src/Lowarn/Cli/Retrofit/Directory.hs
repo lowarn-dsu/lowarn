@@ -30,6 +30,7 @@ import Path.IO
 import System.Exit
 import System.IO
 import System.Process
+import Text.Hex (encodeHex)
 import Text.Printf
 import URI.ByteString
 
@@ -38,7 +39,7 @@ import URI.ByteString
 getRetrofitHash :: LowarnRetrofitConfig -> String
 getRetrofitHash LowarnRetrofitConfig {..} =
   Text.unpack $
-    Text.decodeUtf8 $
+    encodeHex $
       SHA256.finalize $
         SHA256.updates
           SHA256.init

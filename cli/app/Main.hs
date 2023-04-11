@@ -6,15 +6,17 @@ module Main (main) where
 
 import Control.Exception
 import Data.List.NonEmpty (NonEmpty ((:|)))
+import GHC.Base (divInt)
 import Lowarn.Cli.Config
 import Lowarn.Cli.Env
+import Lowarn.Cli.Retrofit.CommitMap
 import Lowarn.Cli.Retrofit.Directory
 import Lowarn.Cli.Run
 import Lowarn.Cli.VersionPath
 import Lowarn.ParserCombinators
 import Lowarn.VersionNumber
 import Options.Applicative hiding (action)
-import Options.Applicative.Help.Pretty
+import Options.Applicative.Help.Pretty (indent, text, vcat, (<$$>))
 import Path
 import Path.IO
 import System.IO
@@ -60,6 +62,7 @@ data RetrofitCommand
 
 data RetrofitVersionOptions = RetrofitVersionOptions
   { retrofitVersionOptionsVersion :: Maybe VersionNumber,
+    retrofitVersionOptionsCommitIdTruncate :: Int,
     retrofitVersionOptionsCommand :: RetrofitVersionCommand
   }
 
@@ -167,9 +170,17 @@ retrofitVersionSaveParserInfo :: ParserInfo RetrofitVersionCommand
 retrofitVersionSaveParserInfo =
   info retrofitVersionSaveParser $ fullDesc <> progDesc "Write patch files"
 
+positiveIntegerReader :: ReadM Int
+positiveIntegerReader = do
+  integer <- auto
+  if integer > 0
+    then return integer
+    else readerError "The given integer is not positive."
+
 retrofitVersionParser :: Parser RetrofitCommand
 retrofitVersionParser =
-  RetrofitVersionCommand <$> (RetrofitVersionOptions <$> version <*> subcommand)
+  RetrofitVersionCommand
+    <$> (RetrofitVersionOptions <$> version <*> truncateCommit <*> subcommand)
   where
     version =
       optional $
@@ -177,6 +188,14 @@ retrofitVersionParser =
           long "version"
             <> metavar "VERSION-NUMBER"
             <> help "Override the version to manage."
+    truncateCommit =
+      option positiveIntegerReader $
+        long "truncate"
+          <> metavar "N"
+          <> help
+            "Truncate commit IDs to at least N characters. Values greater than 40 can break the program."
+          <> value 7
+          <> showDefault
     subcommand =
       hsubparser $
         command "apply" retrofitVersionApplyParserInfo
@@ -291,6 +310,21 @@ retrofitVersionApplyAction env RetrofitVersionOptions {..} currentDir = \case
     versionNumberInt <- case unVersionNumber versionNumber of
       v1 :| [] -> return v1
       _ -> fail "The version number is not a single integer."
+    withRetrofitDirectory
+      env
+      ( \retrofitDirectory -> do
+          commitMap <-
+            readCommitMap
+              (retrofitDirectory </> [relfile|commit-map|])
+              ((retrofitVersionOptionsCommitIdTruncate + 1) `divInt` 2)
+              >>= \case
+                Just c -> return c
+                Nothing -> fail "The commit map could not be read."
+          commit <- case lookupCommitMap commitMap versionNumberInt of
+            Just c -> return c
+            Nothing -> fail "The commit could not be found in the commit map."
+          return ()
+      )
     fail "Not yet implemented."
   RetrofitVersionApplyActionSimplify -> fail "Not yet implemented."
   RetrofitVersionApplyActionRetrofit -> fail "Not yet implemented."
