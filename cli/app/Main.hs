@@ -9,6 +9,7 @@ import Lowarn.Cli.Config
 import Lowarn.Cli.Env
 import Lowarn.Cli.Retrofit.Directory
 import Lowarn.Cli.Run
+import Lowarn.Cli.VersionPath
 import Lowarn.ParserCombinators
 import Lowarn.VersionNumber
 import Options.Applicative hiding (action)
@@ -233,11 +234,11 @@ main :: IO ()
 main = do
   Options {..} <-
     customExecParser (prefs $ helpShowGlobals <> showHelpOnEmpty) parserInfo
+  currentDir <- getCurrentDir
   configPath <- case optionsConfigFilePath of
     Just configPath -> resolveFile' configPath
     Nothing ->
-      getCurrentDir
-        >>= stripProperPrefix rootDirectory
+      stripProperPrefix rootDirectory currentDir
         >>= findConfigPath rootDirectory
         >>= \case
           Just configFilePath -> return configFilePath
@@ -251,7 +252,13 @@ main = do
         RetrofitCommand retrofitSubcommand ->
           case retrofitSubcommand of
             RetrofitCleanCommand -> clean lowarnEnvConfigPath
-            RetrofitVersionCommand (RetrofitVersionOptions {..}) ->
+            RetrofitVersionCommand (RetrofitVersionOptions {..}) -> do
+              versionNumber <- case retrofitVersionOptionsVersion of
+                Just v -> return v
+                Nothing -> case pathToVersionNumber env currentDir of
+                  Just v -> return v
+                  Nothing ->
+                    fail "The current directory is not a version directory."
               case retrofitVersionOptionsCommand of
                 RetrofitVersionApplyCommand action ->
                   fail "Not yet implemented."

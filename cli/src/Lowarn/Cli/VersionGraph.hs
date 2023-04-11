@@ -154,7 +154,8 @@ nextVersionNumber lookupMinOrMax versionNumber =
 -- | Give the earliest version that can be updated to from a given version,
 -- according to a version graph, or 'Nothing' if the given version number is not
 -- in the version graph or does not point to another version.
-earliestNextVersionNumber :: VersionNumber -> VersionGraph -> Maybe VersionNumber
+earliestNextVersionNumber ::
+  VersionNumber -> VersionGraph -> Maybe VersionNumber
 earliestNextVersionNumber = nextVersionNumber Set.lookupMin
 
 -- | Give the latest version that can be updated to from a given version,
