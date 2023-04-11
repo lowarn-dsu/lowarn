@@ -323,7 +323,10 @@ retrofitVersionApplyAction env RetrofitVersionOptions {..} currentDir = \case
           commit <- case lookupCommitMap commitMap versionNumberInt of
             Just c -> return c
             Nothing -> fail "The commit could not be found in the commit map."
-          return ()
+          copyCommitState
+            retrofitDirectory
+            (versionNumberToPath env versionNumber)
+            commit
       )
     fail "Not yet implemented."
   RetrofitVersionApplyActionSimplify -> fail "Not yet implemented."

@@ -15,6 +15,7 @@ module Lowarn.Cli.Retrofit.Directory
     cloneInto,
     writeCommitMap,
     clean,
+    copyCommitState,
   )
 where
 
@@ -83,44 +84,47 @@ cloneInto LowarnRetrofitConfig {..} retrofitDirectory = do
         Text.decodeUtf8 $
           serializeURIRef' lowarnRetrofitConfigGitUri
 
+getGitDirArguments :: Path Abs Dir -> [String]
+getGitDirArguments retrofitDirectory =
+  [ "--git-dir",
+    toFilePath $ retrofitDirectory </> [reldir|repo/.git|]
+  ]
+
+waitForProcessFail :: ProcessHandle -> String -> IO ()
+waitForProcessFail processHandle failMessage =
+  waitForProcess processHandle >>= \case
+    ExitSuccess -> return ()
+    ExitFailure errorCode ->
+      fail $ printf "%s (error code %s)." failMessage errorCode
+
 -- | Write a list of commit hashes in chronological order to a @commit-map@ file
 -- in a given directory, using a Git repository found in a @repo@ subdirectory.
 -- The commits are ordered from oldest to newest by taking the first parent of
 -- each commit from the head of the repository's current branch.
 writeCommitMap :: Path Abs Dir -> IO ()
 writeCommitMap retrofitDirectory = do
-  (_, _, _, processId) <-
+  (_, _, _, processHandle) <-
     withFile "/dev/null" WriteMode $ \errHandle ->
       withFile
         (toFilePath $ retrofitDirectory </> [relfile|commit-map|])
         WriteMode
         $ \outHandle ->
           createProcess $
-            ( proc
-                "git"
-                [ "--git-dir",
-                  toFilePath $ retrofitDirectory </> [reldir|repo/.git|],
-                  "log",
-                  "--first-parent",
-                  "--pretty=format:%H",
-                  "--reverse",
-                  "HEAD"
-                ]
+            ( proc "git" $
+                getGitDirArguments retrofitDirectory
+                  <> [ "log",
+                       "--first-parent",
+                       "--pretty=format:%H",
+                       "--reverse",
+                       "HEAD"
+                     ]
             )
               { std_in = NoStream,
                 std_out = UseHandle outHandle,
                 std_err = UseHandle errHandle
               }
 
-  waitForProcess processId >>= \case
-    ExitSuccess -> return ()
-    ExitFailure errorCode ->
-      fail $
-        unlines
-          [ printf
-              "Could not generate commit map (error code %s)."
-              errorCode
-          ]
+  waitForProcessFail processHandle "Could not generate commit map"
 
 -- | Run an action with a directory containing a Git repository and commit map
 -- file generated from a 'LowarnEnv'.
@@ -171,3 +175,64 @@ clean lowarnConfigPath =
     False -> return ()
   where
     retrofitDirectory = parent lowarnConfigPath </> [reldir|.lowarn-retrofit|]
+
+-- | Copy the state of a repository at a given commit to a given directory.
+--
+-- This action changes the HEAD of the repository.
+copyCommitState ::
+  -- | The internal Lowarn CLI retrofit directory.
+  Path Abs Dir ->
+  -- | The destination directory to copy the commit state to. This directory is
+  -- created if it does not already exist.
+  Path Abs Dir ->
+  -- | The commit ID.
+  String ->
+  IO ()
+copyCommitState retrofitDirectory destination commitId = do
+  (exitCode, _, errors) <-
+    readProcessWithExitCode
+      "git"
+      ( getGitDirArguments
+          retrofitDirectory
+          <> ["reset", "--hard", commitId]
+      )
+      ""
+  case exitCode of
+    ExitSuccess -> return ()
+    ExitFailure errorCode ->
+      fail $
+        unlines
+          [ printf
+              "Could not reset repository to commit %s (error code %s)."
+              commitId
+              errorCode,
+            "Git errors:",
+            errors
+          ]
+
+  createDirIfMissing True destination
+
+  (pipeIn, pipeOut) <- createPipe
+  (_, _, _, processHandle1) <- withFile "/dev/null" WriteMode $ \errHandle ->
+    createProcess $
+      ( proc "git" $
+          getGitDirArguments retrofitDirectory <> ["ls-files"]
+      )
+        { std_in = NoStream,
+          std_out = UseHandle pipeIn,
+          std_err = UseHandle errHandle
+        }
+  (_, _, _, processHandle2) <- withFile "/dev/null" WriteMode $ \errHandle ->
+    withFile "/dev/null" WriteMode $ \outHandle ->
+      createProcess $
+        ( proc
+            "xargs"
+            ["cp", "--parents", "-t", toFilePath destination]
+        )
+          { std_in = UseHandle pipeOut,
+            std_out = UseHandle outHandle,
+            std_err = UseHandle errHandle
+          }
+
+  waitForProcessFail processHandle1 "Could not get repository files"
+  waitForProcessFail processHandle2 "Could not copy repository files"
