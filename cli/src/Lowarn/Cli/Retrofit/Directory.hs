@@ -208,6 +208,10 @@ copyCommitState retrofitDirectory destination commitId = do
             errors
           ]
 
+  doesDirExist destination
+    >>= \case
+      True -> removeDirRecur destination
+      False -> return ()
   createDirIfMissing True destination
 
   (pipeOut, pipeIn) <- createPipe
