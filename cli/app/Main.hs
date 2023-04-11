@@ -7,6 +7,7 @@ module Main (main) where
 import Control.Exception
 import Lowarn.Cli.Config
 import Lowarn.Cli.Env
+import Lowarn.Cli.Retrofit.Directory
 import Lowarn.Cli.Run
 import Lowarn.ParserCombinators
 import Lowarn.VersionNumber
@@ -244,12 +245,12 @@ main = do
   getLowarnEnv configPath >>= \case
     Left e ->
       hPutStrLn stderr $ displayException e
-    Right env -> do
+    Right env@LowarnEnv {..} -> do
       case optionsCommand of
         RunCommand (RunOptions {..}) -> run env runOptionsVersion
         RetrofitCommand retrofitSubcommand ->
           case retrofitSubcommand of
-            RetrofitCleanCommand -> fail "Not yet implemented."
+            RetrofitCleanCommand -> clean lowarnEnvConfigPath
             RetrofitVersionCommand (RetrofitVersionOptions {..}) ->
               case retrofitVersionOptionsCommand of
                 RetrofitVersionApplyCommand action ->

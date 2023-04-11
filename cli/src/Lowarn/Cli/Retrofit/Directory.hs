@@ -14,6 +14,7 @@ module Lowarn.Cli.Retrofit.Directory
     getRetrofitHash,
     cloneInto,
     writeCommitMap,
+    clean,
   )
 where
 
@@ -120,6 +121,14 @@ writeCommitMap retrofitDirectory = do
               errorCode
           ]
 
+-- | Run an action with a directory containing a Git repository and commit map
+-- file generated from a 'LowarnEnv'.
+--
+-- The path of this directory is @config-path/.lowarn-retrofit/hash@, where
+-- @config-path@ is the path of the directory containing the Lowarn
+-- configuration file and @hash@ is the SHA256 hash of the retrofit config
+-- created with 'getRetrofitHash'. If any directories other than @hash@ exist in
+-- @config-path/.lowarn-retrofit@, they are removed.
 withRetrofitDirectory :: LowarnEnv -> (Path Abs Dir -> IO a) -> IO a
 withRetrofitDirectory LowarnEnv {..} f = do
   let LowarnConfig {..} = lowarnEnvConfig
@@ -151,3 +160,13 @@ withRetrofitDirectory LowarnEnv {..} f = do
     False -> writeCommitMap retrofitDirectory
 
   f retrofitDirectory
+
+-- | Remove any @.lowarn-retrofit@ directory in the parent directory of a given
+-- file path.
+clean :: Path Abs File -> IO ()
+clean lowarnConfigPath =
+  doesDirExist retrofitDirectory >>= \case
+    True -> removeDirRecur retrofitDirectory
+    False -> return ()
+  where
+    retrofitDirectory = parent lowarnConfigPath </> [reldir|.lowarn-retrofit|]
