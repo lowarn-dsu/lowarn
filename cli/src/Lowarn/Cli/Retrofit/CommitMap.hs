@@ -27,19 +27,54 @@ import Path
 import Path.IO (doesFileExist)
 import Text.Hex (decodeHex, encodeHex)
 
--- | A map from version numbers to Git commit IDs.
+-- $setup
+-- >>> import Data.Maybe (fromJust, isJust)
+-- >>> import Data.Text (pack)
+
+-- | A map from natural numbers to Git commit IDs.
 data CommitMap = CommitMap
   { commitMapByteString :: ByteString,
     commitMapIdBytes :: Int
   }
 
 -- | Create a 'CommitMap' from a list of Git commit IDs, where each commit ID is
--- stored using the given number of bytes.
+-- stored using the given number of bytes. If any strings are not valid hex
+-- strings (of bytes) or have fewer bytes than the requested size, 'Nothing'
+-- is returned. If a commit ID has more bytes than the requested size, it is
+-- truncated. If the requested size is zero or negative, 'Nothing' is returned.
+--
+-- ==== __Examples__
+--
+-- >>> isJust $ mkCommitMap [] 4
+-- True
+--
+-- >>> isJust $ mkCommitMap (map pack ["4a293bf2", "61b093e6"]) 4
+-- True
+--
+-- >>> isJust $ mkCommitMap (map pack ["4a293bf2", "61b093e6"]) 2
+-- True
+--
+-- >>> isJust $ mkCommitMap (map pack ["4a293bf2", "61b093e6"]) 8
+-- False
+--
+-- >>> isJust $ mkCommitMap (map pack ["4a293qf2", "61b0rie6"]) 4
+-- False
+--
+-- >>> isJust $ mkCommitMap (map pack ["4a293bf2", "61b093e61"]) 4
+-- False
+--
+-- >>> isJust $ mkCommitMap (map pack ["4a293bf2", "61b093e6"]) 0
+-- False
+--
+-- >>> isJust $ mkCommitMap (map pack ["4a293bf2", "61b093e6"]) (-1)
+-- False
 mkCommitMap :: [Text] -> Int -> Maybe CommitMap
 mkCommitMap hexIds commitMapIdBytes =
-  case builderBytes . mconcat <$> mIds of
-    Just commitMapByteString -> Just CommitMap {..}
-    Nothing -> Nothing
+  if commitMapIdBytes <= 0
+    then Nothing
+    else case builderBytes . mconcat <$> mIds of
+      Just commitMapByteString -> Just CommitMap {..}
+      Nothing -> Nothing
   where
     mIds :: Maybe [Builder]
     mIds = mapM (makeBuilder <=< decodeHex) hexIds
@@ -63,7 +98,25 @@ readCommitMap commitMapPath idBytes = do
 slice :: Int -> Int -> ByteString -> ByteString
 slice start len = ByteString.take len . ByteString.drop start
 
--- | Get the Git commit ID for the given version number from a 'CommitMap'.
+-- | Get the Git commit ID for the given integer from a 'CommitMap', if it is in
+-- range.
+--
+-- ==== __Examples__
+--
+-- >>> lookupCommitMap (fromJust $ mkCommitMap (map pack ["4a293bf2", "61b093e6"]) 4) 0
+-- Just "4a293bf2"
+--
+-- >>> lookupCommitMap (fromJust $ mkCommitMap (map pack ["4a293bf2", "61b093e6"]) 4) 1
+-- Just "61b093e6"
+--
+-- >>> lookupCommitMap (fromJust $ mkCommitMap (map pack ["4a293bf2", "61b093e6"]) 4) 2
+-- Nothing
+--
+-- >>> lookupCommitMap (fromJust $ mkCommitMap (map pack ["4a293bf2", "61b093e6"]) 4) (-1)
+-- Just "4a293bf2"
+--
+-- >>> lookupCommitMap (fromJust $ mkCommitMap (map pack ["4a293bf2", "61b093e6"]) 2) 1
+-- Just "61b0"
 lookupCommitMap :: CommitMap -> Int -> Maybe String
 lookupCommitMap CommitMap {..} version =
   if ByteString.length commitMapByteString >= startIndex + commitMapIdBytes
