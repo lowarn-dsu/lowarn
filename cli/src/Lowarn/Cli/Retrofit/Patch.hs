@@ -78,31 +78,51 @@ makePatch parentDirectory oldDirectory newDirectory patchName = do
 
   withManifest absoluteOldDirectory "OLD" $ \oldManifestPath ->
     withManifest absoluteNewDirectory "NEW" $ \newManifestPath -> do
-      (_, _, _, processHandle) <-
-        withFile (toFilePath patchFilePath) WriteMode $ \outHandle ->
-          createProcess $
-            ( proc
-                "makepatch"
-                [ toFilePath absoluteOldDirectory,
-                  toFilePath absoluteNewDirectory,
-                  "-oldmanifest",
-                  toFilePath oldManifestPath,
-                  "-newmanifest",
-                  toFilePath newManifestPath,
-                  "-description",
-                  patchName,
-                  "-diff",
-                  "diff -u"
-                ]
-            )
-              { env = Just [],
-                std_in = NoStream,
-                std_out = UseHandle outHandle,
-                std_err = Inherit
-              }
+      (pipeOut, pipeIn) <- createPipe
+      (_, _, _, processHandle1) <-
+        createProcess $
+          ( proc
+              "makepatch"
+              [ toFilePath absoluteOldDirectory,
+                toFilePath absoluteNewDirectory,
+                "-oldmanifest",
+                toFilePath oldManifestPath,
+                "-newmanifest",
+                toFilePath newManifestPath,
+                "-description",
+                patchName,
+                "-diff",
+                "diff -u"
+              ]
+          )
+            { env = Just [],
+              std_in = NoStream,
+              std_out = UseHandle pipeIn,
+              std_err = Inherit
+            }
 
-      waitForProcessFail processHandle $
+      (_, _, _, processHandle2) <-
+        withFile (toFilePath patchFilePath) WriteMode $ \outHandle ->
+          withDevNull $ \errHandle ->
+            createProcess $
+              ( proc
+                  "sed"
+                  [ "-E",
+                    "s/^(\\+\\+\\+.+|---.+|# Date generated +: |#### End of Patch kit \\[created: )[A-Z][a-z]{2} [A-Z][a-z]{2} [0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]{4}(\\] ####)?$/\\1Thu Jan 01 00:00:00 1970\\2/;/^#### (Patch c|C)hecksum: .+ ####$/d"
+                  ]
+              )
+                { env = Just [],
+                  std_in = UseHandle pipeOut,
+                  std_out = UseHandle outHandle,
+                  std_err = UseHandle errHandle
+                }
+
+      waitForProcessFail processHandle1 $
         printf "Failed to generate patch %s" patchName
+      waitForProcessFail processHandle2 $
+        printf
+          "Failed to replace dates and remove checksums in patch %s"
+          patchName
   where
     absoluteOldDirectory = parentDirectory </> oldDirectory
     absoluteNewDirectory = parentDirectory </> newDirectory
