@@ -7,7 +7,8 @@
 -- Stability               : stable
 -- Portability             : non-portable (POSIX, GHC)
 --
--- Module for 'Arbitrary' instances for 'VersionId'.
+-- Module for 'Test.QuickCheck.Arbitrary' instances for
+-- 'Lowarn.VersionId.VersionId'.
 module Lowarn.VersionId.Arbitrary () where
 
 import Control.Applicative

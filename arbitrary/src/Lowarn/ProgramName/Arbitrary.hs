@@ -6,7 +6,8 @@
 -- Stability               : stable
 -- Portability             : non-portable (POSIX, GHC)
 --
--- Module for 'Arbitrary' instances for 'ProgramName'.
+-- Module for 'Text.QuickCheck.Arbitrary' instances for
+-- 'Lowarn.ProgramName.ProgramName'.
 module Lowarn.ProgramName.Arbitrary () where
 
 import Control.Applicative

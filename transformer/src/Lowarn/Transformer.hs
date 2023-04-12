@@ -137,7 +137,7 @@ import Lowarn
 --
 -- instance 'Transformable' Variable VariableWithValue where
 --   'transformer' :: Transformer Variable VariableWithValue
---   'transformer' = arr VariableWithValue `ap` Transformer lookupEnv <<^ name
+--   'transformer' = arr VariableWithValue \`ap\` Transformer lookupEnv <<^ name
 --
 -- instance 'DatatypeNameAlias' \"PreviousState" \"NextState"
 --

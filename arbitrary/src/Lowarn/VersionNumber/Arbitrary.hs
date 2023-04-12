@@ -6,7 +6,8 @@
 -- Stability               : stable
 -- Portability             : non-portable (POSIX, GHC)
 --
--- Module for 'Arbitrary' instances for 'VersionNumber'.
+-- Module for 'Test.QuickCheck.Arbitrary' instances for
+-- 'Lowarn.VersionNumber.VersionNumber'.
 module Lowarn.VersionNumber.Arbitrary () where
 
 import Data.List.NonEmpty (fromList, toList)

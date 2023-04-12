@@ -23,7 +23,7 @@ import System.Process
 import Text.Printf
 
 -- | 'Process.proc' that runs in the @repo@ subdirectory of a directory given by
--- 'withRetrofitDirectory'.
+-- 'Lowarn.Cli.Retrofit.withRetrofitDirectory'.
 gitDirProc :: Path Abs Dir -> FilePath -> [String] -> CreateProcess
 gitDirProc retrofitDirectory command arguments =
   (proc command arguments)
