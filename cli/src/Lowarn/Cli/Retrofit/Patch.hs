@@ -109,7 +109,7 @@ makePatch parentDirectory oldDirectory newDirectory patchName = do
               ( proc
                   "sed"
                   [ "-E",
-                    "s/^(\\+\\+\\+.+|---.+|# Date generated +: |#### End of Patch kit \\[created: )[A-Z][a-z]{2} [A-Z][a-z]{2} [0-9]{1,2} [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]{4}(\\] ####)?$/\\1Thu Jan 01 00:00:00 1970\\2/;/^#### (Patch c|C)hecksum: .+ ####$/d"
+                    "s/^(\\+\\+\\+.+|---.+|# Date generated +: |#### End of Patch kit \\[created: )[A-Z][a-z]{2} [A-Z][a-z]{2} [ 0-9][0-9] [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]{4}(\\] ####)?$/\\1Thu Jan 01 00:00:00 1970\\2/;/^#### (Patch c|C)hecksum: .+ ####$/d;s/^(# [cCrRp] '[^']+' [0-9]+ )[0-9]+(( 0)[0-9]+)?$/\\10\\3/"
                   ]
               )
                 { env = Just [],

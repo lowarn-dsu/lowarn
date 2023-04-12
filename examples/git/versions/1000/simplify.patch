@@ -67,7 +67,7 @@ Index: ./xmonad.cabal
 #                       (\A|/)tags\Z
 #                       (\A|/)TAGS\Z
 # r 'TODO' 739 0
-# p 'xmonad.cabal' 2693 1681299330 0100644
+# p 'xmonad.cabal' 2693 0 0
 #### End of ApplyPatch data ####
 
 #### End of Patch kit [created: Thu Jan 01 00:00:00 1970] ####
