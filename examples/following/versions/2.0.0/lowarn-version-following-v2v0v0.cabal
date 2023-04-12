@@ -7,10 +7,10 @@ cabal-version: 1.12
 name:           lowarn-version-following-v2v0v0
 version:        1.0.0
 description:    Lowarn demo program 2
-homepage:       https://github.com/jonathanjameswatson/lowarn#readme
-bug-reports:    https://github.com/jonathanjameswatson/lowarn/issues
+homepage:       https://github.com/lowarn-dsu/lowarn#readme
+bug-reports:    https://github.com/lowarn-dsu/lowarn/issues
 author:         Jonathan Watson
-maintainer:     23344719+jonathanjameswatson@users.noreply.github.com
+maintainer:     Jonathan Watson
 copyright:      2023 Jonathan Watson
 license:        MIT
 license-file:   LICENSE
@@ -18,7 +18,7 @@ build-type:     Simple
 
 source-repository head
   type: git
-  location: https://github.com/jonathanjameswatson/lowarn
+  location: https://github.com/lowarn-dsu/lowarn
 
 flag cabal
   description: The build system is Cabal if this flag is true.

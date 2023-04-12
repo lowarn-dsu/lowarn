@@ -1,9 +1,9 @@
 name:                lowarn-version-manual-following-v1v0v0
 version:             1.0.0
-github:              "jonathanjameswatson/lowarn"
+github:              "lowarn-dsu/lowarn"
 license:             MIT
 author:              "Jonathan Watson"
-maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
+# maintainer:
 copyright:           "2023 Jonathan Watson"
 
 description:         Lowarn manual demo program 1

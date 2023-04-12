@@ -10,14 +10,14 @@ flags: +cabal
 
 source-repository-package
   type: git
-  location: https://github.com/jonathanjameswatson/dekking.git
-  tag: 041dc895b4e2b2b156a1c71a5f52dfed6e69de54
+  location: https://github.com/lowarn-dsu/dekking.git
+  tag: 6c14d81e580f061d76c1c19c40cbfe0b337fe208
   subdir: dekking-plugin
 
 source-repository-package
   type: git
-  location: https://github.com/jonathanjameswatson/dekking.git
-  tag: 041dc895b4e2b2b156a1c71a5f52dfed6e69de54
+  location: https://github.com/lowarn-dsu/dekking.git
+  tag: 6c14d81e580f061d76c1c19c40cbfe0b337fe208
   subdir: dekking-value
 
 -- package *

@@ -30,27 +30,27 @@ packages:
     pantry-tree:
       sha256: 768cb5a405069f3d98ef1dae4e4e8e1741902be540d3829a4294ccfbf0bf6be9
       size: 483
-    sha256: ce95629bebbc0841ecdb9971249a1285107c667b90b62f060a4f40369f80f012
-    size: 32145
+    sha256: 9107e9dabae9a168e0f5100a5aab46664ca07ba65140b071fcfbd3c48a8b34e6
+    size: 32925
     subdir: dekking-plugin
-    url: https://github.com/jonathanjameswatson/dekking/archive/041dc895b4e2b2b156a1c71a5f52dfed6e69de54.tar.gz
+    url: https://github.com/lowarn-dsu/dekking/archive/6c14d81e580f061d76c1c19c40cbfe0b337fe208.tar.gz
     version: 0.0.0.0
   original:
     subdir: dekking-plugin
-    url: https://github.com/jonathanjameswatson/dekking/archive/041dc895b4e2b2b156a1c71a5f52dfed6e69de54.tar.gz
+    url: https://github.com/lowarn-dsu/dekking/archive/6c14d81e580f061d76c1c19c40cbfe0b337fe208.tar.gz
 - completed:
     name: dekking-value
     pantry-tree:
       sha256: 621939a94869c1946517769f9ca636bc5f4756772bd085115a6091994c3fbc8c
       size: 288
-    sha256: ce95629bebbc0841ecdb9971249a1285107c667b90b62f060a4f40369f80f012
-    size: 32145
+    sha256: 9107e9dabae9a168e0f5100a5aab46664ca07ba65140b071fcfbd3c48a8b34e6
+    size: 32925
     subdir: dekking-value
-    url: https://github.com/jonathanjameswatson/dekking/archive/041dc895b4e2b2b156a1c71a5f52dfed6e69de54.tar.gz
+    url: https://github.com/lowarn-dsu/dekking/archive/6c14d81e580f061d76c1c19c40cbfe0b337fe208.tar.gz
     version: 0.0.0.0
   original:
     subdir: dekking-value
-    url: https://github.com/jonathanjameswatson/dekking/archive/041dc895b4e2b2b156a1c71a5f52dfed6e69de54.tar.gz
+    url: https://github.com/lowarn-dsu/dekking/archive/6c14d81e580f061d76c1c19c40cbfe0b337fe208.tar.gz
 snapshots:
 - completed:
     sha256: 14ca51a9a597c32dd7804c10d079feea3d0ae40c5fbbb346cbd67b3ae49f6d01
