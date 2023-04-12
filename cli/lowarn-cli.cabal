@@ -36,6 +36,8 @@ library
       Lowarn.Cli.Retrofit.BranchName
       Lowarn.Cli.Retrofit.CommitMap
       Lowarn.Cli.Retrofit.Directory
+      Lowarn.Cli.Retrofit.Patch
+      Lowarn.Cli.Retrofit.Process
       Lowarn.Cli.Run
       Lowarn.Cli.VersionGraph
       Lowarn.Cli.VersionPath

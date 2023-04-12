@@ -26,6 +26,7 @@ import qualified Data.Text.Encoding as Text
 import Lowarn.Cli.Config
 import Lowarn.Cli.Env
 import Lowarn.Cli.Retrofit.BranchName
+import Lowarn.Cli.Retrofit.Process
 import Path
 import Path.IO
 import System.Exit
@@ -84,20 +85,6 @@ cloneInto LowarnRetrofitConfig {..} retrofitDirectory = do
         Text.decodeUtf8 $
           serializeURIRef' lowarnRetrofitConfigGitUri
 
-gitDirProc :: Path Abs Dir -> FilePath -> [String] -> CreateProcess
-gitDirProc retrofitDirectory command arguments =
-  (proc command arguments)
-    { cwd = Just $ toFilePath $ retrofitDirectory </> [reldir|repo|],
-      env = Just []
-    }
-
-waitForProcessFail :: ProcessHandle -> String -> IO ()
-waitForProcessFail processHandle failMessage =
-  waitForProcess processHandle >>= \case
-    ExitSuccess -> return ()
-    ExitFailure errorCode ->
-      fail $ printf "%s (error code %d)." failMessage errorCode
-
 -- | Write a list of commit hashes in chronological order to a @commit-map@ file
 -- in a given directory, using a Git repository found in a @repo@ subdirectory.
 -- The commits are ordered from oldest to newest by taking the first parent of
@@ -105,7 +92,7 @@ waitForProcessFail processHandle failMessage =
 writeCommitMap :: Path Abs Dir -> IO ()
 writeCommitMap retrofitDirectory = do
   (_, _, _, processHandle) <-
-    withFile "/dev/null" WriteMode $ \errHandle ->
+    withDevNull $ \errHandle ->
       withFile
         (toFilePath $ retrofitDirectory </> [relfile|commit-map|])
         WriteMode
@@ -215,7 +202,7 @@ copyCommitState retrofitDirectory destination commitId = do
   createDirIfMissing True destination
 
   (pipeOut, pipeIn) <- createPipe
-  (_, _, _, processHandle1) <- withFile "/dev/null" WriteMode $ \errHandle ->
+  (_, _, _, processHandle1) <- withDevNull $ \errHandle ->
     createProcess $
       (gitDirProc retrofitDirectory "git" ["ls-files"])
         { std_in = NoStream,
@@ -223,8 +210,8 @@ copyCommitState retrofitDirectory destination commitId = do
           std_err = UseHandle errHandle
         }
 
-  (_, _, _, processHandle2) <- withFile "/dev/null" WriteMode $ \errHandle ->
-    withFile "/dev/null" WriteMode $ \outHandle ->
+  (_, _, _, processHandle2) <- withDevNull $ \errHandle ->
+    withDevNull $ \outHandle ->
       createProcess $
         ( gitDirProc
             retrofitDirectory

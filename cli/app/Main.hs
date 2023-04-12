@@ -11,6 +11,7 @@ import Lowarn.Cli.Config
 import Lowarn.Cli.Env
 import Lowarn.Cli.Retrofit.CommitMap
 import Lowarn.Cli.Retrofit.Directory
+import Lowarn.Cli.Retrofit.Patch
 import Lowarn.Cli.Run
 import Lowarn.Cli.VersionPath
 import Lowarn.ParserCombinators
@@ -290,8 +291,24 @@ main = do
                       )
                       actions
                   RetrofitVersionSaveCommand actions ->
-                    mapM_ retrofitVersionSaveAction actions
+                    mapM_
+                      ( retrofitVersionSaveAction
+                          env
+                          retrofitVersionOptions
+                          currentDir
+                      )
+                      actions
             RetrofitVersionsCommand -> fail "Not yet implemented."
+
+defaultVersionNumber ::
+  LowarnEnv -> Path Abs Dir -> Maybe VersionNumber -> IO VersionNumber
+defaultVersionNumber env currentDir =
+  \case
+    Just v -> return v
+    Nothing -> case pathToVersionNumber env currentDir of
+      Just v -> return v
+      Nothing ->
+        fail "The current directory is not a version directory."
 
 retrofitVersionApplyAction ::
   LowarnEnv ->
@@ -299,39 +316,49 @@ retrofitVersionApplyAction ::
   Path Abs Dir ->
   RetrofitVersionApplyAction ->
   IO ()
-retrofitVersionApplyAction env RetrofitVersionOptions {..} currentDir = \case
-  RetrofitVersionApplyActionSource -> do
-    versionNumber <- case retrofitVersionOptionsVersion of
-      Just v -> return v
-      Nothing -> case pathToVersionNumber env currentDir of
-        Just v -> return v
-        Nothing ->
-          fail "The current directory is not a version directory."
-    versionNumberInt <- case unVersionNumber versionNumber of
-      v1 :| [] -> return v1
-      _ -> fail "The version number is not a single integer."
-    withRetrofitDirectory
-      env
-      ( \retrofitDirectory -> do
-          commitMap <-
-            readCommitMap
-              (retrofitDirectory </> [relfile|commit-map|])
-              ((retrofitVersionOptionsCommitIdTruncate + 1) `divInt` 2)
-              >>= \case
+retrofitVersionApplyAction env RetrofitVersionOptions {..} currentDir action =
+  do
+    versionNumber <-
+      defaultVersionNumber env currentDir retrofitVersionOptionsVersion
+    let versionNumberPath = versionNumberToPath env versionNumber
+    case action of
+      RetrofitVersionApplyActionSource -> do
+        versionNumberInt <- case unVersionNumber versionNumber of
+          v1 :| [] -> return v1
+          _ -> fail "The version number is not a single integer."
+        withRetrofitDirectory
+          env
+          ( \retrofitDirectory -> do
+              commitMap <-
+                readCommitMap
+                  (retrofitDirectory </> [relfile|commit-map|])
+                  ((retrofitVersionOptionsCommitIdTruncate + 1) `divInt` 2)
+                  >>= \case
+                    Just c -> return c
+                    Nothing -> fail "The commit map could not be read."
+              commit <- case lookupCommitMap commitMap versionNumberInt of
                 Just c -> return c
-                Nothing -> fail "The commit map could not be read."
-          commit <- case lookupCommitMap commitMap versionNumberInt of
-            Just c -> return c
-            Nothing -> fail "The commit could not be found in the commit map."
-          copyCommitState
-            retrofitDirectory
-            (versionNumberToPath env versionNumber </> [reldir|source|])
-            commit
-      )
-  RetrofitVersionApplyActionSimplify -> fail "Not yet implemented."
-  RetrofitVersionApplyActionRetrofit -> fail "Not yet implemented."
+                Nothing ->
+                  fail
+                    "The commit could not be found in the commit map."
+              copyCommitState
+                retrofitDirectory
+                (versionNumberToPath env versionNumber </> [reldir|source|])
+                commit
+          )
+      RetrofitVersionApplyActionSimplify -> applySimplifyPatch versionNumberPath
+      RetrofitVersionApplyActionRetrofit -> applyRetrofitPatch versionNumberPath
 
-retrofitVersionSaveAction :: RetrofitVersionSaveAction -> IO ()
-retrofitVersionSaveAction = \case
-  RetrofitVersionSaveActionSimplify -> fail "Not yet implemented."
-  RetrofitVersionSaveActionRetrofit -> fail "Not yet implemented."
+retrofitVersionSaveAction ::
+  LowarnEnv ->
+  RetrofitVersionOptions ->
+  Path Abs Dir ->
+  RetrofitVersionSaveAction ->
+  IO ()
+retrofitVersionSaveAction env RetrofitVersionOptions {..} currentDir action = do
+  versionNumber <-
+    defaultVersionNumber env currentDir retrofitVersionOptionsVersion
+  let versionNumberPath = versionNumberToPath env versionNumber
+  case action of
+    RetrofitVersionSaveActionSimplify -> makeSimplifyPatch versionNumberPath
+    RetrofitVersionSaveActionRetrofit -> makeRetrofitPatch versionNumberPath
