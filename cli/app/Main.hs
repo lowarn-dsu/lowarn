@@ -261,11 +261,11 @@ main :: IO ()
 main = do
   Options {..} <-
     customExecParser (prefs $ helpShowGlobals <> showHelpOnEmpty) parserInfo
-  currentDir <- getCurrentDir
+  currentDirectory <- getCurrentDir
   configPath <- case optionsConfigFilePath of
     Just configPath -> resolveFile' configPath
     Nothing ->
-      stripProperPrefix rootDirectory currentDir
+      stripProperPrefix rootDirectory currentDirectory
         >>= findConfigPath rootDirectory
         >>= \case
           Just configFilePath -> return configFilePath
@@ -287,7 +287,7 @@ main = do
                       ( retrofitVersionApplyAction
                           env
                           retrofitVersionOptions
-                          currentDir
+                          currentDirectory
                       )
                       actions
                   RetrofitVersionSaveCommand actions ->
@@ -295,20 +295,21 @@ main = do
                       ( retrofitVersionSaveAction
                           env
                           retrofitVersionOptions
-                          currentDir
+                          currentDirectory
                       )
                       actions
             RetrofitVersionsCommand -> fail "Not yet implemented."
 
 defaultVersionNumber ::
-  LowarnEnv -> Path Abs Dir -> Maybe VersionNumber -> IO VersionNumber
-defaultVersionNumber env currentDir =
+  Path Abs Dir -> Path Abs Dir -> Maybe VersionNumber -> IO VersionNumber
+defaultVersionNumber programPath currentDirectory =
   \case
     Just v -> return v
-    Nothing -> case pathToVersionNumber env currentDir of
-      Just v -> return v
-      Nothing ->
-        fail "The current directory is not a version directory."
+    Nothing ->
+      case pathToVersionNumber programPath currentDirectory of
+        Just v -> return v
+        Nothing ->
+          fail "The current directory is not a version directory."
 
 retrofitVersionApplyAction ::
   LowarnEnv ->
@@ -316,11 +317,18 @@ retrofitVersionApplyAction ::
   Path Abs Dir ->
   RetrofitVersionApplyAction ->
   IO ()
-retrofitVersionApplyAction env RetrofitVersionOptions {..} currentDir action =
-  do
+retrofitVersionApplyAction
+  env@LowarnEnv {..}
+  RetrofitVersionOptions {..}
+  currentDirectory
+  action = do
     versionNumber <-
-      defaultVersionNumber env currentDir retrofitVersionOptionsVersion
-    let versionNumberPath = versionNumberToPath env versionNumber
+      defaultVersionNumber
+        (parent lowarnEnvConfigPath)
+        currentDirectory
+        retrofitVersionOptionsVersion
+    let versionNumberPath =
+          versionNumberToPath (parent lowarnEnvConfigPath) versionNumber
     case action of
       RetrofitVersionApplyActionSource -> do
         versionNumberInt <- case unVersionNumber versionNumber of
@@ -343,7 +351,7 @@ retrofitVersionApplyAction env RetrofitVersionOptions {..} currentDir action =
                     "The commit could not be found in the commit map."
               copyCommitState
                 retrofitDirectory
-                (versionNumberToPath env versionNumber </> [reldir|source|])
+                (versionNumberPath </> [reldir|source|])
                 commit
           )
       RetrofitVersionApplyActionSimplify -> applySimplifyPatch versionNumberPath
@@ -355,10 +363,18 @@ retrofitVersionSaveAction ::
   Path Abs Dir ->
   RetrofitVersionSaveAction ->
   IO ()
-retrofitVersionSaveAction env RetrofitVersionOptions {..} currentDir action = do
-  versionNumber <-
-    defaultVersionNumber env currentDir retrofitVersionOptionsVersion
-  let versionNumberPath = versionNumberToPath env versionNumber
-  case action of
-    RetrofitVersionSaveActionSimplify -> makeSimplifyPatch versionNumberPath
-    RetrofitVersionSaveActionRetrofit -> makeRetrofitPatch versionNumberPath
+retrofitVersionSaveAction
+  LowarnEnv {..}
+  RetrofitVersionOptions {..}
+  currentDirectory
+  action = do
+    versionNumber <-
+      defaultVersionNumber
+        (parent lowarnEnvConfigPath)
+        currentDirectory
+        retrofitVersionOptionsVersion
+    let versionNumberPath =
+          versionNumberToPath (parent lowarnEnvConfigPath) versionNumber
+    case action of
+      RetrofitVersionSaveActionSimplify -> makeSimplifyPatch versionNumberPath
+      RetrofitVersionSaveActionRetrofit -> makeRetrofitPatch versionNumberPath
