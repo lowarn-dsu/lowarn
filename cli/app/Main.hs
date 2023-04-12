@@ -59,7 +59,6 @@ runParserInfo =
 data RetrofitCommand
   = RetrofitCleanCommand
   | RetrofitVersionCommand RetrofitVersionOptions
-  | RetrofitVersionsCommand
 
 data RetrofitVersionOptions = RetrofitVersionOptions
   { retrofitVersionOptionsVersion :: Maybe VersionNumber,
@@ -209,15 +208,6 @@ retrofitVersionParserInfo =
       <> progDesc
         "Manage individual versions of programs used by Lowarn CLI retrofit"
 
-retrofitVersionsParser :: Parser RetrofitCommand
-retrofitVersionsParser = pure RetrofitVersionsCommand
-
-retrofitVersionsParserInfo :: ParserInfo RetrofitCommand
-retrofitVersionsParserInfo =
-  info retrofitVersionsParser $
-    fullDesc
-      <> progDesc "Manage all versions of a program used by Lowarn CLI retrofit"
-
 retrofitParser :: Parser Command
 retrofitParser = RetrofitCommand <$> retrofitCommand
   where
@@ -225,7 +215,6 @@ retrofitParser = RetrofitCommand <$> retrofitCommand
       hsubparser $
         command "clean" retrofitCleanParserInfo
           <> command "version" retrofitVersionParserInfo
-          <> command "versions" retrofitVersionsParserInfo
 
 retrofitParserInfo :: ParserInfo Command
 retrofitParserInfo =
@@ -298,7 +287,6 @@ main = do
                           currentDirectory
                       )
                       actions
-            RetrofitVersionsCommand -> fail "Not yet implemented."
 
 defaultVersionNumber ::
   Path Abs Dir -> Path Abs Dir -> Maybe VersionNumber -> IO VersionNumber
