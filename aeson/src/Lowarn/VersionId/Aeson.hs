@@ -6,7 +6,8 @@
 -- Stability               : stable
 -- Portability             : non-portable (POSIX, GHC)
 --
--- Module for 'ToJson' and 'FromJson' instances for 'VersionId'.
+-- Module for 'Data.Aeson.ToJson' and 'Data.Aeson.FromJson' instances for
+-- 'Lowarn.VersionId.VersionId'.
 module Lowarn.VersionId.Aeson () where
 
 import Data.Aeson

@@ -6,7 +6,8 @@
 -- Stability               : stable
 -- Portability             : non-portable (POSIX, GHC)
 --
--- Module for 'ToJson' and 'FromJson' instances for 'ProgramName'.
+-- Module for 'Data.Aeson.ToJson' and 'Data.Aeson.FromJson' instances for
+-- 'Lowarn.ProgramName.ProgramName'.
 module Lowarn.ProgramName.Aeson () where
 
 import Data.Aeson
