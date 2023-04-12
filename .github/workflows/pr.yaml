@@ -11,4 +11,4 @@ jobs:
       - uses: kyoya0819/auto-assignment@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          users: '["lowarn-dsu"]'
+          users: '["jonathanjameswatson"]'
