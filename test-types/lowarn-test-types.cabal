@@ -7,12 +7,12 @@ cabal-version: 1.12
 name:           lowarn-test-types
 version:        0.1.0.0
 synopsis:       Types for lowarn-test
-description:    Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/test-types#readme>
+description:    Please see the README on GitHub at <https://github.com/lowarn-dsu/lowarn/tree/main/test-types#readme>
 category:       System
-homepage:       https://github.com/jonathanjameswatson/lowarn#readme
-bug-reports:    https://github.com/jonathanjameswatson/lowarn/issues
+homepage:       https://github.com/lowarn-dsu/lowarn#readme
+bug-reports:    https://github.com/lowarn-dsu/lowarn/issues
 author:         Jonathan Watson
-maintainer:     23344719+jonathanjameswatson@users.noreply.github.com
+maintainer:     Jonathan Watson
 copyright:      2023 Jonathan Watson
 license:        MIT
 license-file:   LICENSE
@@ -22,7 +22,7 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/jonathanjameswatson/lowarn
+  location: https://github.com/lowarn-dsu/lowarn
 
 library
   exposed-modules:

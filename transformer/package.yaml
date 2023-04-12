@@ -1,9 +1,9 @@
 name:                lowarn-transformer
 version:             0.1.0.0
-github:              "jonathanjameswatson/lowarn"
+github:              "lowarn-dsu/lowarn"
 license:             MIT
 author:              "Jonathan Watson"
-maintainer:          "23344719+jonathanjameswatson@users.noreply.github.com"
+# maintainer:
 copyright:           "2023 Jonathan Watson"
 
 extra-source-files:
@@ -12,7 +12,7 @@ extra-source-files:
 synopsis:            State transformer utilities for Lowarn
 category:            System
 
-description:         Please see the README on GitHub at <https://github.com/jonathanjameswatson/lowarn/tree/main/transformer#readme>
+description:         Please see the README on GitHub at <https://github.com/lowarn-dsu/lowarn/tree/main/transformer#readme>
 
 dependencies:
 - base >= 4.7 && < 5
