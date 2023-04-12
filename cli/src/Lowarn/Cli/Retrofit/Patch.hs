@@ -90,7 +90,9 @@ makePatch parentDirectory oldDirectory newDirectory patchName = do
                   "-newmanifest",
                   toFilePath newManifestPath,
                   "-description",
-                  patchName
+                  patchName,
+                  "-diff",
+                  "diff -u"
                 ]
             )
               { env = Just [],
