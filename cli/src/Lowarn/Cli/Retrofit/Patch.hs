@@ -83,8 +83,8 @@ makePatch parentDirectory oldDirectory newDirectory patchName = do
         createProcess $
           ( proc
               "makepatch"
-              [ toFilePath absoluteOldDirectory,
-                toFilePath absoluteNewDirectory,
+              [ toFilePath oldDirectory,
+                toFilePath newDirectory,
                 "-oldmanifest",
                 toFilePath oldManifestPath,
                 "-newmanifest",
@@ -96,6 +96,7 @@ makePatch parentDirectory oldDirectory newDirectory patchName = do
               ]
           )
             { env = Just [],
+              cwd = Just $ toFilePath parentDirectory,
               std_in = NoStream,
               std_out = UseHandle pipeIn,
               std_err = Inherit

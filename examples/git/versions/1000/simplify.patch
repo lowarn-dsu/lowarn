@@ -27,7 +27,7 @@ exit
 #### End of Preamble ####
 
 #### Patch data follows ####
-diff -u '/home/jonathan/Code/lowarn/examples/git/versions/1000/source/xmonad.cabal' '/home/jonathan/Code/lowarn/examples/git/versions/1000/simplified/xmonad.cabal'
+diff -u 'source/xmonad.cabal' 'simplified/xmonad.cabal'
 Index: ./xmonad.cabal
 --- ./xmonad.cabal	Thu Jan 01 00:00:00 1970
 +++ ./xmonad.cabal	Thu Jan 01 00:00:00 1970
