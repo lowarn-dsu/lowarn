@@ -1,15 +1,19 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskellQuotes #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Spec.Config (configTests) where
 
-import Control.Applicative
-import Data.Aeson
+import Control.Monad
+import Data.Maybe
 import Data.Proxy
 import Lowarn.Cli.Config
+import Lowarn.Cli.Retrofit.BranchName
 import Lowarn.ProgramName.Arbitrary ()
 import Path hiding (Dir)
 import Test.Lowarn.Config
@@ -17,6 +21,7 @@ import Test.Lowarn.Property
 import Test.Tasty
 import Test.Tasty.QuickCheck
 import Text.RawString.QQ
+import URI.ByteString
 
 findConfigBase :: TestTree
 findConfigBase =
@@ -69,32 +74,63 @@ readNonDefaultConfig =
 program-name: following
 unload: true
 system-linker: false
+version-package-subdirectory: retrofitted
+
+retrofit:
+  git: https://github.com/xmonad/xmonad.git
+  branch: master
 |]
 
 readEmptyConfig :: TestTree
 readEmptyConfig = readConfigGoldenTest (show 'readEmptyConfig) "\n"
 
-newtype ArbitraryLowarnConfig = ArbitraryLowarnConfig LowarnConfig
-  deriving (Eq, ToJSON, FromJSON)
-
-instance Arbitrary ArbitraryLowarnConfig where
-  arbitrary :: Gen ArbitraryLowarnConfig
+instance Arbitrary LowarnConfig where
+  arbitrary :: Gen LowarnConfig
   arbitrary =
-    ArbitraryLowarnConfig <$> liftA3 LowarnConfig arbitrary arbitrary arbitrary
+    liftM5
+      LowarnConfig
+      arbitrary
+      arbitrary
+      arbitrary
+      (elements [[reldir|.|], [reldir|retrofitted|]])
+      arbitrary
 
-  shrink :: ArbitraryLowarnConfig -> [ArbitraryLowarnConfig]
-  shrink (ArbitraryLowarnConfig (LowarnConfig {..})) =
-    ArbitraryLowarnConfig
-      <$> liftA3
-        LowarnConfig
-        (shrink lowarnConfigProgramName)
-        [lowarnConfigUnload]
-        [lowarnConfigSystemLinker]
+  shrink :: LowarnConfig -> [LowarnConfig]
+  shrink LowarnConfig {..} =
+    liftM5
+      LowarnConfig
+      (shrink lowarnConfigProgramName)
+      [lowarnConfigUnload]
+      [lowarnConfigSystemLinker]
+      [lowarnConfigCabalDirectory]
+      (shrink lowarnConfigRetrofitConfig)
+
+instance Arbitrary LowarnRetrofitConfig where
+  arbitrary :: Gen LowarnRetrofitConfig
+  arbitrary = do
+    uriScheme <- Scheme <$> elements ["http", "https"]
+
+    let authorityUserInfo = Nothing
+    authorityHost <- Host <$> elements ["github.com", "gitlab.com"]
+    authorityPort <- elements [Nothing, Just $ Port 80, Just $ Port 443]
+    let uriAuthority = Just Authority {..}
+
+    uriPath <- elements ["/xmonad/xmonad.git", "/"]
+
+    let uriQuery = Query []
+        uriFragment = Nothing
+
+    let lowarnRetrofitConfigGitUri = URI {..}
+
+    lowarnRetrofitConfigBranch <-
+      fromJust . mkBranchName <$> listOf1 (elements ['a' .. 'z'])
+
+    return LowarnRetrofitConfig {..}
 
 yamlConfigRoundTrip :: TestTree
 yamlConfigRoundTrip =
   testProperty (show 'yamlConfigRoundTrip) $
-    yamlRoundTripProperty (Proxy :: Proxy ArbitraryLowarnConfig)
+    yamlRoundTripProperty (Proxy :: Proxy LowarnConfig)
 
 configTests :: TestTree
 configTests =

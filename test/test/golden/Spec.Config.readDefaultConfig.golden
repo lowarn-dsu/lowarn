@@ -1,2 +1,2 @@
 Config:
-Right (LowarnConfig {lowarnConfigProgramName = ProgramName {unProgramName = "following"}, lowarnConfigUnload = False, lowarnConfigSystemLinker = True})
+Right (LowarnConfig {lowarnConfigProgramName = ProgramName {unProgramName = "following"}, lowarnConfigUnload = False, lowarnConfigSystemLinker = True, lowarnConfigCabalDirectory = "./", lowarnConfigRetrofitConfig = Nothing})

@@ -1,0 +1,10 @@
+resolver: lts-20.13
+
+extra-deps:
+- ghc-tcplugin-api-0.10.0.0
+
+packages:
+- ../../core
+- ../../inject
+- ../../runtime
+- ../../transformer

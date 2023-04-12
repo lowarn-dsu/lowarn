@@ -32,7 +32,11 @@ run LowarnEnv {..} mVersionNumber = do
   runConfigRuntime
     ( configRuntime
         lowarnEnvConfig
-        (getVersionGraph (parent lowarnEnvConfigPath) lowarnConfigProgramName)
+        ( getVersionGraph
+            (parent lowarnEnvConfigPath)
+            lowarnConfigProgramName
+            lowarnConfigCabalDirectory
+        )
         True
         (Left mVersionNumber)
     )
