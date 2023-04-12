@@ -69,7 +69,26 @@ checkDirectoryExists directory = do
     True -> return ()
     False -> fail $ printf "Directory %s does not exist." $ toFilePath directory
 
-makePatch :: Path Abs Dir -> Path Rel Dir -> Path Rel Dir -> String -> IO ()
+-- | Create a patch file between two similar subdirectories of a directory. The
+-- patch file is placed in the parent directory and given the name
+-- @patch-name.patch@, where @patch-name@ is the given patch name.
+--
+-- The patch file is created using @makepatch@, with @sed@ being used to remove
+-- time-dependent or permission-dependent information. @rg@ (ripgrep) is used to
+-- ignore files that are ignored by any @.gitignore@ or @.ignore@ files in each
+-- subdirectory, in the same way that Git does. @.git@ directories and files
+-- ignored by default by @makepatch@ are also ignored. The patch file uses the
+-- unified diff format.
+makePatch ::
+  -- | The parent directory of the two subdirectories.
+  Path Abs Dir ->
+  -- | The subdirectory to create the patch from.
+  Path Rel Dir ->
+  -- | The subdirectory to create the patch to.
+  Path Rel Dir ->
+  -- | The patch name.
+  String ->
+  IO ()
 makePatch parentDirectory oldDirectory newDirectory patchName = do
   checkDirectoryExists absoluteOldDirectory
   checkDirectoryExists absoluteNewDirectory
@@ -128,6 +147,10 @@ makePatch parentDirectory oldDirectory newDirectory patchName = do
     absoluteOldDirectory = parentDirectory </> oldDirectory
     absoluteNewDirectory = parentDirectory </> newDirectory
 
+-- | Apply a patch created by 'makePatch' to a subdirectory of a directory to
+-- create a new subdirectory with the patch applied. If the new subdirectory
+-- already exists, it is replaced. We merge the patch, so this may result in
+-- merge conflict markers in the new subdirectory.
 applyPatch :: Path Abs Dir -> Path Rel Dir -> Path Rel Dir -> String -> IO ()
 applyPatch parentDirectory oldDirectory newDirectory patchName = do
   checkDirectoryExists absoluteOldDirectory
@@ -173,6 +196,8 @@ sourceDirectory = [reldir|source|]
 simplifiedDirectory = [reldir|simplified|]
 retrofittedDirectory = [reldir|retrofitted|]
 
+-- | Run 'makePatch' from the @source@ subdirectory to the @simplified@
+-- subdirectory, creating a patch file @simplify.patch@.
 makeSimplifyPatch :: Path Abs Dir -> IO ()
 makeSimplifyPatch parentDirectory =
   makePatch
@@ -181,6 +206,8 @@ makeSimplifyPatch parentDirectory =
     simplifiedDirectory
     "simplify"
 
+-- | Run 'makePatch' from the @simplified@ subdirectory to the @retrofitted@
+-- subdirectory, creating a patch file @retrofit.patch@.
 makeRetrofitPatch :: Path Abs Dir -> IO ()
 makeRetrofitPatch parentDirectory =
   makePatch
@@ -189,6 +216,8 @@ makeRetrofitPatch parentDirectory =
     retrofittedDirectory
     "retrofit"
 
+-- | Run 'applyPatch' from the @source@ subdirectory to the @simplified@
+-- subdirectory, using the patch file @simplify.patch@.
 applySimplifyPatch :: Path Abs Dir -> IO ()
 applySimplifyPatch parentDirectory =
   applyPatch
@@ -197,6 +226,8 @@ applySimplifyPatch parentDirectory =
     simplifiedDirectory
     "simplify"
 
+-- | Run 'applyPatch' from the @simplified@ subdirectory to the @retrofitted@
+-- subdirectory, using the patch file @retrofit.patch@.
 applyRetrofitPatch :: Path Abs Dir -> IO ()
 applyRetrofitPatch parentDirectory =
   applyPatch

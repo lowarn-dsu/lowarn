@@ -22,6 +22,8 @@ import System.IO
 import System.Process
 import Text.Printf
 
+-- | 'Process.proc' that runs in the @repo@ subdirectory of a directory given by
+-- 'withRetrofitDirectory'.
 gitDirProc :: Path Abs Dir -> FilePath -> [String] -> CreateProcess
 gitDirProc retrofitDirectory command arguments =
   (proc command arguments)
@@ -29,6 +31,7 @@ gitDirProc retrofitDirectory command arguments =
       env = Just []
     }
 
+-- | Wait for a process to end and print a given error message if it fails.
 waitForProcessFail :: ProcessHandle -> String -> IO ()
 waitForProcessFail processHandle failMessage =
   waitForProcess processHandle >>= \case
@@ -36,5 +39,6 @@ waitForProcessFail processHandle failMessage =
     ExitFailure errorCode ->
       fail $ printf "%s (error code %d)." failMessage errorCode
 
+-- | Run an action with a handle that writes to @/dev/null@.
 withDevNull :: (Handle -> IO a) -> IO a
 withDevNull = withFile "/dev/null" WriteMode
