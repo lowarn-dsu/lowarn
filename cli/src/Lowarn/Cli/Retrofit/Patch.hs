@@ -27,6 +27,7 @@ where
 import Lowarn.Cli.Retrofit.Process
 import Path
 import Path.IO
+import System.Exit
 import System.IO
 import System.Process
 import Text.Printf
@@ -74,33 +75,32 @@ makePatch parentDirectory oldDirectory newDirectory patchName = do
   checkDirectoryExists absoluteNewDirectory
 
   patchFilePath <- getPatchFilePath parentDirectory patchName
-  (_, _, _, processHandle) <-
-    withManifest absoluteOldDirectory "OLD" $ \oldManifestPath ->
-      withManifest absoluteNewDirectory "NEW" $ \newManifestPath ->
-        withFile (toFilePath patchFilePath) WriteMode $ \outHandle ->
-          withDevNull $ \errHandle ->
-            createProcess $
-              ( proc
-                  "makepatch"
-                  [ toFilePath absoluteOldDirectory,
-                    toFilePath absoluteNewDirectory,
-                    "-oldmanifest",
-                    toFilePath oldManifestPath,
-                    "-newmanifest",
-                    toFilePath newManifestPath,
-                    "-description",
-                    patchName,
-                    "-no-exclude-standard"
-                  ]
-              )
-                { env = Just [],
-                  std_in = NoStream,
-                  std_out = UseHandle outHandle,
-                  std_err = UseHandle errHandle
-                }
 
-  waitForProcessFail processHandle $
-    printf "Failed to generate patch %s" patchName
+  withManifest absoluteOldDirectory "OLD" $ \oldManifestPath ->
+    withManifest absoluteNewDirectory "NEW" $ \newManifestPath -> do
+      (_, _, _, processHandle) <-
+        withFile (toFilePath patchFilePath) WriteMode $ \outHandle ->
+          createProcess $
+            ( proc
+                "makepatch"
+                [ toFilePath absoluteOldDirectory,
+                  toFilePath absoluteNewDirectory,
+                  "-oldmanifest",
+                  toFilePath oldManifestPath,
+                  "-newmanifest",
+                  toFilePath newManifestPath,
+                  "-description",
+                  patchName
+                ]
+            )
+              { env = Just [],
+                std_in = NoStream,
+                std_out = UseHandle outHandle,
+                std_err = Inherit
+              }
+
+      waitForProcessFail processHandle $
+        printf "Failed to generate patch %s" patchName
   where
     absoluteOldDirectory = parentDirectory </> oldDirectory
     absoluteNewDirectory = parentDirectory </> newDirectory
@@ -109,13 +109,17 @@ applyPatch :: Path Abs Dir -> Path Rel Dir -> Path Rel Dir -> String -> IO ()
 applyPatch parentDirectory oldDirectory newDirectory patchName = do
   checkDirectoryExists absoluteOldDirectory
 
+  patchFilePath <- getPatchFilePath parentDirectory patchName
+  doesFileExist patchFilePath >>= \case
+    True -> return ()
+    False -> fail $ printf "Patch %s does not exist." $ toFilePath patchFilePath
+
   doesDirExist absoluteNewDirectory >>= \case
-    True -> removeDirRecur newDirectory
+    True -> removeDirRecur absoluteNewDirectory
     False -> return ()
 
   copyDirRecur absoluteOldDirectory absoluteNewDirectory
 
-  patchFilePath <- getPatchFilePath parentDirectory patchName
   (_, _, _, processHandle) <-
     createProcess $
       ( proc
@@ -133,8 +137,10 @@ applyPatch parentDirectory oldDirectory newDirectory patchName = do
           std_err = Inherit
         }
 
-  waitForProcessFail processHandle $
-    printf "Failed to apply patch %s" patchName
+  waitForProcess processHandle >>= \case
+    ExitSuccess -> return ()
+    ExitFailure errorCode ->
+      putStrLn $ printf "applypatch ended with error code %d." errorCode
   where
     absoluteOldDirectory = parentDirectory </> oldDirectory
     absoluteNewDirectory = parentDirectory </> newDirectory
