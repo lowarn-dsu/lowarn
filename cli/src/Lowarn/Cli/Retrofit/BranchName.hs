@@ -24,12 +24,12 @@ import Text.Printf
 -- | A branch name used by Git, validated according to the rules found in
 -- <https://git-scm.com/docs/git-check-ref-format>.
 newtype BranchName = BranchName
-  { -- | Convert a branch name to a 'String'.
+  { -- | Convert a branch name to a string.
     unBranchName :: String
   }
   deriving (Eq, Show)
 
--- | Create a 'BranchName' from a 'String'.
+-- | Create a 'BranchName' from a string.
 --
 -- ==== __Examples__
 --
