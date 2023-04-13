@@ -1,8 +1,0 @@
-program-name: git
-unload: false
-system-linker: true
-version-package-subdirectory: retrofitted
-
-retrofit:
-  git: https://github.com/xmonad/xmonad.git
-  branch: master

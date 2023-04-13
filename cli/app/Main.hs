@@ -267,7 +267,7 @@ main = do
         RunCommand (RunOptions {..}) -> run env runOptionsVersion
         RetrofitCommand retrofitSubcommand ->
           case retrofitSubcommand of
-            RetrofitCleanCommand -> clean lowarnEnvConfigPath
+            RetrofitCleanCommand -> clean $ parent lowarnEnvConfigPath
             RetrofitVersionCommand
               retrofitVersionOptions@RetrofitVersionOptions {..} ->
                 case retrofitVersionOptionsCommand of
@@ -342,8 +342,10 @@ retrofitVersionApplyAction
                 (versionNumberPath </> [reldir|source|])
                 commit
           )
-      RetrofitVersionApplyActionSimplify -> applySimplifyPatch versionNumberPath
-      RetrofitVersionApplyActionRetrofit -> applyRetrofitPatch versionNumberPath
+      RetrofitVersionApplyActionSimplify ->
+        applySimplifyPatch versionNumberPath False
+      RetrofitVersionApplyActionRetrofit ->
+        applyRetrofitPatch versionNumberPath False
 
 retrofitVersionSaveAction ::
   LowarnEnv ->
@@ -364,5 +366,7 @@ retrofitVersionSaveAction
     let versionNumberPath =
           versionNumberToPath (parent lowarnEnvConfigPath) versionNumber
     case action of
-      RetrofitVersionSaveActionSimplify -> makeSimplifyPatch versionNumberPath
-      RetrofitVersionSaveActionRetrofit -> makeRetrofitPatch versionNumberPath
+      RetrofitVersionSaveActionSimplify ->
+        makeSimplifyPatch versionNumberPath False
+      RetrofitVersionSaveActionRetrofit ->
+        makeRetrofitPatch versionNumberPath False
