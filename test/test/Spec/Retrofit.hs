@@ -111,25 +111,25 @@ retrofit =
           (versionPath </> [reldir|simplified|])
         writeFile
           (toFilePath $ versionPath </> [relfile|simplified/text.txt|])
-          "Hello, world!"
+          "Hello, world!\n"
         createDirIfMissing False $
           versionPath </> [reldir|simplified/ignore-directory|]
         writeFile
           ( toFilePath $
               versionPath </> [relfile|simplified/ignore-directory/ignored.txt|]
           )
-          "Ignored."
+          "Ignored.\n"
         removeFile $ versionPath </> [relfile|simplified/README.md|]
         copyDirRecur
           (versionPath </> [reldir|simplified|])
           (versionPath </> [reldir|retrofitted|])
         writeFile
           (toFilePath $ versionPath </> [relfile|retrofitted/text.txt|])
-          "Hello, Lowarn!"
+          "Hello, Lowarn!\n"
 
         makeSimplifyPatch versionPath True
         makeRetrofitPatch versionPath True
-        hPutStrLn logHandle "Directory tree after applying patches:"
+        hPutStrLn logHandle "Directory tree after making patches:"
         printDirectoryTree
         printFileIfExists $ versionPath </> [relfile|simplify.patch|]
         printFileIfExists $ versionPath </> [relfile|retrofit.patch|]
@@ -145,7 +145,7 @@ retrofit =
 
         writeFile
           (toFilePath $ versionPath </> [relfile|simplified/text.txt|])
-          "Hello... world!"
+          "Hello... world!\n"
         applyRetrofitPatch versionPath True
         hPutStrLn logHandle "Directory tree after applying retrofit patch:"
         printDirectoryTree
