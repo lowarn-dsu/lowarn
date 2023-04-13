@@ -69,6 +69,10 @@ checkDirectoryExists directory = do
     True -> return ()
     False -> fail $ printf "Directory %s does not exist." $ toFilePath directory
 
+withDevNullOrInherit :: Bool -> (StdStream -> IO a) -> IO a
+withDevNullOrInherit False f = f Inherit
+withDevNullOrInherit True f = withDevNull $ f . UseHandle
+
 -- | Create a patch file between two similar subdirectories of a directory. The
 -- patch file is placed in the parent directory and given the name
 -- @patch-name.patch@, where @patch-name@ is the given patch name.
@@ -88,8 +92,10 @@ makePatch ::
   Path Rel Dir ->
   -- | The patch name.
   String ->
+  -- | Whether or not to suppress command output.
+  Bool ->
   IO ()
-makePatch parentDirectory oldDirectory newDirectory patchName = do
+makePatch parentDirectory oldDirectory newDirectory patchName silent = do
   checkDirectoryExists absoluteOldDirectory
   checkDirectoryExists absoluteNewDirectory
 
@@ -99,27 +105,28 @@ makePatch parentDirectory oldDirectory newDirectory patchName = do
     withManifest absoluteNewDirectory "NEW" $ \newManifestPath -> do
       (pipeOut, pipeIn) <- createPipe
       (_, _, _, processHandle1) <-
-        createProcess $
-          ( proc
-              "makepatch"
-              [ toFilePath oldDirectory,
-                toFilePath newDirectory,
-                "-oldmanifest",
-                toFilePath oldManifestPath,
-                "-newmanifest",
-                toFilePath newManifestPath,
-                "-description",
-                patchName,
-                "-diff",
-                "diff -u"
-              ]
-          )
-            { env = Just [],
-              cwd = Just $ toFilePath parentDirectory,
-              std_in = NoStream,
-              std_out = UseHandle pipeIn,
-              std_err = Inherit
-            }
+        withDevNullOrInherit silent $ \errStream ->
+          createProcess $
+            ( proc
+                "makepatch"
+                [ toFilePath oldDirectory,
+                  toFilePath newDirectory,
+                  "-oldmanifest",
+                  toFilePath oldManifestPath,
+                  "-newmanifest",
+                  toFilePath newManifestPath,
+                  "-description",
+                  patchName,
+                  "-diff",
+                  "diff -u"
+                ]
+            )
+              { env = Just [],
+                cwd = Just $ toFilePath parentDirectory,
+                std_in = NoStream,
+                std_out = UseHandle pipeIn,
+                std_err = errStream
+              }
 
       (_, _, _, processHandle2) <-
         withFile (toFilePath patchFilePath) WriteMode $ \outHandle ->
@@ -151,8 +158,19 @@ makePatch parentDirectory oldDirectory newDirectory patchName = do
 -- create a new subdirectory with the patch applied. If the new subdirectory
 -- already exists, it is replaced. We merge the patch, so this may result in
 -- merge conflict markers in the new subdirectory.
-applyPatch :: Path Abs Dir -> Path Rel Dir -> Path Rel Dir -> String -> IO ()
-applyPatch parentDirectory oldDirectory newDirectory patchName = do
+applyPatch ::
+  -- | The parent directory of the two subdirectories.
+  Path Abs Dir ->
+  -- | The subdirectory to apply the patch from.
+  Path Rel Dir ->
+  -- | The result subdirectory.
+  Path Rel Dir ->
+  -- | The patch name.
+  String ->
+  -- | Whether or not to suppress command output.
+  Bool ->
+  IO ()
+applyPatch parentDirectory oldDirectory newDirectory patchName silent = do
   checkDirectoryExists absoluteOldDirectory
 
   patchFilePath <- getPatchFilePath parentDirectory patchName
@@ -167,26 +185,29 @@ applyPatch parentDirectory oldDirectory newDirectory patchName = do
   copyDirRecur absoluteOldDirectory absoluteNewDirectory
 
   (_, _, _, processHandle) <-
-    createProcess $
-      ( proc
-          "applypatch"
-          [ "--force",
-            "-patch",
-            "patch -p0 -N --merge",
-            toFilePath patchFilePath
-          ]
-      )
-        { env = Just [],
-          cwd = Just $ toFilePath absoluteNewDirectory,
-          std_in = NoStream,
-          std_out = Inherit,
-          std_err = Inherit
-        }
+    withDevNullOrInherit silent $ \outStream ->
+      withDevNullOrInherit silent $ \errStream ->
+        createProcess $
+          ( proc
+              "applypatch"
+              [ "--force",
+                "-patch",
+                "patch -p0 -N --merge",
+                toFilePath patchFilePath
+              ]
+          )
+            { env = Just [],
+              cwd = Just $ toFilePath absoluteNewDirectory,
+              std_in = NoStream,
+              std_out = outStream,
+              std_err = errStream
+            }
 
   waitForProcess processHandle >>= \case
-    ExitSuccess -> return ()
-    ExitFailure errorCode ->
-      putStrLn $ printf "applypatch ended with error code %d." errorCode
+    ExitFailure errorCode
+      | not silent ->
+          putStrLn $ printf "applypatch ended with error code %d." errorCode
+    _ -> return ()
   where
     absoluteOldDirectory = parentDirectory </> oldDirectory
     absoluteNewDirectory = parentDirectory </> newDirectory
@@ -198,7 +219,12 @@ retrofittedDirectory = [reldir|retrofitted|]
 
 -- | Run 'makePatch' from the @source@ subdirectory to the @simplified@
 -- subdirectory, creating a patch file @simplify.patch@.
-makeSimplifyPatch :: Path Abs Dir -> IO ()
+makeSimplifyPatch ::
+  -- | The version directory.
+  Path Abs Dir ->
+  -- | Whether or not to suppress command output.
+  Bool ->
+  IO ()
 makeSimplifyPatch parentDirectory =
   makePatch
     parentDirectory
@@ -208,7 +234,12 @@ makeSimplifyPatch parentDirectory =
 
 -- | Run 'makePatch' from the @simplified@ subdirectory to the @retrofitted@
 -- subdirectory, creating a patch file @retrofit.patch@.
-makeRetrofitPatch :: Path Abs Dir -> IO ()
+makeRetrofitPatch ::
+  -- | The version directory.
+  Path Abs Dir ->
+  -- | Whether or not to suppress command output.
+  Bool ->
+  IO ()
 makeRetrofitPatch parentDirectory =
   makePatch
     parentDirectory
@@ -218,7 +249,12 @@ makeRetrofitPatch parentDirectory =
 
 -- | Run 'applyPatch' from the @source@ subdirectory to the @simplified@
 -- subdirectory, using the patch file @simplify.patch@.
-applySimplifyPatch :: Path Abs Dir -> IO ()
+applySimplifyPatch ::
+  -- | The version directory.
+  Path Abs Dir ->
+  -- | Whether or not to suppress command output.
+  Bool ->
+  IO ()
 applySimplifyPatch parentDirectory =
   applyPatch
     parentDirectory
@@ -228,7 +264,12 @@ applySimplifyPatch parentDirectory =
 
 -- | Run 'applyPatch' from the @simplified@ subdirectory to the @retrofitted@
 -- subdirectory, using the patch file @retrofit.patch@.
-applyRetrofitPatch :: Path Abs Dir -> IO ()
+applyRetrofitPatch ::
+  -- | The version directory.
+  Path Abs Dir ->
+  -- | Whether or not to suppress command output.
+  Bool ->
+  IO ()
 applyRetrofitPatch parentDirectory =
   applyPatch
     parentDirectory

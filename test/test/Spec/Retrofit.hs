@@ -127,8 +127,8 @@ retrofit =
           (toFilePath $ versionPath </> [relfile|retrofitted/text.txt|])
           "Hello, Lowarn!"
 
-        makeSimplifyPatch versionPath
-        makeRetrofitPatch versionPath
+        makeSimplifyPatch versionPath True
+        makeRetrofitPatch versionPath True
         hPutStrLn logHandle "Directory tree after applying patches:"
         printDirectoryTree
         printFileIfExists $ versionPath </> [relfile|simplify.patch|]
@@ -138,7 +138,7 @@ retrofit =
         hPutStrLn logHandle "Directory tree after removing simplified:"
         printDirectoryTree
 
-        applySimplifyPatch versionPath
+        applySimplifyPatch versionPath True
         hPutStrLn logHandle "Directory tree after applying simplify patch:"
         printDirectoryTree
         printFileIfExists $ versionPath </> [relfile|simplified/text.txt|]
@@ -146,7 +146,7 @@ retrofit =
         writeFile
           (toFilePath $ versionPath </> [relfile|simplified/text.txt|])
           "Hello... world!"
-        applyRetrofitPatch versionPath
+        applyRetrofitPatch versionPath True
         hPutStrLn logHandle "Directory tree after applying retrofit patch:"
         printDirectoryTree
         printFileIfExists $ versionPath </> [relfile|retrofitted/text.txt|]
