@@ -155,15 +155,14 @@ withRetrofitDirectory LowarnEnv {..} f = do
 
   f retrofitDirectory
 
--- | Remove any @.lowarn-retrofit@ directory in the parent directory of a given
--- file path.
-clean :: Path Abs File -> IO ()
-clean lowarnConfigPath =
+-- | Remove any @.lowarn-retrofit@ subdirectory of a given directory.
+clean :: Path Abs Dir -> IO ()
+clean programPath =
   doesDirExist retrofitDirectory >>= \case
     True -> removeDirRecur retrofitDirectory
     False -> return ()
   where
-    retrofitDirectory = parent lowarnConfigPath </> [reldir|.lowarn-retrofit|]
+    retrofitDirectory = programPath </> [reldir|.lowarn-retrofit|]
 
 -- | Copy the state of a repository at a given commit to a given directory.
 --

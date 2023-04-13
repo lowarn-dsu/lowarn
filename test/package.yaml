@@ -81,3 +81,4 @@ tests:
     - raw-strings-qq
     - tasty-quickcheck
     - uri-bytestring >= 0.3.3.1 && < 0.4
+    - path-io >= 1.7.0 && < 1.8

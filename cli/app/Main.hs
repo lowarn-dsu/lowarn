@@ -267,7 +267,7 @@ main = do
         RunCommand (RunOptions {..}) -> run env runOptionsVersion
         RetrofitCommand retrofitSubcommand ->
           case retrofitSubcommand of
-            RetrofitCleanCommand -> clean lowarnEnvConfigPath
+            RetrofitCleanCommand -> clean $ parent lowarnEnvConfigPath
             RetrofitVersionCommand
               retrofitVersionOptions@RetrofitVersionOptions {..} ->
                 case retrofitVersionOptionsCommand of
