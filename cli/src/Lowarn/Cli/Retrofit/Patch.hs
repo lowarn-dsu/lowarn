@@ -45,6 +45,8 @@ copyNonIgnoredToDirectory fromDirectory toDirectory = do
             "--hidden",
             "--iglob",
             "!.git/",
+            "--iglob",
+            "!*.orig",
             "--no-ignore-parent"
           ]
       )
@@ -99,8 +101,8 @@ withDevNullOrInherit True f = withDevNull $ f . UseHandle
 --
 -- The patch file is created using @git --no-index@. @rg@ (ripgrep) is used to
 -- ignore files that are ignored by any @.gitignore@ or @.ignore@ files in each
--- subdirectory, in the same way that Git does. @.git@ directories are also
--- ignored by default.
+-- subdirectory, in the same way that Git does. @.git@ directories and @.orig@
+-- files are also ignored.
 makePatch ::
   -- | The parent directory of the two subdirectories.
   Path Abs Dir ->
@@ -135,8 +137,6 @@ makePatch parentDirectory oldDirectory newDirectory patchName silent = do
                 "git"
                 [ "diff",
                   "--no-index",
-                  "-p",
-                  "-D",
                   toFilePath oldDirectory,
                   toFilePath newDirectory
                 ]
@@ -196,9 +196,10 @@ applyPatch parentDirectory oldDirectory newDirectory patchName silent = do
         createProcess $
           ( proc
               "patch"
-              [ "-p1",
+              [ "-p2",
                 "-N",
                 "--merge",
+                "-E",
                 "-i",
                 toFilePath patchFilePath
               ]
@@ -213,7 +214,7 @@ applyPatch parentDirectory oldDirectory newDirectory patchName silent = do
   waitForProcess processHandle >>= \case
     ExitFailure errorCode
       | not silent ->
-          putStrLn $ printf "git apply ended with error code %d." errorCode
+          putStrLn $ printf "patch ended with error code %d." errorCode
     _ -> return ()
   where
     absoluteOldDirectory = parentDirectory </> oldDirectory

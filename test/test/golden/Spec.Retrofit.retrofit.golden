@@ -37,6 +37,11 @@ File following/versions/1000/simplify.patch:
 diff --git a/source/README.md b/source/README.md
 deleted file mode 100644
 index 260b28c..0000000
+--- a/source/README.md
++++ /dev/null
+@@ -1,2 +0,0 @@
+-# test-repo
+-Repository for testing Lowarn CLI retrofit
 diff --git a/source/text.txt b/simplified/text.txt
 index cd08755..af5626b 100644
 --- a/source/text.txt
@@ -81,7 +86,6 @@ following/versions/1000/retrofitted/LICENSE
 following/versions/1000/retrofitted/text.txt
 following/versions/1000/simplified/.gitignore
 following/versions/1000/simplified/LICENSE
-following/versions/1000/simplified/README.md
 following/versions/1000/simplified/text.txt
 following/versions/1000/simplify.patch
 following/versions/1000/source/.gitignore
@@ -89,7 +93,7 @@ following/versions/1000/source/LICENSE
 following/versions/1000/source/README.md
 following/versions/1000/source/text.txt
 File following/versions/1000/simplified/text.txt:
-Hello world!
+Hello, world!
 
 Directory tree after applying retrofit patch:
 following/.lowarn-retrofit/7ac9b5de972d9eeb5c2801cce13069bcf4afc57432dc93a3322d4a07c8ce91ac/commit-map
@@ -100,11 +104,10 @@ following/.lowarn-retrofit/7ac9b5de972d9eeb5c2801cce13069bcf4afc57432dc93a3322d4
 following/versions/1000/retrofit.patch
 following/versions/1000/retrofitted/.gitignore
 following/versions/1000/retrofitted/LICENSE
-following/versions/1000/retrofitted/README.md
 following/versions/1000/retrofitted/text.txt
+following/versions/1000/retrofitted/text.txt.orig
 following/versions/1000/simplified/.gitignore
 following/versions/1000/simplified/LICENSE
-following/versions/1000/simplified/README.md
 following/versions/1000/simplified/text.txt
 following/versions/1000/simplify.patch
 following/versions/1000/source/.gitignore
@@ -112,17 +115,20 @@ following/versions/1000/source/LICENSE
 following/versions/1000/source/README.md
 following/versions/1000/source/text.txt
 File following/versions/1000/retrofitted/text.txt:
+<<<<<<<
+=======
+Hello, Lowarn!
+>>>>>>>
 Hello... world!
 
 Directory tree after clean:
 following/versions/1000/retrofit.patch
 following/versions/1000/retrofitted/.gitignore
 following/versions/1000/retrofitted/LICENSE
-following/versions/1000/retrofitted/README.md
 following/versions/1000/retrofitted/text.txt
+following/versions/1000/retrofitted/text.txt.orig
 following/versions/1000/simplified/.gitignore
 following/versions/1000/simplified/LICENSE
-following/versions/1000/simplified/README.md
 following/versions/1000/simplified/text.txt
 following/versions/1000/simplify.patch
 following/versions/1000/source/.gitignore
