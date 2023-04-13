@@ -32,11 +32,11 @@ jobs:
           rm -f cabal-docspec.xz
           chmod a+x $HOME/.cabal/bin/cabal-docspec
           cabal-docspec --version
-      - name: Install ripgrep
+      - name: Install ripgrep and makepatch
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: ripgrep
-          version: 1.0
+          packages: ripgrep makepatch
+          version: 2.0
       - name: Cabal freeze
         run: cabal freeze
       - name: Cache Cabal
@@ -74,11 +74,11 @@ jobs:
         with:
           ghc-version: ${{ matrix.ghc }}
           enable-stack: true
-      - name: Install ripgrep
+      - name: Install ripgrep and makepatch
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: ripgrep
-          version: 1.0
+          packages: ripgrep makepatch
+          version: 2.0
       - name: Cache global Stack
         uses: actions/cache@v3
         with:
