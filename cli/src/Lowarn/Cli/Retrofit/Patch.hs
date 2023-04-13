@@ -32,31 +32,51 @@ import System.IO
 import System.Process
 import Text.Printf
 
-withManifest :: Path Abs Dir -> String -> (Path Abs File -> IO a) -> IO a
-withManifest manifestDirectory manifestName f =
-  withSystemTempFile ("MANIFEST-" <> manifestName) $
-    \manifestPath manifestHandle -> do
-      (_, _, _, processHandle) <- withDevNull $ \errHandle ->
-        createProcess $
-          ( proc
-              "rg"
-              [ "--no-require-git",
-                "--files",
-                "--hidden",
-                "--iglob",
-                "!.git/",
-                "--no-ignore-parent"
-              ]
-          )
-            { cwd = Just $ toFilePath manifestDirectory,
-              env = Just [],
-              std_in = NoStream,
-              std_out = UseHandle manifestHandle,
-              std_err = UseHandle errHandle
-            }
-      waitForProcessFail processHandle $
-        printf "Failed to generate manifest %s" manifestName
-      f manifestPath
+copyNonIgnoredToDirectory :: Path Abs Dir -> Path Abs Dir -> IO ()
+copyNonIgnoredToDirectory fromDirectory toDirectory = do
+  createDirIfMissing True toDirectory
+  (pipeOut, pipeIn) <- createPipe
+  (_, _, _, processHandle1) <- withDevNull $ \errHandle ->
+    createProcess $
+      ( proc
+          "rg"
+          [ "--no-require-git",
+            "--files",
+            "--hidden",
+            "--iglob",
+            "!.git/",
+            "--no-ignore-parent"
+          ]
+      )
+        { cwd = Just $ toFilePath fromDirectory,
+          env = Just [],
+          std_in = NoStream,
+          std_out = UseHandle pipeIn,
+          std_err = UseHandle errHandle
+        }
+
+  (_, _, _, processHandle2) <- withDevNull $ \errHandle ->
+    withDevNull $ \outHandle ->
+      createProcess $
+        ( proc
+            "xargs"
+            ["cp", "--parents", "-t", toFilePath toDirectory]
+        )
+          { cwd = Just $ toFilePath fromDirectory,
+            env = Just [],
+            std_in = UseHandle pipeOut,
+            std_out = UseHandle outHandle,
+            std_err = UseHandle errHandle
+          }
+
+  waitForProcessFail processHandle1 $
+    printf "Failed to find files to copy in %s" $
+      toFilePath fromDirectory
+  waitForProcessFail processHandle2 $
+    printf
+      "Failed to copy files from %s to %s"
+      (toFilePath fromDirectory)
+      (toFilePath fromDirectory)
 
 getPatchFilePath :: Path Abs Dir -> String -> IO (Path Abs File)
 getPatchFilePath parentDirectory patchName = do
@@ -77,12 +97,10 @@ withDevNullOrInherit True f = withDevNull $ f . UseHandle
 -- patch file is placed in the parent directory and given the name
 -- @patch-name.patch@, where @patch-name@ is the given patch name.
 --
--- The patch file is created using @makepatch@, with @sed@ being used to remove
--- time-dependent or permission-dependent information. @rg@ (ripgrep) is used to
+-- The patch file is created using @git --no-index@. @rg@ (ripgrep) is used to
 -- ignore files that are ignored by any @.gitignore@ or @.ignore@ files in each
--- subdirectory, in the same way that Git does. @.git@ directories and files
--- ignored by default by @makepatch@ are also ignored. The patch file uses the
--- unified diff format.
+-- subdirectory, in the same way that Git does. @.git@ directories are also
+-- ignored by default.
 makePatch ::
   -- | The parent directory of the two subdirectories.
   Path Abs Dir ->
@@ -101,55 +119,43 @@ makePatch parentDirectory oldDirectory newDirectory patchName silent = do
 
   patchFilePath <- getPatchFilePath parentDirectory patchName
 
-  withManifest absoluteOldDirectory "OLD" $ \oldManifestPath ->
-    withManifest absoluteNewDirectory "NEW" $ \newManifestPath -> do
-      (pipeOut, pipeIn) <- createPipe
-      (_, _, _, processHandle1) <-
-        withDevNullOrInherit silent $ \errStream ->
+  withSystemTempDir "patch" $ \patchDirectory -> do
+    copyNonIgnoredToDirectory
+      absoluteOldDirectory
+      (patchDirectory </> oldDirectory)
+    copyNonIgnoredToDirectory
+      absoluteNewDirectory
+      (patchDirectory </> newDirectory)
+
+    (_, _, _, processHandle1) <-
+      withDevNullOrInherit silent $ \errStream ->
+        withFile (toFilePath patchFilePath) WriteMode $ \outHandle ->
           createProcess $
             ( proc
-                "makepatch"
-                [ toFilePath oldDirectory,
-                  toFilePath newDirectory,
-                  "-oldmanifest",
-                  toFilePath oldManifestPath,
-                  "-newmanifest",
-                  toFilePath newManifestPath,
-                  "-description",
-                  patchName,
-                  "-diff",
-                  "diff -u"
+                "git"
+                [ "diff",
+                  "--no-index",
+                  "-p",
+                  "-D",
+                  toFilePath oldDirectory,
+                  toFilePath newDirectory
                 ]
             )
               { env = Just [],
-                cwd = Just $ toFilePath parentDirectory,
+                cwd = Just $ toFilePath patchDirectory,
                 std_in = NoStream,
-                std_out = UseHandle pipeIn,
+                std_out = UseHandle outHandle,
                 std_err = errStream
               }
 
-      (_, _, _, processHandle2) <-
-        withFile (toFilePath patchFilePath) WriteMode $ \outHandle ->
-          withDevNull $ \errHandle ->
-            createProcess $
-              ( proc
-                  "sed"
-                  [ "-E",
-                    "s/^(\\+\\+\\+.+|---.+|# Date generated +: |#### End of Patch kit \\[created: )[A-Z][a-z]{2} [A-Z][a-z]{2} [ 0-9][0-9] [0-9]{2}:[0-9]{2}:[0-9]{2} [0-9]{4}(\\] ####)?$/\\1Thu Jan 01 00:00:00 1970\\2/;/^#### (Patch c|C)hecksum: .+ ####$/d;s/^(# [cCrRp] '[^']+' [0-9]+ )[0-9]+(( 0)[0-9]+)?$/\\10\\3/"
-                  ]
-              )
-                { env = Just [],
-                  std_in = UseHandle pipeOut,
-                  std_out = UseHandle outHandle,
-                  std_err = UseHandle errHandle
-                }
-
-      waitForProcessFail processHandle1 $
-        printf "Failed to generate patch %s" patchName
-      waitForProcessFail processHandle2 $
+    waitForProcess processHandle1 >>= \case
+      ExitSuccess -> return ()
+      ExitFailure 1 -> return ()
+      ExitFailure errorCode ->
         printf
-          "Failed to replace dates and remove checksums in patch %s"
+          "Failed to generate patch %s (error code %d)."
           patchName
+          errorCode
   where
     absoluteOldDirectory = parentDirectory </> oldDirectory
     absoluteNewDirectory = parentDirectory </> newDirectory
@@ -182,17 +188,18 @@ applyPatch parentDirectory oldDirectory newDirectory patchName silent = do
     True -> removeDirRecur absoluteNewDirectory
     False -> return ()
 
-  copyDirRecur absoluteOldDirectory absoluteNewDirectory
+  copyNonIgnoredToDirectory absoluteOldDirectory absoluteNewDirectory
 
   (_, _, _, processHandle) <-
     withDevNullOrInherit silent $ \outStream ->
       withDevNullOrInherit silent $ \errStream ->
         createProcess $
           ( proc
-              "applypatch"
-              [ "--force",
-                "-patch",
-                "patch -p0 -N --merge",
+              "patch"
+              [ "-p1",
+                "-N",
+                "--merge",
+                "-i",
                 toFilePath patchFilePath
               ]
           )
@@ -206,7 +213,7 @@ applyPatch parentDirectory oldDirectory newDirectory patchName silent = do
   waitForProcess processHandle >>= \case
     ExitFailure errorCode
       | not silent ->
-          putStrLn $ printf "applypatch ended with error code %d." errorCode
+          putStrLn $ printf "git apply ended with error code %d." errorCode
     _ -> return ()
   where
     absoluteOldDirectory = parentDirectory </> oldDirectory
