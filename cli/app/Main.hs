@@ -16,7 +16,7 @@ import Lowarn.Cli.Run
 import Lowarn.Cli.VersionPath
 import Lowarn.ParserCombinators
 import Lowarn.VersionNumber
-import Options.Applicative hiding (action)
+import Options.Applicative
 import Options.Applicative.Help.Pretty (indent, text, vcat, (<$$>))
 import Path
 import Path.IO
@@ -99,12 +99,13 @@ retrofitVersionApplyActionReader =
           RetrofitVersionApplyActionSimplify,
           RetrofitVersionApplyActionRetrofit
         ]
-    action -> readerError $ printf "The given action \"%s\" is invalid." action
+    applyAction ->
+      readerError $ printf "The given action \"%s\" is invalid." applyAction
 
 retrofitVersionApplyParser :: Parser RetrofitVersionCommand
-retrofitVersionApplyParser = RetrofitVersionApplyCommand <$> action
+retrofitVersionApplyParser = RetrofitVersionApplyCommand <$> applyAction
   where
-    action =
+    applyAction =
       argument retrofitVersionApplyActionReader $
         metavar "ACTION"
           <> helpDoc
@@ -124,6 +125,7 @@ retrofitVersionApplyParser = RetrofitVersionApplyCommand <$> action
                           ]
                     )
             )
+          <> completeWith ["source", "simplify", "retrofit", "patches", "all"]
 
 retrofitVersionApplyParserInfo :: ParserInfo RetrofitVersionCommand
 retrofitVersionApplyParserInfo =
@@ -142,12 +144,13 @@ retrofitVersionSaveActionReader =
     "all" ->
       return
         [RetrofitVersionSaveActionSimplify, RetrofitVersionSaveActionRetrofit]
-    action -> readerError $ printf "The given action \"%s\" is invalid." action
+    saveAction ->
+      readerError $ printf "The given action \"%s\" is invalid." saveAction
 
 retrofitVersionSaveParser :: Parser RetrofitVersionCommand
-retrofitVersionSaveParser = RetrofitVersionSaveCommand <$> action
+retrofitVersionSaveParser = RetrofitVersionSaveCommand <$> saveAction
   where
-    action =
+    saveAction =
       argument retrofitVersionSaveActionReader $
         metavar "ACTION"
           <> helpDoc
@@ -165,6 +168,7 @@ retrofitVersionSaveParser = RetrofitVersionSaveCommand <$> action
                           ]
                     )
             )
+          <> completeWith ["simplify", "retrofit", "all"]
 
 retrofitVersionSaveParserInfo :: ParserInfo RetrofitVersionCommand
 retrofitVersionSaveParserInfo =
@@ -231,6 +235,7 @@ parser =
           long "lowarn-yaml"
             <> metavar "LOWARN-YAML"
             <> help "Override Lowarn CLI configuration file."
+            <> action "file"
     subcommand =
       hsubparser $
         command "run" runParserInfo <> command "retrofit" retrofitParserInfo
@@ -309,7 +314,7 @@ retrofitVersionApplyAction
   env@LowarnEnv {..}
   RetrofitVersionOptions {..}
   currentDirectory
-  action = do
+  applyAction = do
     versionNumber <-
       defaultVersionNumber
         (parent lowarnEnvConfigPath)
@@ -317,7 +322,7 @@ retrofitVersionApplyAction
         retrofitVersionOptionsVersion
     let versionNumberPath =
           versionNumberToPath (parent lowarnEnvConfigPath) versionNumber
-    case action of
+    case applyAction of
       RetrofitVersionApplyActionSource -> do
         versionNumberInt <- case unVersionNumber versionNumber of
           v1 :| [] -> return v1
@@ -357,7 +362,7 @@ retrofitVersionSaveAction
   LowarnEnv {..}
   RetrofitVersionOptions {..}
   currentDirectory
-  action = do
+  saveAction = do
     versionNumber <-
       defaultVersionNumber
         (parent lowarnEnvConfigPath)
@@ -365,7 +370,7 @@ retrofitVersionSaveAction
         retrofitVersionOptionsVersion
     let versionNumberPath =
           versionNumberToPath (parent lowarnEnvConfigPath) versionNumber
-    case action of
+    case saveAction of
       RetrofitVersionSaveActionSimplify ->
         makeSimplifyPatch versionNumberPath False
       RetrofitVersionSaveActionRetrofit ->
