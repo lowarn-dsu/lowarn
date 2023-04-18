@@ -137,6 +137,7 @@ makePatch parentDirectory oldDirectory newDirectory patchName silent = do
                 "git"
                 [ "diff",
                   "--no-index",
+                  "--minimal",
                   toFilePath oldDirectory,
                   toFilePath newDirectory
                 ]
