@@ -28,7 +28,10 @@ data Options = Options
     optionsCommand :: Command
   }
 
-data Command = RunCommand RunOptions | RetrofitCommand RetrofitCommand
+data Command
+  = RunCommand RunOptions
+  | RetrofitCommand RetrofitCommand
+  | LocateCommand
 
 newtype RunOptions = RunOptions {runOptionsVersion :: Maybe VersionNumber}
 
@@ -225,6 +228,13 @@ retrofitParserInfo =
   info retrofitParser $
     fullDesc <> progDesc "Retrofit existing Haskell programs using Git"
 
+locateParserInfo :: ParserInfo Command
+locateParserInfo =
+  info (pure LocateCommand) $
+    fullDesc
+      <> progDesc
+        "Output the absolute path to the Lowarn CLI configuration file"
+
 parser :: Parser Options
 parser =
   Options <$> filePath <*> subcommand
@@ -238,7 +248,9 @@ parser =
             <> action "file"
     subcommand =
       hsubparser $
-        command "run" runParserInfo <> command "retrofit" retrofitParserInfo
+        command "run" runParserInfo
+          <> command "retrofit" retrofitParserInfo
+          <> command "locate" locateParserInfo
 
 parserInfo :: ParserInfo Options
 parserInfo =
@@ -292,6 +304,7 @@ main = do
                           currentDirectory
                       )
                       actions
+        LocateCommand -> putStrLn $ toFilePath lowarnEnvConfigPath
 
 defaultVersionNumber ::
   Path Abs Dir -> Path Abs Dir -> Maybe VersionNumber -> IO VersionNumber
