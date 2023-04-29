@@ -14,6 +14,7 @@ module Lowarn
     -- | Types and functions used in versions of programs.
     EntryPoint (..),
     isUpdateAvailable,
+    waitForUpdate,
     signalUpdate,
     lastState,
 
@@ -221,6 +222,11 @@ isUpdateAvailable :: RuntimeData a -> IO Bool
 isUpdateAvailable =
   (fmap isJust . tryTakeMVar)
     . (unUpdateSignalRegister . runtimeDataUpdateSignalRegister)
+
+-- | Block until the runtime has a program update that can be applied.
+waitForUpdate :: RuntimeData a -> IO ()
+waitForUpdate =
+  takeMVar . unUpdateSignalRegister . runtimeDataUpdateSignalRegister
 
 -- | Send a signal to Lowarn that indicates that an update is available. A
 -- boolean is returned which is @False@ if an update has already been signalled,
