@@ -15,7 +15,7 @@ category:            System
 description:         Please see the README on GitHub at <https://github.com/lowarn-dsu/lowarn/tree/main/aeson#readme>
 
 dependencies:
-- aeson >= 2.0.3 && < 2.1
+- aeson >= 2.0.3 && < 2.2
 - base >= 4.7 && < 5
 - lowarn
 - text >= 1.2.5 && < 1.3
